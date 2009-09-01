@@ -1,0 +1,20 @@
+# -*- indented-text -*-
+
+Dorodango is (intended to be) a package manager for R6RS
+implementations. Its main concepts are outlined in this thread:
+<http://groups.google.com/group/ikarus-users/browse_thread/thread/fabb890e3015f6f1>.
+
+Currently, it is not useable -- I just put the code oneline so
+interested developers can track its progress and chime in. Any help or
+feedback is welcome!
+
+=== License ============================================================
+
+dorodango is is licensed under the GNU General Public License (GNU
+GPL), version 3 or later.
+
+See the file COPYING in this distribution for the exact terms of the
+GNU GPL, version 3.
+
+--
+Andreas Rottmann <a.rottmann@gmx.at>, September 2009

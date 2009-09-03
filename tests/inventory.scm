@@ -23,7 +23,7 @@
       (leaf-data i2 '("foo" "baz.txt")))))
 
 (define-test-suite (inventory-tests.iterator inventory-tests)
-  "foo-loop iterator")
+  "foof-loop iterator")
 
 (define foo-bar-inventory
   (let* ((i0 (make-inventory 'root 'root))
@@ -66,6 +66,48 @@
     (loop ((for item (in-inventory (make-inventory 'root #f)
                                    (result result))))
       => (inventory-name result))))
+
+(define-test-suite (inventory-tests.merge inventory-tests)
+  "merging")
+
+(define (tree->inventory tree)
+  (let ((inventory (make-inventory (car tree) 'data)))
+    (loop continue ((for item (in-list (reverse (cdr tree))))
+                    (with cursor (inventory-open inventory)))
+      => (inventory-leave cursor)
+      (continue
+       (=> cursor (if (pair? item)
+                      (inventory-insert cursor (tree->inventory item))
+                      (inventory-insert cursor item #f 'data)))))))
+
+(define (inventory->tree inventory)
+  (if (inventory-leaf? inventory)
+      (inventory-name inventory)
+      (loop ((for cursor (in-inventory inventory))
+             (for result (listing (inventory->tree cursor))))
+        => (cons (inventory-name inventory) result))))
+
+(define (raise-conflict to from)
+  (raise (list 'conflict
+               (inventory->tree to)
+               (inventory->tree from))))
+
+(define-test-case inventory-tests.merge basics ()
+  (test-equal '(a "foo" "bar" "baz")
+    (inventory->tree
+     (merge-inventories (tree->inventory '(a "bar" "baz"))
+                        (tree->inventory '(b "foo"))
+                        raise-conflict)))
+  (test-equal '(a "foo" ("bar" "x" "y") "baz")
+    (inventory->tree
+     (merge-inventories (tree->inventory '(a ("bar") "baz"))
+                        (tree->inventory '(b "foo" ("bar" "y" "x")))
+                        raise-conflict)))
+  (test-equal '(conflict "foo" ("foo" "x" "y"))
+    (guard (e ((list? e) e))
+      (merge-inventories (tree->inventory '(a "foo"))
+                         (tree->inventory '(b ("foo" "x" "y")))
+                         raise-conflict))))
 
 (run-test-suite inventory-tests)
 

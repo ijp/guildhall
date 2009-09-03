@@ -49,6 +49,8 @@
           inventory-ref-data
           inventory-update
 
+          merge-inventories
+          
           make-inventory-mapper
           inventory-mapper?
           inventory-mapper-map-leaf
@@ -163,11 +165,7 @@
                   (with cursor inventory))
     => cursor
     (cond ((and (inventory-container? cursor)
-                (loop next-child
-                    ((with child
-                           (inventory-enter cursor)
-                           (inventory-next child))
-                     (until (not child)))
+                (loop next-child ((for child (in-inventory cursor)))
                   => #f
                   (if (string=? path-elt (inventory-name child))
                       child
@@ -229,6 +227,29 @@
       (let ((cursor (zip-delete inventory)))
         (values (zip-leftmost? cursor) cursor))))
 
+(define (merge-inventories a-inventory b-inventory conflict)
+  (loop continue ((with to a-inventory)
+                  (for from (in-inventory b-inventory)))
+    => to
+    (let ((leaf? (inventory-leaf? from))
+          (cursor (inventory-ref to (list (inventory-name from)))))
+      (continue
+       (=> to
+           (if leaf?
+               (if cursor
+                   (conflict cursor from)
+                   (inventory-leave
+                    (inventory-insert (inventory-open to) from)))
+               (cond ((and cursor (inventory-leaf? cursor))
+                      (conflict cursor from))
+                     (cursor
+                      (inventory-leave
+                       (merge-inventories cursor from conflict)))
+                     (else
+                      (inventory-leave
+                       (inventory-insert (inventory-open to) from))))))))))
+
+
 (define-record-type inventory-mapper
   (fields map-leaf map-container))
 

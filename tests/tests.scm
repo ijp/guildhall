@@ -3,4 +3,11 @@
    (rnrs exceptions)
    (spells misc)
    (spells foof-loop)
-   (dorodango inventory))))
+   (dorodango inventory))
+  ("database.scm"
+   (rnrs control)
+   (spells foof-loop)
+   (spells pathname)
+   (spells filesys)
+   (dorodango destination)
+   (dorodango database))))

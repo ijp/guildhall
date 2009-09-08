@@ -9,5 +9,7 @@
    (spells foof-loop)
    (spells pathname)
    (spells filesys)
+   (dorodango inventory)
+   (dorodango package)
    (dorodango destination)
    (dorodango database))))

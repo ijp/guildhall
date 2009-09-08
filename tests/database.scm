@@ -50,6 +50,7 @@
 (define-test-case db-tests install
   ((setup
     (assert-clear-stage))
+   #;
    (teardown
     (clear-stage)))
   (begin
@@ -59,7 +60,11 @@
     (let* ((db (open-test-database))
            (item (database-find db 'foo '())))
       (test-eqv #t (database-item? item))
-      (test-eqv #t (database-item-installed? item)))))
+      (test-eqv #t (database-item-installed? item))
+      (test-equal '(libraries ("foo" "a.sls"))
+        (inventory->tree
+         (package-category-inventory (database-item-package item)
+                                     'libraries))))))
 
 (run-test-suite db-tests)
 

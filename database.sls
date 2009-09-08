@@ -193,30 +193,6 @@
                           (list category))))
         (put-string port "\n")))))
 
-
-(define (tree->inventory tree data)
-  (let ((inventory (make-inventory (car tree) data)))
-    (loop continue ((for item (in-list (reverse (cdr tree))))
-                    (with cursor (inventory-open inventory)))
-      => (inventory-leave cursor)
-      (continue
-       (=> cursor (if (pair? item)
-                      (inventory-insert cursor (tree->inventory item data))
-                      (inventory-insert cursor item #f data)))))))
-
-(define (inventory->tree inventory)
-  (loop ((for cursor (in-inventory inventory))
-         (for result
-              (listing-reverse
-               (cond ((inventory-leaf? cursor)
-                             (inventory-name cursor))
-                            ((inventory-empty? cursor)
-                             #f)
-                            (else
-                             (inventory->tree cursor)))
-               => values)))
-    => (cons (inventory-name inventory) result)))
-
 (define (merge-inventory-lists a-inventories b-inventories)
   (define (conflict a b)
     (error 'merge-inventories "conflict!" a b))

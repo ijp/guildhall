@@ -49,6 +49,9 @@
           inventory-ref-data
           inventory-update
 
+          inventory->tree
+          tree->inventory
+          
           merge-inventories
           
           make-inventory-mapper
@@ -227,6 +230,33 @@
       (let ((cursor (zip-delete inventory)))
         (values (zip-leftmost? cursor) cursor))))
 
+;;; Conversion from/to trees
+
+(define (tree->inventory tree data)
+  (let ((inventory (make-inventory (car tree) data)))
+    (loop continue ((for item (in-list (reverse (cdr tree))))
+                    (with cursor (inventory-open inventory)))
+      => (inventory-leave cursor)
+      (continue
+       (=> cursor (if (pair? item)
+                      (inventory-insert cursor (tree->inventory item data))
+                      (inventory-insert cursor item #f data)))))))
+
+(define (inventory->tree inventory)
+  (loop ((for cursor (in-inventory inventory))
+         (for result
+              (listing-reverse
+               (cond ((inventory-leaf? cursor)
+                      (inventory-name cursor))
+                     ((inventory-empty? cursor)
+                      #f)
+                     (else
+                      (inventory->tree cursor)))
+               => values)))
+    => (cons (inventory-name inventory) result)))
+
+
+
 (define (merge-inventories a-inventory b-inventory conflict)
   (loop continue ((with to a-inventory)
                   (for from (in-inventory b-inventory)))

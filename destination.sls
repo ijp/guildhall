@@ -41,22 +41,23 @@
   (fields name categories))
 
 (define (make-fhs-destination name prefix)
-  (define (prefixer entry)
-    (let ((template (cdr entry)))
-      (cons (car entry)
-            (lambda (package pathname)
-              (pathname-join
-               (pathname-as-directory
-                (vals->pathname prefix
-                                `((name . ,(symbol->string (package-name package))))
-                                template))
-               pathname)))))
-  (make-destination
-   name
-   (map prefixer
-        '((libraries .  ("share" "r6rs-libs"))
-          (documentation . ("share" "doc" ("libr6rs-" name)))
-          (programs . ("bin"))))))
+  (let ((prefix (pathname-as-directory prefix)))
+    (define (prefixer entry)
+      (let ((template (cdr entry)))
+        (cons (car entry)
+              (lambda (package pathname)
+                (pathname-join
+                 (pathname-as-directory
+                  (vals->pathname prefix
+                                  `((name . ,(symbol->string (package-name package))))
+                                  template))
+                 pathname)))))
+    (make-destination
+     name
+     (map prefixer
+          '((libraries .  ("share" "r6rs-libs"))
+            (documentation . ("share" "doc" ("libr6rs-" name)))
+            (programs . ("bin")))))))
 
 (define (destination-without-categories destination categories)
   (make-destination

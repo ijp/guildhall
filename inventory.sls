@@ -307,27 +307,25 @@
                 (values dest (inventory-leave cursor))
                 (continue (=> from cursor)
                           (=> to dest))))))
-      (define (recurse+iterate dest source sub-mapper depth)
-        (receive (dest source)
-                 (apply-inventory-mapper dest source sub-mapper)
-          (let ((dest (inventory-leave-n dest depth))
-                (next (inventory-next source)))
-            (if next
-                (continue (=> from next)
-                          (=> to dest))
-                (values dest (inventory-leave source))))))
       (define (handle-container path sub-mapper)
         (if sub-mapper
-            (recurse+iterate
-             (if (null? path)
-                 to
-                 (inventory-update to
-                                   path
-                                   #t
-                                   (inventory-data from)))
-             from
-             sub-mapper
-             (length path))
+            (let ((to-descendant
+                   (if (null? path)
+                       to
+                       (inventory-update to
+                                         path
+                                         #t
+                                         (inventory-data from)))))
+              (receive (dest source)
+                       (apply-inventory-mapper to-descendant from sub-mapper)
+                (let ((dest (if (inventory-empty? dest)
+                                to
+                                (inventory-leave-n dest (length path))))
+                      (next (inventory-next source)))
+                  (if next
+                      (continue (=> from next)
+                                (=> to dest))
+                      (values dest (inventory-leave source))))))
             (move+iterate path)))
       (if (inventory-leaf? from)
           (cond ((map-leaf mapper name)  => move+iterate)

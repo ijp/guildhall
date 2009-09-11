@@ -18,10 +18,13 @@
 (library (dorodango private utils)
   (export apush
           warn
+          dsp-pathname
+          logger:dorodango
           make-fmt-log)
   (import (rnrs)
           (spells alist)
           (spells fmt)
+          (spells pathname)
           (spells logging))
 
 (define (warn who message . irritants)
@@ -38,10 +41,17 @@
         (else
          (acons k (list v) vals))))
 
-(define (make-fmt-log logger-name)
-  (let ((log (make-log logger-name)))
+(define (make-fmt-log logger)
+  (let ((log (make-log logger)))
     (lambda (level . formats)
       (log level (lambda (port)
                    (apply fmt port formats))))))
+
+(define (dsp-pathname pathname)
+  (lambda (st)
+    ((dsp (->namestring pathname)) st)))
+
+;; This doesn't really belong here
+(define logger:dorodango (make-logger root-logger 'dorodango))
 
 )

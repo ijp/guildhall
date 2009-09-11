@@ -38,6 +38,7 @@
         (spells lazy-streams)
         (rename (spells args-fold)
                 (option %option))
+        (spells logging)
         (spells tracing)
         (dorodango private utils)
         (dorodango database)
@@ -206,15 +207,28 @@
                                 "  " (fmt-join dsp-item-identifier items " ")
                                 "Please specify a version as well.")))
                 (else
-                 (database-install! db
-                                    (database-item-name (car items))
-                                    (database-item-version (car items))))))))))
+                 (database-install! db (database-item-package (car items))))))))))
 
 (define-command install
   (description "Install new packages")
-  (synopsis "install [--bundle BUNDLE]... PACKAGE")
+  (synopsis "install [--bundle BUNDLE]... PACKAGE...")
   (options bundle-option)
   (handler install-command))
+
+(define (remove-command vals)
+  (let ((packages (opt-ref/list vals 'operands))
+        (db (config->database (assq-ref vals 'config))))
+    (loop ((for package (in-list packages)))
+      (receive (name version) (parse-package-string package)
+        (loop ((for item (in-list (database-search db name version))))
+          (when (database-item-installed? item)
+            (database-remove! db (database-item-package item))))))))
+
+(define-command remove
+  (description "Remove packages")
+  (synopsis "remove PACKAGE...")
+  (options)
+  (handler remove-command))
 
 
 ;;; Formatting combinators
@@ -333,6 +347,12 @@
                  '()))
 
 (define (main argv)
+  (set-logger-properties!
+   logger:dorodango
+   `((threshold debug)
+     (handlers
+      ,(lambda (entry)
+         (default-log-formatter entry (current-output-port))))))
   (match argv
     ((self)
      (fmt #t (dsp-usage)))

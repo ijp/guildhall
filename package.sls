@@ -25,6 +25,7 @@
 (library (dorodango package)
   (export make-package
           package?
+          package=?
           package-name
           package-version
           package-property
@@ -49,7 +50,21 @@
           (dorodango inventory))
 
 (define-record-type package
+  (protocol (lambda (p)
+              (case-lambda
+                ((name version properties inventories)
+                 (p name version properties inventories))
+                ((name version properties)
+                 (p name version properties '()))
+                ((name version)
+                 (p name version '() '())))))
   (fields name version properties inventories))
+
+(define (package=? p1 p2)
+  (and (eq? (package-name p1)
+            (package-name p2))
+       (package-version=? (package-version p1)
+                          (package-version p2))))
 
 (define-functional-fields package
   name version properties inventories)

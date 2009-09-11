@@ -48,6 +48,7 @@
           (spells foof-loop)
           (spells operations)
           (spells fmt)
+          (spells logging)
           (spells tracing)
           (only (spells assert) cout)
           #;(prefix (weinholt compression zip) zip:)
@@ -84,10 +85,9 @@
   (no-inventory)
   bundle-options)
 
-(define (bundle-package-ref bundle name version)
-  (find (lambda (package)
-          (and (eq? name (package-name package))
-               (package-version=? version (package-version package))))
+(define (bundle-package-ref bundle package)
+  (find (lambda (bundle-package)
+          (package=? bundle-package package))
         (bundle-packages bundle)))
 
 
@@ -453,7 +453,8 @@
 (define (path->string path)
   (string-join path "/"))
 
-(define log/categorizer (make-fmt-log '(dorodango categorizer)))
+(define logger:dorodango.categorizer (make-logger logger:dorodango 'categorizer))
+(define log/categorizer (make-fmt-log logger:dorodango.categorizer))
 
 )
 

@@ -16,4 +16,10 @@
    (dorodango inventory)
    (dorodango package)
    (dorodango destination)
-   (dorodango database))))
+   (dorodango database))
+  ("solver.scm"
+   (spells match)
+   (spells fmt)
+   (dorodango solver dummy-db)
+   (dorodango solver universe)
+   (dorodango solver))))

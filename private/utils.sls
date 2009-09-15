@@ -41,11 +41,17 @@
         (else
          (acons k (list v) vals))))
 
-(define (make-fmt-log logger)
-  (let ((log (make-log logger)))
-    (lambda (level . formats)
-      (log level (lambda (port)
-                   (apply fmt port formats))))))
+(define make-fmt-log
+  (case-lambda
+    ((logger)
+     (let ((log (make-log logger)))
+       (lambda (level . formats)
+         (log level (lambda (port)
+                      (apply fmt port formats))))))
+    ((logger level)
+     (let ((log (make-log logger level)))
+       (lambda formats
+         (log (lambda (port) (apply fmt port formats))))))))
 
 (define (dsp-pathname pathname)
   (lambda (st)

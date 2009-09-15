@@ -19,6 +19,10 @@
 
 ;;; Commentary:
 
+;; The package database keeps track of installed and available
+;; packages, and allows to install and remove individual packages. It
+;; does *not* deal with package dependencies.
+
 ;;; Code:
 #!r6rs
 
@@ -29,10 +33,11 @@
           
           database-add-bundle!
           database-add-bundles!
+          
           database-find
           database-search
-
-          database-update!
+          in-database
+          
           database-install!
           database-remove!
 
@@ -65,6 +70,33 @@
           (dorodango repository)
           (dorodango destination))
 
+;;; Data types and conditions
+
+(define-record-type database
+  (fields directory
+          destination
+          repositories
+          file-table
+          pkg-table))
+
+(define-record-type item
+  (fields package state sources bundle))
+
+(define-functional-fields item
+  package state sources bundle)
+
+(define (item-name item)
+  (package-name (item-package item)))
+
+(define (item-version item)
+  (package-version (item-package item)))
+
+(define (item-installed? item)
+  (eq? 'installed (item-state item)))
+
+(define-record-type source
+  (fields repository location))
+
 (define-condition-type &database-file-conflict &error
   make-file-conflict database-file-conflict?
   (package database-file-conflict-package)
@@ -74,14 +106,8 @@
 (define (file-conflict item package pathname)
   (raise (condition (make-file-conflict item package pathname))))
 
-(define-record-type database
-  (fields directory
-          destination
-          repositories
-          file-table
-          pkg-table))
-
-(define managed-categories '(libraries documentation programs))
+
+;;; Database loading
 
 (define (open-database directory destination repositories)
   (let* ((directory (pathname-as-directory directory))
@@ -123,24 +149,6 @@
   (loop ((for repository (in-list repositories)))
     (let ((pathname (repository-available-pathname repository)))
       (load-available-file! db repository pathname))))
-
-(define (remove-repositories! db repositories)
-  (define (item-without-repositories item)
-    (let ((remaining (filter (lambda (source)
-                               (not (memq (source-repository source)
-                                          repositories)))
-                             (item-sources item))))
-      (if (and (null? remaining)
-               (eq? 'available (item-state item)))
-          #f
-          (item-with-sources item remaining))))
-  (let ((pkg-table (database-pkg-table db)))
-    (loop ((for pkg-name (in-vector (hashtable-keys pkg-table))))
-      (hashtable-update! pkg-table
-                         pkg-name
-                         (lambda (items)
-                           (filter-map item-without-repositories items))
-                         '()))))
 
 (define (load-available-file! db repository pathname)
   (define (lose msg . irritants)
@@ -226,56 +234,8 @@
                (for inventories (listing (tree->inventory form name))))
           => (package-with-inventories package inventories))))))
 
-(define (save-package-info pathname package)
-  (call-with-output-file/atomic (->namestring pathname)
-    (lambda (port)
-      (put-datum port (package->form package))
-      (put-string port "\n\n")
-      (loop ((for category (in-list managed-categories)))
-        (put-datum port
-                   (cond ((package-category-inventory package category)
-                          => inventory->tree)
-                         (else
-                          (list category))))
-        (put-string port "\n")))))
-
-#;
-(define (merge-inventory-lists a-inventories b-inventories)
-  (define (conflict a b)
-    (error 'merge-inventories "conflict!" a b))
-  (loop continue ((for a-inventory (in-list a-inventories))
-                  (with result '()))
-    => (reverse result)
-    (cond ((find-inventory b-inventories (inventory-name a-inventory))
-           => (lambda (b-inventory)
-                (continue
-                 (=> result
-                     (cons (merge-inventories a-inventory b-inventory conflict)
-                           result)))))
-          (else
-           (continue)))))
-
-#;
-(define (find-inventory inventories name)
-  (find (lambda (inventory)
-          (eq? name (inventory-name inventory)))
-        inventories))
-
 
-(define-record-type item
-  (fields package state sources bundle))
-
-(define-functional-fields item
-  package state sources bundle)
-
-(define (item-name item)
-  (package-name (item-package item)))
-
-(define (item-version item)
-  (package-version (item-package item)))
-
-(define-record-type source
-  (fields repository location))
+;;; Source manipulation
 
 (define (database-add-bundle! db pathname)
   (let ((bundle (open-directory-input-bundle pathname
@@ -300,7 +260,7 @@
               result
               (cons (make-item package 'available (list source) #f)
                     result)))
-      (if (same-package? package (item-package item))
+      (if (package=? package (item-package item))
           (continue
            (=> found? #t)
            (=> result
@@ -314,20 +274,59 @@
                      update-items
                      '()))
 
+;; This is not yet used
+(define (remove-repositories! db repositories)
+  (define (item-without-repositories item)
+    (let ((remaining (filter (lambda (source)
+                               (not (memq (source-repository source)
+                                          repositories)))
+                             (item-sources item))))
+      (if (and (null? remaining)
+               (eq? 'available (item-state item)))
+          #f
+          (item-with-sources item remaining))))
+  (let ((pkg-table (database-pkg-table db)))
+    (loop ((for pkg-name (in-vector (hashtable-keys pkg-table))))
+      (hashtable-update! pkg-table
+                         pkg-name
+                         (lambda (items)
+                           (filter-map item-without-repositories items))
+                         '()))))
+
+
+;;; Querying
+
+(define (database-find db package)
+  (let ((version (package-version package)))
+    (find (lambda (item)
+            (package-version=? version (package-version (item-package item))))
+          (hashtable-ref (database-pkg-table db) (package-name package) '()))))
+
+(define (database-search db name version)
+  (let ((items (hashtable-ref (database-pkg-table db) name '())))
+    (if (not version)
+        items
+        (filter (lambda (item)
+                  (version-match? (item-package item) version))
+                items))))
+
 (define (version-match? package version)
   (or (not version)
       (package-version=? (package-version) version)))
 
-(define (same-package? p1 p2)
-  (and (eq? (package-name p1)
-            (package-name p2))
-       (equal? (package-version p1)
-               (package-version p2))))
-
-(define (database-search db name version)
-  (filter (lambda (item)
-            (version-match? (item-package item) version))
-          (hashtable-ref (database-pkg-table db) name '())))
+(define-syntax in-database
+  (syntax-rules ()
+    ((_ (name-var items-var) (db-expr) cont . env)
+     (cont
+      (((name-vec items-vec)
+        (database-pkg-table db-expr)))             ;Outer bindings
+      ((i (- (vector-length name-vec) 1) (- i 1))) ;Loop variables
+      ()                               ;Entry bindings
+      ((= i 0))                        ;Termination conditions
+      (((name-var) (vector-ref name-vec i))
+       ((items-var) (vector-ref items-vec i))) ;Body bindings
+      ()                               ;Final bindings
+      . env))))
 
 (define database-update!
   (case-lambda
@@ -360,35 +359,8 @@
     ((db package proc)
      (database-update! db package proc #f))))
 
-(define (open-bundle! db item)
-  (let ((sources (item-sources item)))
-    ;; TODO: what to do with other sources here?
-    (when (null? sources)
-      (error 'open-bundle! "no sources for package" (item-package item)))
-    (let* ((source (car sources))
-           (bundle (open-directory-input-bundle
-                    (repository-fetch-bundle
-                     (source-repository source)
-                     (source-location source)))))
-      (loop ((for package (in-list (bundle-packages bundle))))
-        (database-update! db
-                          package
-                          (lambda (item)
-                            (make-item package
-                                       (item-state item)
-                                       (item-sources item)
-                                       bundle))
-                          (make-item package 'available (list source) #f)))
-      bundle)))
-
-(define (database-find db package)
-  (let ((version (package-version package)))
-    (find (lambda (item)
-            (package-version=? version (package-version (item-package item))))
-          (hashtable-ref (database-pkg-table db) (package-name package) '()))))
-
-(define (item-installed? item)
-  (eq? 'installed (item-state item)))
+
+;;; Installation & removal
 
 (define (database-package-info-pathname db package)
   (pathname-with-file (database-status-directory db)
@@ -423,6 +395,27 @@
           ((not (item-installed? desired-item))
            (do-install! desired-item)))))
 
+(define (open-bundle! db item)
+  (let ((sources (item-sources item)))
+    ;; TODO: what to do with other sources here?
+    (when (null? sources)
+      (error 'open-bundle! "no sources for package" (item-package item)))
+    (let* ((source (car sources))
+           (bundle (open-directory-input-bundle
+                    (repository-fetch-bundle
+                     (source-repository source)
+                     (source-location source)))))
+      (loop ((for package (in-list (bundle-packages bundle))))
+        (database-update! db
+                          package
+                          (lambda (item)
+                            (make-item package
+                                       (item-state item)
+                                       (item-sources item)
+                                       bundle))
+                          (make-item package 'available (list source) #f)))
+      bundle)))
+
 (define (extract-package bundle package destination)
   (loop ((for category (in-list (package-categories package))))
     (define (extract-file pathname extractor)
@@ -439,6 +432,21 @@
                       extractor))))))
     (let ((inventory (package-category-inventory package category)))
       (bundle-walk-inventory bundle inventory extract-file))))
+
+(define managed-categories '(libraries documentation programs))
+
+(define (save-package-info pathname package)
+  (call-with-output-file/atomic (->namestring pathname)
+    (lambda (port)
+      (put-datum port (package->form package))
+      (put-string port "\n\n")
+      (loop ((for category (in-list managed-categories)))
+        (put-datum port
+                   (cond ((package-category-inventory package category)
+                          => inventory->tree)
+                         (else
+                          (list category))))
+        (put-string port "\n")))))
 
 (define (database-remove! db package)
   (define (lose msg . irritants)
@@ -475,8 +483,8 @@
                                              (list (inventory-name cursor))))
                    (let ((packages
                           (remp (lambda (providing-package)
-                                  (same-package? providing-package
-                                                 package))
+                                  (package=? providing-package
+                                             package))
                                 (hashtable-ref file-table pathname #f))))
                      (cond ((null? packages)
                             (log/db 'debug (cat "removing directory "

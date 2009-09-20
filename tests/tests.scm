@@ -4,6 +4,8 @@
    (spells misc)
    (spells foof-loop)
    (dorodango inventory))
+  ("expression.scm"
+   (dorodango solver expression))
   ("database.scm"
    (rnrs control)
    (rnrs exceptions)

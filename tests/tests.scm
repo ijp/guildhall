@@ -19,9 +19,4 @@
    (dorodango package)
    (dorodango destination)
    (dorodango database))
-  ("solver.scm"
-   (spells match)
-   (spells fmt)
-   (dorodango solver dummy-db)
-   (dorodango solver universe)
-   (dorodango solver))))
+  "solver.scm"))

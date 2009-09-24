@@ -1,12 +1,19 @@
 # -*- indented-text -*-
 
-Dorodango is (intended to be) a package manager for R6RS
+dorodango is (intended to be) a package manager for R6RS
 implementations. Its main concepts are outlined in this thread:
 <http://groups.google.com/group/ikarus-users/browse_thread/thread/fabb890e3015f6f1>.
 
 Currently, it is not useable -- I just put the code oneline so
 interested developers can track its progress and chime in. Any help or
 feedback is welcome!
+
+=== Solver =============================================================
+
+For resolving dependencies, dorodango employs a Scheme "port" of
+aptitude's [0] solver. The code is based on aptitude changeset
+3247:9e580575b240, Copyright (C) 2005, 2007-2009, Daniel Burrows,
+licensed under the GPL, version 2 or later.
 
 === License ============================================================
 
@@ -15,6 +22,11 @@ GPL), version 3 or later.
 
 See the file COPYING in this distribution for the exact terms of the
 GNU GPL, version 3.
+
+=== Footnotes ==========================================================
+
+[0] Aptitude is Debian's high-level package managment tool, written in
+    C++.
 
 --
 Andreas Rottmann <a.rottmann@gmx.at>, September 2009

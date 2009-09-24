@@ -1,6 +1,7 @@
 ;;; solver.scm --- Dependency solver unit tests
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -19,7 +20,43 @@
 
 ;;; Commentary:
 
+;; This file is based on the test cases for aptitude's resolver which
+;; are written in a DSL and exectuted by the test.cc driver. This
+;; being Lisp, there's no need to seperate test specifications and the
+;; driver.
+
 ;;; Code:
+
+(import (rnrs)
+        (dorodango solver)
+        (dorodango solver dummy-db)
+        (dorodango solver universe)
+        (spells match)
+        (spells fmt)
+        (spells testing)
+        (spells logging))
+
+;; Set this to `#t' to show the universe that the solver will operate
+;; in.
+(define show-universe? #f)
+
+;; Set this to `#t' to get detailed traces of the solver's
+;; operation. This is useful for debugging in general, and comparing
+;; with aptitude's resolvers' debugging output specifically.
+(define debug-output? #f)
+
+(define (simple-log-formatter entry)
+  (let ((port (current-output-port))
+        (obj (log-entry-object entry)))
+    (if (procedure? obj)
+        (obj port)
+        (display obj port))
+    (newline port)))
+
+(when debug-output?
+  (set-logger-properties! root-logger
+                          `((threshold trace)
+                            (handlers ,simple-log-formatter))))
 
 (define (make-test-universe packages dependencies)
   (let ((db (make-dummy-db)))
@@ -30,12 +67,17 @@
                ((source version relation . targets)
                 (dummy-db-add-dependency! db source version (eq? relation '<>) targets)))
               dependencies)
-    (dummy-db->universe db)))
+    (let ((universe (dummy-db->universe db)))
+        (when show-universe?
+          (fmt #t (dsp-universe universe)))
+        universe)))
 
 (define (test-solutions expected solver)
   (for-each (match-lambda
              ((max-steps 'any)
-              (test-eqv #t (solution? (find-next-solution! solver max-steps)))))
+              (test-eqv #t (solution? (find-next-solution! solver max-steps))))
+             ((max-steps #f)
+              (test-eqv #f (find-next-solution! solver max-steps))))
             expected))
 
 (define-test-suite solver-tests
@@ -56,13 +98,11 @@
                      (p2 1 <> (p1 . 2) (p1 . 3))
                      
                      (p3 1 -> (p4 . 1) (p4 . 2) (p4 . 3))
-                     (p3 1 -> (p4 . 1) (p4 . 2) (p4 . 3))
-                     (p3 1 -> (p4 . 1) (p4 . 2) (p4 . 3))))))
-    #;
-    (fmt #t (dsp-universe universe))
+                     (p3 2 -> (p4 . 1) (p4 . 2) (p4 . 3))
+                     (p3 3 -> (p4 . 1) (p4 . 2) (p4 . 3))))))
     (test-solutions '((10000 any)
                       (10000 any)
-                      (10000 any))
+                      (10000 #f))
       (make-solver universe))))
 
 (run-test-suite solver-tests)

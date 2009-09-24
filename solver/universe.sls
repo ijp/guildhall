@@ -19,13 +19,95 @@
 
 ;;; Commentary:
 
+;; This library presents a read-only view onto the universe. Here R6RS
+;; libraries fall short -- this and the `(dorodango solver internals)'
+;; exported interfaces could be less redundantly described using
+;; something like `compound-interface' from the Scheme 48 module
+;; system.
+
+;; TODO:
+;; - Document universe requirements
+
 ;;; Code:
 #!r6rs
 
 (library (dorodango solver universe)
   (export universe?
-          dsp-universe)
+          universe-package-count
+          universe-version-count
+          universe-package-stream
+          universe-dependency-stream
+
+          guarantee-universe
+          dsp-universe
+          
+          package?
+          package-id
+          package-name
+          package-versions
+          package-current-version
+          
+          package=?
+          package<?
+          package-compare
+          package-hash
+          package-wt-type
+
+          guarantee-package
+          dsp-package
+          
+          version?
+          version-id
+          version-tag
+          version-package
+          version-dependencies
+          version-reverse-dependencies
+
+          version=?
+          version<?
+          version-compare
+          version-hash
+          version-wt-type
+
+          guarantee-version
+          dsp-version
+          
+          dependency?
+          dependency-source
+          dependency-targets
+
+          dependency=?
+          dependency<?
+          dependency-compare
+          dependency-hash
+          dependency-wt-type
+
+          guarantee-dependency
+          dsp-dependency
+          
+          make-tier
+          tier?
+          tier-policy
+          tier-priority
+
+          tier=?
+          tier<?
+          tier<=?
+          tier>?
+          tier>=?
+          tier-compare
+          tier-wt-type
+          
+          guarantee-tier
+          dsp-tier
+          
+          minimum-tier
+          defer-tier
+          already-generated-tier
+          conflict-tier
+          maximum-tier)
   (import (rnrs)
+          (spells alist)
           (spells fmt)
           (spells foof-loop)
           (spells lazy-streams)
@@ -50,10 +132,30 @@
        ">"))
 
 (define (dsp-dependency dependency)
-  (cat "dependency " (dsp-version (dependency-source dependency))
-       " -> " (fmt-join dsp-version (dependency-targets dependency) " ")))
+  (cat (dsp-version (dependency-source dependency))
+       " -> {" (fmt-join dsp-version (dependency-targets dependency) " ") "}"))
 
 (define (dsp-version version)
-  (cat (package-name (version-package version)) ":" (version-tag version)))
+  (cat (package-name (version-package version)) " v" (version-tag version)))
+
+(define dsp-tier
+  (let ((tier-policy-names
+         (map (lambda (pair)
+                (cons (tier-policy (car pair)) (cdr pair)))
+              `((,maximum-tier . maximum)
+                (,conflict-tier . conflict)
+                (,already-generated-tier . already-generated)
+                (,defer-tier . defer-tier)
+                (,minimum-tier . minimum)))))
+    (lambda (tier)
+      (let* ((priority (tier-priority tier))
+             (priority-name (if (= priority (least-fixnum))
+                                'least
+                                priority)))
+        (cond ((assv-ref tier-policy-names (tier-policy tier))
+               => (lambda (policy-name)
+                    (dsp (cons policy-name priority-name))))
+              (else
+               (dsp (cons (tier-policy tier) priority-name))))))))
 
 )

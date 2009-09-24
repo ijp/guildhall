@@ -33,7 +33,7 @@
 
           dummy-db->universe)
   (import (rnrs)
-          (only (srfi :1) append-map filter-map)
+          (only (srfi :1) append-map filter-map delete-duplicates)
           (spells record-types)
           (spells foof-loop)
           (spells lazy-streams)
@@ -43,21 +43,21 @@
   (make-dummy-db)
   ((packages '())
    (version-count 0)
+   (dependency-count 0)
    (dependencies '())
    (package-table (make-eq-hashtable))))
 
-(define (dummy-db-add-package! db name versions current-version)
+(define (dummy-db-add-package! db name versions current-version-tag)
   (let* ((package-table (dummy-db-package-table db))
          (package (make-package (hashtable-size package-table)
-                                       name)))
+                                name)))
     (loop ((for tag (in-list versions))
            (for version-count (up-from (dummy-db-version-count db)))
-           (let version
-               (make-version version-count tag package))
-           (for versions (listing-reverse version))
+           (let version (make-version version-count tag package))
+           (for versions (listing version))
            (with current-version
                  #f
-                 (if (= tag (version-tag version))
+                 (if (= current-version-tag (version-tag version))
                      version
                      current-version)))
       => (begin
@@ -103,18 +103,21 @@
               (targets (if conflict?
                            (inverted-dependency-targets packages targets)
                            targets))
-              (dependency (make-dependency source targets)))
+              (dependency (make-dependency
+                           (dummy-db-dependency-count db)
+                           source
+                           (delete-duplicates targets version=?))))
          (version-add-dependency! source dependency)
          (for-each (lambda (target)
                      (version-add-reverse-dependency! target dependency))
                    targets)
-         (set-dummy-db-dependencies!
-          db
-          (cons dependency (dummy-db-dependencies db))))))
+         (set-dummy-db-dependencies! db (cons dependency (dummy-db-dependencies db)))
+         (set-dummy-db-dependency-count! db (+ (dummy-db-dependency-count db) 1)))))
 
 (define (dummy-db->universe db)
-  (make-universe (list->stream (dummy-db-packages db))
+  (make-universe (list->stream (reverse (dummy-db-packages db)))
                  (hashtable-size (dummy-db-package-table db))
                  (dummy-db-version-count db)
-                 (list->stream (dummy-db-dependencies db))))
+                 (list->stream (reverse (dummy-db-dependencies db)))))
+
 )

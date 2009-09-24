@@ -1,6 +1,7 @@
 ;;; expression.sls --- Dynamically updateable expression DAG
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009 Andreas Rottmann
+;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -28,8 +29,13 @@
           expression/remove-parent!
           expression/dsp
 
+          expression/child
+          expression/set-child!
+          
           expression/add-child!
           expression/remove-child!
+
+          make-expression-wrapper
           
           make-var-expression
           expression/set-value!
@@ -39,6 +45,7 @@
   (import (rnrs)
           (only (srfi :1) append-reverse count)
           (only (spells gc) make-weak-cell weak-cell-ref)
+          (only (spells misc) unspecific)
           (spells operations)
           (spells foof-loop)
           (spells fmt))
@@ -90,9 +97,47 @@
            (dsp `(var ,value))))
         (make-expression)))
 
-;;; Container operations
+;;; Container operations (both N-Ary, and boxes)
 
 (define-operation (expression/child-modified expr child old-value new-value))
+
+;;; Expression boxes
+
+(define-operation (expression/child expr))
+(define-operation (expression/set-child! expr))
+
+(define (make-expression-box child)
+  (join (object #f
+          ((expression/init! expr)
+           (when child
+             (expression/add-parent! child expr)))
+          ((expression/child expr)
+           child)
+          ((expression/set-child! expr new-child)
+           (when child
+             (expression/remove-parent! child expr))
+           (set! child new-child)
+           (when new-child
+             (expression/add-parent! new-child expr)))
+          ((expression/value expr)
+           (and child (expression/value child)))
+          ((expression/dsp expr)
+           (if child
+               (expression/dsp child)
+               fmt-null)))
+        (make-expression)))
+
+(define-operation (expression/changed expr new-value)
+  (unspecific))
+
+(define (make-expression-wrapper child)
+  (join (object #f
+          ((expression/child-modified expr child old-value new-value)
+           (expression/changed expr new-value)))
+        (make-expression-box child)))
+
+;;; N-ary container operations
+
 (define-operation (expression/add-child! expr child))
 (define-operation (expression/remove-child! expr child))
 (define-operation (expression/n-children expr))

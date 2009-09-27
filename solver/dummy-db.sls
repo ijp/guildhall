@@ -28,6 +28,7 @@
 (library (dorodango solver dummy-db)
   (export make-dummy-db
           dummy-db?
+          dummy-db-version-ref
           dummy-db-add-package!
           dummy-db-add-dependency!
 
@@ -47,6 +48,9 @@
    (dependencies '())
    (package-table (make-eq-hashtable))))
 
+(define (dummy-db-version-ref db name version-tag)
+  (find-version/assert (dummy-db-package db name) version-tag))
+
 (define (dummy-db-add-package! db name versions current-version-tag)
   (let* ((package-table (dummy-db-package-table db))
          (package (make-package (hashtable-size package-table)
@@ -57,7 +61,7 @@
            (for versions (listing version))
            (with current-version
                  #f
-                 (if (= current-version-tag (version-tag version))
+                 (if (eqv? current-version-tag (version-tag version))
                      version
                      current-version)))
       => (begin

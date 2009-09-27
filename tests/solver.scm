@@ -53,12 +53,7 @@
         (display obj port))
     (newline port)))
 
-(when debug-output?
-  (set-logger-properties! root-logger
-                          `((threshold trace)
-                            (handlers ,simple-log-formatter))))
-
-(define (make-test-universe packages dependencies)
+(define (make-test-db packages dependencies)
   (let ((db (make-dummy-db)))
     (for-each (lambda (package)
                 (apply dummy-db-add-package! db package))
@@ -67,10 +62,31 @@
                ((source version relation . targets)
                 (dummy-db-add-dependency! db source version (eq? relation '<>) targets)))
               dependencies)
-    (let ((universe (dummy-db->universe db)))
-        (when show-universe?
-          (fmt #t (dsp-universe universe)))
-        universe)))
+    db))
+
+(define (test-db->universe db)
+  (let ((universe (dummy-db->universe db)))
+    (when show-universe?
+      (fmt #t (dsp-universe universe)))
+    universe))
+
+(define (make-test-universe packages dependencies)
+  (test-db->universe (make-test-db packages dependencies)))
+
+(define (make-joint-scores db versions.score-list)
+  (map (lambda (versions.score)
+         (cons
+          (map (lambda (pkg.version)
+                 (dummy-db-version-ref db (car pkg.version) (cdr pkg.version)))
+               (car versions.score))
+          (cdr versions.score)))
+       versions.score-list))
+
+(define (make-version-scores db version.score-list)
+  (map (lambda (version.score)
+         (cons (dummy-db-version-ref db (caar version.score) (cdar version.score))
+               (cdr version.score)))
+       version.score-list))
 
 (define (test-solutions expected solver)
   (for-each (match-lambda
@@ -104,6 +120,70 @@
                       (10000 any)
                       (10000 #f))
       (make-solver universe))))
+
+(define-test-case solver-tests carglass ()
+  (let* ((db (make-test-db
+              '((car (1) 1)
+                (engine (1 2 #f) #f)
+                (turbo (1 #f) 1)
+                (wheel (2 3 #f) #f)
+                (tyre (1 2 #f) #f)
+                (door (1 2 #f) #f)
+                (window (0 1 2 #f) #f)
+                (glass (1 2 #f) #f))
+              '((car 1 -> (engine . 1) (engine . 2))
+                (car 1 -> (wheel . 2) (wheel . 3))
+                (car 1 -> (door . 1) (door . 2))
+                (wheel 3 -> (tyre . 1) (tyre . 2))
+                (door 2 -> (window . 0) (window . 1) (window . 2))
+                (window 1 -> (glass . 1))
+                (window 2 -> (glass . 2))
+                (tyre 2 -> (glass . 1) (glass . #f)))))
+         (version-scores (make-version-scores db '(((engine . 2) . 100)
+                                                   ((wheel . 3) . 100)
+                                                   ((tyre . 2) . 100)
+                                                   ((door . 2) . 100)
+                                                   ((window . 2) . 100)
+                                                   ((glass . 2) . 100)))))
+    (test-solutions '((10000 any)
+                      (10000 any)
+                      (10000 any))
+      (make-solver (test-db->universe db)
+                   `((version-scores . ,version-scores))))))
+
+(define-test-case solver-tests test3 ()
+  (let ((db (make-test-db '((p1 (1 2 3) 1)
+                            (p2 (1 2 3) 1)
+                            (p3 (1 2 3) 1)
+                            (p4 (1 2 3) 1))
+                          '((p1 1 -> (p2 . 2) (p2 . 3))
+                            (p1 2 -> (p2 . 2) (p2 . 3))
+                            (p1 3 -> (p2 . 2) (p2 . 3))
+                            
+                            (p2 1 -> (p3 . 1) (p3 . 2) (p3 . 3))
+                            (p2 2 -> (p3 . 2) (p3 . 3))
+                            (p2 1 <> (p1 . 2) (p1 . 3))
+                            
+                            (p3 1 -> (p4 . 1) (p4 . 2) (p4 . 3))
+                            (p3 2 -> (p4 . 1) (p4 . 2) (p4 . 3))
+                            (p3 3 -> (p4 . 1) (p4 . 2) (p4 . 3))))))
+    (test-solutions '((10000 any)
+                      (10000 any)
+                      (10000 any)
+                      (10000 #f))
+      (make-solver (test-db->universe db)
+                   `((version-scores
+                      . ,(make-version-scores db '(((p2 . 3) . 100))))
+                     (joint-scores
+                      . ,(make-joint-scores
+                          db
+                          `((((p2 . 2) (p3 . 2)) . 500)
+                            (((p2 . 2) (p3 . 3)) . 10000)))))))))
+
+(when debug-output?
+  (set-logger-properties! root-logger
+                          `((threshold trace)
+                            (handlers ,simple-log-formatter))))
 
 (run-test-suite solver-tests)
 

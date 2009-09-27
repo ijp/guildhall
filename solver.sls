@@ -93,6 +93,8 @@
        (future-horizon (option 'future-horizon))
        (initial-state (option 'initial-state))
        (remove-stupid? (option 'remove-stupid?))
+       (joint-scores (make-joint-score-set initial-state (option 'joint-scores)))
+       (version-scores (make-version-scores universe (option 'version-scores)))
        
        ;; Immutable
        (initial-broken
@@ -112,10 +114,10 @@
        (pending-future-solutions (make-wt-tree graph-wt-type))
        (promotion-queue-tail (make-promotion-queue 0 0))
        (version-tiers (make-vector (universe-version-count universe)
-                                   minimum-tier))
-       (version-scores (make-vector (universe-version-count universe) 0))
-       (joint-scores (make-joint-score-set)))
+                                   minimum-tier)))
 
+    ;;; Public procedures
+    
     (define (find-next max-steps)
       (and (not finished?)
            (when (and (wt-tree/empty? pending)
@@ -144,6 +146,9 @@
                (continue
                 (=> most-future-solution-steps new-most-future-solutions-steps))))))
 
+
+    ;;; Private procedures
+    
     (define (prepare-result most-future-solution-steps)
       (log/trace
        (cond ((> most-future-solution-steps future-horizon)
@@ -230,7 +235,7 @@
                    (else
                     (generate-successors step-num)
                     (and-let* ((child-num (step-first-child step))
-                               (child (search-graph-step child-num))
+                               (child (search-graph-step graph child-num))
                                ((step-last-child? child))
                                ((tier<? (step-tier child) defer-tier)))
                       (log/trace "Following forced dependency resolution from step "
@@ -257,10 +262,10 @@
              (unless first?
                (set-step-last-child?! (search-graph-last-step graph) #f))
              (generate-single-successor parent
-                                       solver
-                                       (max-compare tier-compare
-                                                    (solver-info-tier info)
-                                                    (step-tier parent)))
+                                        solver
+                                        (max-compare tier-compare
+                                                     (solver-info-tier info)
+                                                     (step-tier parent)))
              #f)
            #t
            best-solvers))))
@@ -311,8 +316,7 @@
          joint-scores
          choice
          (lambda (choices score)
-           (when (choice-set-contains? (step-actions step)
-                                       choices)
+           (when (choice-set-subset? choices (step-actions step))
              (log/trace "Adjusting the score of " (step-num step)
                         " by " (num/sign score) " for a joint score constraint on "
                         (dsp-choice-set choices))
@@ -497,8 +501,8 @@
                           (promotion-queue-action-sum new-tail) " total actions.")))
             (else
              (log/debug "Did not add " p
-                        "to the global promotion set: it was redundant "
-                        "with an existing promotion.")))
+                        " to the global promotion set: it was redundant"
+                        " with an existing promotion.")))
       (search-graph-schedule-promotion-propagation! graph step-num promotion))
 
     (define (check-for-new-promotions step-num)
@@ -536,7 +540,7 @@
                    (increase-step-tier step non-incipient-promotion))
                  (set-step-promotion-queue-location! step promotion-queue-tail)
                  (loop ((for choice promotion (in-hashtable incipient-promotions)))
-                   (increase-solver-tier step choice promotion)))))))
+                   (increase-solver-tier step promotion choice)))))))
 
     (define (apply-promotion step promotion)
       (define p (dsp-promotion promotion))
@@ -820,8 +824,40 @@
 
 (define choice-by-action-wt-type (make-wt-tree-type choice-by-action<?))
 
-(define (make-joint-score-set)
-  (make-wt-tree choice-by-action-wt-type))
+(define (make-joint-score-set initial-state versions.score-list)
+  (define (versions->choice-set versions)
+    (loop continue
+        ((for version (in-list versions))
+         (with choices
+               (make-choice-set)
+               (choice-set-insert-or-narrow choices
+                                            (make-install-choice version #f))))
+      => choices
+      (if (version=? version (version-of (version-package version) initial-state))
+          #f
+          (continue))))
+  (define (add-versions-score joint-scores versions score)
+    (cond ((versions->choice-set versions)
+           => (lambda (choices)
+                (let ((joint-score (make-joint-score choices score)))
+                  (choice-set-fold
+                   (lambda (choice joint-scores)
+                     (wt-tree/update joint-scores
+                                     choice
+                                     (lambda (joint-scores)
+                                       (cons joint-score joint-scores))
+                                     '()))
+                   joint-scores
+                   choices))))
+          (else
+           joint-scores)))
+  (loop ((for versions.score (in-list versions.score-list))
+         (with joint-scores
+               (make-wt-tree choice-by-action-wt-type)
+               (add-versions-score joint-scores
+                                   (car versions.score)
+                                   (cdr versions.score))))
+    => joint-scores))
 
 (define (joint-score-set-visit joint-scores choice proc)
   (and=> (wt-tree/lookup joint-scores choice #f)
@@ -833,6 +869,14 @@
                    (else
                     (continue)))))))
 
+(define (make-version-scores universe version.score-list)
+  (let ((version-scores (make-vector (universe-version-count universe) 0)))
+    (loop ((for version.score (in-list version.score-list)))
+      => version-scores
+      (vector-set! version-scores
+                   (version-id (car version.score))
+                   (cdr version.score)))))
+
 (define option-ref
   (let ((default-options `((step-score . 10)
                            (broken-score . 10)
@@ -841,7 +885,9 @@
                            (full-solution-score . 10)
                            (future-horizon . 50)
                            (initial-state . ,(make-empty-installation))
-                           (remove-stupid? . #t))))
+                           (remove-stupid? . #t)
+                           (joint-scores . ())
+                           (version-scores . ()))))
     (lambda (options name)
       (cond ((or (assq name options)
                  (assq name default-options))
@@ -874,17 +920,7 @@
      (and (not (= step-num1 step-num2)) ;optimization
           (let ((step1 (search-graph-step graph step-num1))
                 (step2 (search-graph-step graph step-num2)))
-            (cond ((tier<? (step-tier step1) (step-tier step2))
-                   #t)
-                  ((tier<? (step-tier step2) (step-tier step1))
-                   #f)
-                  ((< (step-score step1) (step-score step2))
-                   #t)
-                  ((< (step-score step2) (step-score step1))
-                   #f)
-                  (else
-                   (choice-set<? (step-actions step2)
-                                 (step-actions step1)))))))))
+            (< (step-goodness-compare step1 step2) 0))))))
 
 ;; These two procedure replace aptitude's step_contents structure
 (define (step-contents=? s1 s2)

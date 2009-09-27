@@ -12,7 +12,7 @@ feedback is welcome!
 
 For resolving dependencies, dorodango employs a Scheme "port" of
 aptitude's [0] solver. The code is based on aptitude changeset
-3247:9e580575b240, Copyright (C) 2005, 2007-2009, Daniel Burrows,
+3258:f952da7ee794, Copyright (C) 2005, 2007-2009, Daniel Burrows,
 licensed under the GPL, version 2 or later.
 
 === License ============================================================
@@ -26,7 +26,8 @@ GNU GPL, version 3.
 === Footnotes ==========================================================
 
 [0] Aptitude is Debian's high-level package managment tool, written in
-    C++.
+    C++; its Mercurial repository can be found at
+    <http://hg.debian.org/hg/aptitude/head>.
 
 --
 Andreas Rottmann <a.rottmann@gmx.at>, September 2009

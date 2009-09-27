@@ -294,6 +294,8 @@
     step))
 
 (define (search-graph-add-step! graph parent tier reason is-deferred-listener)
+  (unless (step-first-child parent)
+    (set-step-first-child! parent (xvector-length (search-graph-steps graph))))
   (%search-graph-add-step!
    graph
    (make-step (step-actions parent)
@@ -720,10 +722,9 @@
    (lambda (pair1 pair2)
      (let ((prio1 (car pair1))
            (prio2 (car pair2)))
-       (or (> prio1 prio2)
+       (or (< prio1 prio2)
            (and (= prio1 prio2)
                 (dependency<? (cdr pair1) (cdr pair2))))))))
-
 
 (define (xvector-binary-search vec value cmp k)
   (loop continue ((with start 0)

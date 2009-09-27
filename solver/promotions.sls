@@ -91,7 +91,7 @@
 (define promotion-wt-type (make-wt-tree-type promotion<?))
 
 (define (dsp-promotion p)
-  (cat "(T " (dsp-tier (promotion-tier p)) ": " (dsp-choice-set (promotion-choices p))
+  (cat "(T" (dsp-tier (promotion-tier p)) ": " (dsp-choice-set (promotion-choices p))
        (cond ((promotion-valid-condition p)
               => (lambda (valid-condition)
                    (cat "; V:" (expression/dsp valid-condition))))
@@ -186,9 +186,6 @@
        #t))))
 
 (define (find-highest-incipient-promotions promotion-set choices output-domain)
-  (log/trace "Entering (find-highest-incipient-promotions "
-             (dsp-choice-set choices) " "
-             (dsp-choice-table output-domain dsp-promotion) ")")
   (let* ((output-incipient (make-hashtable choice-hash choice=?))
          (traverser (make-intersection-traverser
                      promotion-set

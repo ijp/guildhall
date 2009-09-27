@@ -66,6 +66,7 @@
           choice-set-for-each
           choice-set-fold
           choice-set-traverse
+          choice-set-subset?
           generalize-choice-set
           in-choice-set
           
@@ -285,6 +286,17 @@
 (define (choice-set-contains? choice-set choice)
   (and (choice-set-containing-choice choice-set choice) #t))
 
+(define (choice-set-subset? choice-set other)
+  ;; This is quite suboptimal
+  (and (wt-tree/subset? choice-set other)
+       (call/cc (lambda (return)
+                  (choice-set-for-each
+                   (lambda (choice)
+                     (or (choice-set-contains? other choice)
+                         (return #f)))
+                   choice-set)
+                  #t))))
+
 (define (choice-set-remove-overlaps choice-set choice)
   (wt-tree/delete choice-set (version-package (choice-version choice))))
 
@@ -351,7 +363,7 @@
 
 (define (dsp-choice-set choices)
   (lambda (st)
-    ((cat "{" (fmt-join dsp-choice (wt-tree-datums->list choices)) "}") st)))
+    ((cat "{" (fmt-join dsp-choice (wt-tree-datums->list choices) ", ") "}") st)))
 
 (define-guarantor guarantee-choice-set choice-set? "choice-set")
 
@@ -384,7 +396,7 @@
   (define (increment-size!)
     (set-choice-table-size! table (+ 1 (choice-table-size table))))
   (define (updated-info info)
-    (cond ((eq? info %not-found)
+    (cond ((not info)
            (increment-size!)
            (if (choice-from-dep-source? choice)
                (make-version-info %not-found
@@ -393,7 +405,7 @@
                                                      (proc default)))
                (make-version-info (proc default) (make-wt-tree dependency-wt-type))))
           ((not (choice-from-dep-source? choice))
-           (unless (version-info-not-from-dep-source info)
+           (when (eq? %not-found (version-info-not-from-dep-source info))
              (increment-size!))
            (version-info-with-not-from-dep-source info (proc default)))
           (else
@@ -408,7 +420,7 @@
    (wt-tree/update (choice-table-install-versions table)
                    (choice-version choice)
                    updated-info
-                   %not-found)))
+                   #f)))
 
 (define (choice-table-set! table choice datum)
   (choice-table-update! table choice (lambda (x) datum) #f))

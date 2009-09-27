@@ -207,7 +207,6 @@
 (define (dependency=? d1 d2)
   (eq? d1 d2))
 
-;; This probably should be improved speed-wise
 (define (dependency<? d1 d2)
   (< (dependency-id d1) (dependency-id d2)))
 

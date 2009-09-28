@@ -20,6 +20,20 @@
 ;;; Commentary:
 
 ;;; Code:
+#!r6rs
+
+(import (except (rnrs) delete-file file-exists?)
+        (spells foof-loop)
+        (spells pathname)
+        (spells filesys)
+        (spells logging)
+        (spells testing)
+        (spells testing run-env)
+        (dorodango private utils)
+        (dorodango inventory)
+        (dorodango package)
+        (dorodango destination)
+        (dorodango database))
 
 (define test-dir (->pathname '((",database-test.tmp"))))
 (define dest-dir (pathname-join test-dir "dest"))

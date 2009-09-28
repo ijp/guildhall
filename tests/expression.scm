@@ -20,6 +20,11 @@
 ;;; Commentary:
 
 ;;; Code:
+#!r6rs
+
+(import (rnrs)
+        (spells testing)
+        (dorodango solver expression))
 
 (define-test-suite expression-tests
   "Dynamically updateable expression DAG")

@@ -149,7 +149,7 @@
 
 (define (value-setter name value)
   (lambda (option-name arg vals)
-    (acons name value vals)))
+    (values #f (acons name value vals))))
 
 (define bundle-option
   (option '("bundle" #\b) 'bundle
@@ -159,13 +159,16 @@
 (define (parse-package-string s)
   (values (string->symbol s) #f))
 
-(define (find-db-items db packages)
-  (loop ((for package (in-list packages))
-         (for result
-              (appending-reverse
-               (receive (name version) (parse-package-string package)
-                 (database-search db name version)))))
-    => (reverse result)))
+(define (find-db-items db packages inventory?)
+  (let ((options (if inventory?
+                     (database-search-options inventories)
+                     (database-search-options))))
+    (loop ((for package (in-list packages))
+           (for result
+                (appending-reverse
+                 (receive (name version) (parse-package-string package)
+                   (database-search db name version options)))))
+      => (reverse result))))
 
 (define (bail-out formatter)
   (fmt (current-error-port) (cat formatter "\n"))
@@ -180,15 +183,15 @@
   (options bundle-option
            (option '("inventory") #f
                    "Show the package inventories"
-                   (value-setter 'inventory #t)))
+                   (value-setter 'inventory? #t)))
   (handler
    (lambda (vals)
      (let ((bundle-locations (opt-ref/list vals 'bundles))
            (packages (opt-ref/list vals 'operands))
-           (inventory? (assq-ref vals 'inventory))
+           (inventory? (assq-ref vals 'inventory?))
            (db (config->database (assq-ref vals 'config))))
        (database-add-bundles! db bundle-locations)
-       (loop ((for item (in-list (find-db-items db packages))))
+       (loop ((for item (in-list (find-db-items db packages inventory?))))
          (fmt #t (dsp-database-item item)))))))
 
 (define (install-command vals)
@@ -349,7 +352,7 @@
 (define (main argv)
   (set-logger-properties!
    logger:dorodango
-   `((threshold debug)
+   `((threshold info)
      (handlers
       ,(lambda (entry)
          (default-log-formatter entry (current-output-port))))))

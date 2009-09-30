@@ -45,7 +45,9 @@
                   (item-package database-item-package)
                   (item-name database-item-name)
                   (item-version database-item-version)
-                  (item-installed? database-item-installed?))
+                  (item-installed? database-item-installed?)
+
+                  (search-options database-search-options))
 
           database-file-conflict?
           database-file-conflict-package
@@ -238,8 +240,7 @@
 ;;; Source manipulation
 
 (define (database-add-bundle! db pathname)
-  (let ((bundle (open-directory-input-bundle pathname
-                                             (bundle-options no-inventory))))
+  (let ((bundle (open-input-bundle pathname (bundle-options no-inventory))))
     (loop ((for package (in-list (bundle-packages bundle))))
       (add-package-source! db
                            package
@@ -302,13 +303,31 @@
             (package-version=? version (package-version (item-package item))))
           (hashtable-ref (database-pkg-table db) (package-name package) '()))))
 
-(define (database-search db name version)
-  (let ((items (hashtable-ref (database-pkg-table db) name '())))
-    (if (not version)
-        items
-        (filter (lambda (item)
-                  (version-match? (item-package item) version))
-                items))))
+(define-enumeration search-option
+  (inventories)
+  search-options)
+
+(define database-search
+  (case-lambda
+    ((db name version options)
+     (let* ((items (hashtable-ref (database-pkg-table db) name '()))
+            (matching-items
+             (if (not version)
+                 items
+                 (filter (lambda (item)
+                           (version-match? (item-package item) version))
+                         items))))
+       (cond ((enum-set-member? 'inventories options)
+              ;; Ensure all bundles are openend, so we have inventory
+              ;; information, and re-do the search, leaving out the
+              ;; 'inventories option.
+              (loop ((for item (in-list matching-items)))
+                (open-bundle! db item))
+              (database-search db name version))
+             (else
+              matching-items))))
+    ((db name version)
+     (database-search db name version (search-options)))))
 
 (define (version-match? package version)
   (or (not version)
@@ -401,10 +420,9 @@
     (when (null? sources)
       (error 'open-bundle! "no sources for package" (item-package item)))
     (let* ((source (car sources))
-           (bundle (open-directory-input-bundle
-                    (repository-fetch-bundle
-                     (source-repository source)
-                     (source-location source)))))
+           (bundle (open-input-bundle (repository-fetch-bundle
+                                       (source-repository source)
+                                       (source-location source)))))
       (loop ((for package (in-list (bundle-packages bundle))))
         (database-update! db
                           package

@@ -24,7 +24,7 @@
 
 (library (dorodango bundle)
   (export bundle?
-          open-directory-input-bundle
+          open-input-bundle
           close-bundle
 
           bundle-options
@@ -36,11 +36,12 @@
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map last)
           (srfi :8 receive)
-          (only (srfi :13) string-join string-suffix?)
+          (only (srfi :13) string-join string-suffix? string-null?)
           (spells alist)
           (spells misc)
           (only (spells record-types)
                 define-functional-fields)
+          (spells string-utils)
           (spells match)
           (spells ports)
           (spells pathname)
@@ -51,7 +52,7 @@
           (spells logging)
           (spells tracing)
           (only (spells assert) cout)
-          #;(prefix (weinholt compression zip) zip:)
+          (prefix (weinholt compression zip) zip:)
           (dorodango private utils)
           (dorodango package)
           (dorodango inventory))
@@ -90,6 +91,18 @@
           (package=? bundle-package package))
         (bundle-packages bundle)))
 
+
+
+(define open-input-bundle
+  (case-lambda
+    ((pathname options)
+     (cond ((file-directory? pathname)
+            (open-directory-input-bundle pathname options))
+           (else
+            (open-zip-input-bundle pathname options))))
+    ((pathname)
+     (open-input-bundle pathname (bundle-options)))))
+
 
 ;;; Filesystem bundles
 
@@ -104,19 +117,15 @@
        (lambda (source-port)
          (copy-port source-port dest-port))))))
 
-(define open-directory-input-bundle
-  (case-lambda
-    ((pathname options)
-     (let* ((directory (pathname-as-directory pathname))
-            (inventory? (not (enum-set-member? 'no-inventory options)))
-            (inventory (directory->inventory directory
-                                             (make-pathname-filter inventory?)))
-            (ops (make-fs-bundle-ops directory)))
-       (make-bundle (and inventory? inventory)
-                    (list-bundle-packages ops inventory inventory?)
-                    ops)))
-    ((pathname)
-     (open-directory-input-bundle pathname (bundle-options)))))
+(define (open-directory-input-bundle pathname options)
+  (let* ((directory (pathname-as-directory pathname))
+         (inventory? (not (enum-set-member? 'no-inventory options)))
+         (inventory (directory->inventory directory
+                                          (make-pathname-filter inventory?)))
+         (ops (make-fs-bundle-ops directory)))
+    (make-bundle (and inventory? inventory)
+                 (list-bundle-packages ops inventory inventory?)
+                 ops)))
 
 (define (directory->inventory pathname accept?)
   (define (fill-inventory inventory pathname relative-dir)
@@ -168,40 +177,60 @@
                    (string=? (file-namestring pathname)
                              pkgs-filename)))))))
 
-;;; ZIP support
+;;; ZIP bundles
 
-#|
+(define (make-zip-bundle-ops pathname zip-port)
+  (object #f
+    ((bundle/identifier ops)
+     (->namestring pathname))
+    ((bundle/extract-entry ops entry dest-port)
+     (extract-zip-entry zip-port entry dest-port))))
 
-(define (zip-bundle/close bundle)
-  (close-port (bundle-port bundle)))
+(define (extract-zip-entry zip-port zip-central dest-port)
+  (let ((zip-local (zip:central-directory->file-record zip-port zip-central)))
+    (zip:extract-to-port zip-port zip-local zip-central dest-port)))
 
-(define (make-zip-bundle-ops port)
-  (object #f ((bundle/extract-entry bundle entry dest-port)
-              )))
-(define-record-type zip-bundle
-  (parent bundle)
-  (fields port))
-
-(define (open-file-input-bundle pathname)
+(define (open-zip-input-bundle pathname options)
   (let* ((port (open-file-input-port (->namestring pathname)))
          (zip-dir (zip:get-central-directory port))
-         (inventory (zip-dir->inventory port zip-dir)))
-    (make-zip-bundle 'zip
-                     port
-                     inventory
-                     (list-bundle-systems port inventory))))
+         (inventory? (not (enum-set-member? 'no-inventory options)))
+         (inventory (zip-dir->inventory zip-dir))
+         (ops (make-zip-bundle-ops pathname port)))
+    (make-bundle (and inventory? inventory)
+                 (list-bundle-packages ops inventory inventory?)
+                 ops)))
 
-
-(define (zip-dir->inventory port dir)
-  (let ((result (make-inventory 'root)))
-    (loop ((for entry (in-list dir)))
-      (when (zip:central-directory? entry)
+;; This should be made more robust; if there are inconsistencies in
+;; the central directory file names (such as duplicates or "files
+;; inside a file"), `inventory-update' will error out; this should be
+;; caught and appropriately reported.
+(define (zip-dir->inventory zip-dir)
+  (loop continue ((for entry (in-list zip-dir))
+                  (with inventory (make-inventory 'root #f)))
+    => inventory
+    (if (zip:central-directory? entry)
         (receive (path container?)
                  (filename->path (zip:central-directory-filename entry))
-          (inventory-update! result path container? entry)))
-      result)))
+          (if (null? path)
+              (continue)  ;bad zipfile, probably should error out here
+              (continue
+               (=> inventory
+                   (inventory-leave-n
+                    (inventory-update inventory path container? entry)
+                    (length path))))))
+        (continue))))
 
-|#
+(define (filename->path filename)
+  (let* ((path (string-split filename #\/))
+         (relative-path (if (and (not (null? path))
+                                 (string-null? (car path)))
+                            (cdr path)
+                            path))
+         (reversed-path (reverse relative-path)))
+    (if (and (not (null? reversed-path))
+             (string-null? (car reversed-path)))
+        (values (reverse (cdr reversed-path)) #t)
+        (values relative-path #f))))
 
 
 ;;; Package handling

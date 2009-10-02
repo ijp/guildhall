@@ -34,8 +34,6 @@
         (spells pathname)
         (spells filesys)
         (spells sysutils)
-        (spells lazy)
-        (spells lazy-streams)
         (rename (spells args-fold)
                 (option %option))
         (spells logging)
@@ -159,16 +157,13 @@
 (define (parse-package-string s)
   (values (string->symbol s) #f))
 
-(define (find-db-items db packages inventory?)
-  (let ((options (if inventory?
-                     (database-search-options inventories)
-                     (database-search-options))))
-    (loop ((for package (in-list packages))
-           (for result
-                (appending-reverse
-                 (receive (name version) (parse-package-string package)
-                   (database-search db name version options)))))
-      => (reverse result))))
+(define (find-db-items db packages)
+  (loop ((for package (in-list packages))
+         (for result
+              (appending-reverse
+               (receive (name version) (parse-package-string package)
+                 (database-search db name version)))))
+    => (reverse result)))
 
 (define (bail-out formatter)
   (fmt (current-error-port) (cat formatter "\n"))
@@ -177,23 +172,37 @@
 (define (opt-ref/list vals key)
   (reverse (or (assq-ref vals key) '())))
 
+
 (define-command show
-  (description "Show information about packages")
+  (description "Show package information")
   (synopsis "show [--bundle BUNDLE]... PACKAGE...")
   (options bundle-option
            (option '("inventory") #f
                    "Show the package inventories"
-                   (value-setter 'inventory? #t)))
+                   (value-setter 'inventory #t)))
   (handler
    (lambda (vals)
      (let ((bundle-locations (opt-ref/list vals 'bundles))
            (packages (opt-ref/list vals 'operands))
-           (inventory? (assq-ref vals 'inventory?))
+           (inventory? (assq-ref vals 'inventory))
            (db (config->database (assq-ref vals 'config))))
        (database-add-bundles! db bundle-locations)
-       (loop ((for item (in-list (find-db-items db packages inventory?))))
+       (loop ((for item (in-list (find-db-items db packages))))
          (fmt #t (dsp-database-item item)))))))
 
+
+(define-command show-bundle
+  (description "Show bundle contents")
+  (synopsis "show-bundle BUNDLE...")
+  (options)
+  (handler
+   (lambda (vals)
+     (let ((bundle-locations (opt-ref/list vals 'operands)))
+       (loop ((for bundle-location (in-list bundle-locations)))
+         (let ((bundle (open-input-bundle bundle-location)))
+           (fmt #t (dsp-bundle bundle))))))))
+
+
 (define (install-command vals)
   (let ((bundle-locations (opt-ref/list vals 'bundles))
         (packages (opt-ref/list vals 'operands))
@@ -218,6 +227,7 @@
   (options bundle-option)
   (handler install-command))
 
+
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
         (db (config->database (assq-ref vals 'config))))
@@ -237,7 +247,7 @@
 ;;; Formatting combinators
 
 (define (dsp-package pkg)
-  (cat "Name: " (package-name pkg) "\n"
+  (cat "Package: " (package-name pkg) "\n"
        (if (null? (package-version pkg))
            fmt-null
            (cat "Version: " (dsp-version (package-version pkg)) "\n"))

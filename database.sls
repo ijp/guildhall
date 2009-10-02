@@ -45,9 +45,7 @@
                   (item-package database-item-package)
                   (item-name database-item-name)
                   (item-version database-item-version)
-                  (item-installed? database-item-installed?)
-
-                  (search-options database-search-options))
+                  (item-installed? database-item-installed?))
 
           database-file-conflict?
           database-file-conflict-package
@@ -303,31 +301,13 @@
             (package-version=? version (package-version (item-package item))))
           (hashtable-ref (database-pkg-table db) (package-name package) '()))))
 
-(define-enumeration search-option
-  (inventories)
-  search-options)
-
-(define database-search
-  (case-lambda
-    ((db name version options)
-     (let* ((items (hashtable-ref (database-pkg-table db) name '()))
-            (matching-items
-             (if (not version)
-                 items
-                 (filter (lambda (item)
-                           (version-match? (item-package item) version))
-                         items))))
-       (cond ((enum-set-member? 'inventories options)
-              ;; Ensure all bundles are openend, so we have inventory
-              ;; information, and re-do the search, leaving out the
-              ;; 'inventories option.
-              (loop ((for item (in-list matching-items)))
-                (open-bundle! db item))
-              (database-search db name version))
-             (else
-              matching-items))))
-    ((db name version)
-     (database-search db name version (search-options)))))
+(define (database-search db name version)
+  (let ((items (hashtable-ref (database-pkg-table db) name '())))
+    (if (not version)
+        items
+        (filter (lambda (item)
+                  (version-match? (item-package item) version))
+                items))))
 
 (define (version-match? package version)
   (or (not version)

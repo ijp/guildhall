@@ -317,14 +317,14 @@
   (syntax-rules ()
     ((_ (name-var items-var) (db-expr) cont . env)
      (cont
-      (((name-vec items-vec)
-        (database-pkg-table db-expr)))             ;Outer bindings
+      (((name-vec items-vec)                       ;Outer bindings
+        (hashtable-entries (database-pkg-table db-expr))))
       ((i (- (vector-length name-vec) 1) (- i 1))) ;Loop variables
-      ()                               ;Entry bindings
-      ((= i 0))                        ;Termination conditions
-      (((name-var) (vector-ref name-vec i))
-       ((items-var) (vector-ref items-vec i))) ;Body bindings
-      ()                               ;Final bindings
+      ()                                           ;Entry bindings
+      ((< i 0))                                    ;Termination conditions
+      (((name-var) (vector-ref name-vec i))        ;Body bindings
+       ((items-var) (vector-ref items-vec i)))     
+      ()                                           ;Final bindings
       . env))))
 
 (define database-update!

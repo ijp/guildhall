@@ -48,8 +48,6 @@
           choice-hash
           choice-wt-type
 
-          dsp-choice
-
           make-choice-set
           singleton-choice-set
           choice-set?
@@ -76,7 +74,6 @@
           choice-set-compare
           choice-set-hash
 
-          dsp-choice-set
           guarantee-choice-set
           
           make-choice-table
@@ -90,9 +87,7 @@
           choice-table-contains?
           choice-table-for-each
           choice-table-fold
-          choice-table-copy
-          
-          dsp-choice-table)
+          choice-table-copy)
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :67 compare-procedures)
@@ -180,21 +175,6 @@
   (make-wt-tree-type choice<?))
 
 (define-guarantor guarantee-choice choice? "choice")
-
-(define (dsp-choice choice)
-  (lambda (st)
-    ((cat "Install(" (dsp-version (choice-version choice))
-          (cond ((choice-dep choice)
-                 => (lambda (dep)
-                      (cat " "
-                           (if (choice-from-dep-source? choice)
-                               "<source: "
-                               "<")
-                           (dsp-dependency dep)
-                           ">")))
-                (else
-                 fmt-null))
-          ")") st)))
 
 
 ;;; Choice set
@@ -361,10 +341,6 @@
                                               hash)))
                 0
                 choice-set))
-
-(define (dsp-choice-set choices)
-  (lambda (st)
-    ((cat "{" (fmt-join dsp-choice (wt-tree-datums->list choices) ", ") "}") st)))
 
 (define-guarantor guarantee-choice-set choice-set? "choice-set")
 
@@ -539,27 +515,6 @@
                      #f
                      table)
   (unspecific))
-
-(define (dsp-choice-table table datum-formatter)
-  (define (do-dsp st)
-    (cdr (choice-table-fold
-                (lambda (choice datum state)
-                  (let ((first? (car state))
-                        (st (cdr state)))
-                    (cons #f
-                          ((cat (if first? fmt-null " ")
-                                (dsp-choice choice) " -> " (datum-formatter datum)) st))))
-                (cons #t st)
-                table)))
-  (cat "{" do-dsp "}"))
-
-
-
-(define (wt-tree-datums->list wt-tree)
-  (wt-tree/fold (lambda (key datum lst)
-                  (cons datum lst))
-                '()
-                wt-tree))
 
 )
 

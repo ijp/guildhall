@@ -31,7 +31,9 @@
           solver?
           find-next-solution!
 
-          solution?)
+          solution?
+
+          logger:dorodango.solver)
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :8 receive)
@@ -680,9 +682,6 @@
     (define (strike-choice step victim reasons)
       ;; Generalize the choice set by removing the solver that's being
       ;; struck.
-      #;
-      (log/trace "XXX: original reasons: " (dsp-choice-set reasons)
-                 "; victim: " (dsp-choice victim))
       (let ((generalized-reasons (choice-set-remove-overlaps reasons victim)))
         (log/trace "Striking " (dsp-choice victim) " from all solver lists in step "
                    (step-num step) " with the reason set "
@@ -795,8 +794,6 @@
         (version-of package installation))))
 
 (define (broken-under? installation dependency)
-  #;
-  (log/trace "broken-under: dep=" (dsp-dependency dependency))
   (let ((source (dependency-source dependency)))
     (cond ((not (version=? (version-of (version-package source) installation)
                            source))

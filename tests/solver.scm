@@ -31,6 +31,7 @@
         (dorodango solver)
         (dorodango solver dummy-db)
         (dorodango solver universe)
+        (dorodango solver logging)
         (spells match)
         (spells fmt)
         (spells testing)

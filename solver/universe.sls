@@ -39,7 +39,6 @@
           universe-dependency-stream
 
           guarantee-universe
-          dsp-universe
           
           package?
           package-id
@@ -54,7 +53,6 @@
           package-wt-type
 
           guarantee-package
-          dsp-package
           
           version?
           version-id
@@ -70,7 +68,6 @@
           version-wt-type
 
           guarantee-version
-          dsp-version
           
           dependency?
           dependency-source
@@ -83,7 +80,6 @@
           dependency-wt-type
 
           guarantee-dependency
-          dsp-dependency
           
           make-tier
           tier?
@@ -99,63 +95,12 @@
           tier-wt-type
           
           guarantee-tier
-          dsp-tier
           
           minimum-tier
           defer-tier
           already-generated-tier
           conflict-tier
           maximum-tier)
-  (import (rnrs)
-          (spells alist)
-          (spells fmt)
-          (spells foof-loop)
-          (spells lazy-streams)
-          (dorodango solver internals))
-
-(define (fmt-stream/suffix formatter stream sep)
-  (let ((sep (dsp sep)))
-    (lambda (st)
-      (loop ((for item (in-stream stream))
-             (with st st (sep ((formatter item) st))))
-        => st))))
-
-(define (dsp-universe universe)
-  (cat
-   (fmt-stream/suffix dsp-package (universe-package-stream universe) "\n")
-   "\n"
-   (fmt-stream/suffix dsp-dependency (universe-dependency-stream universe) "\n")))
-
-(define (dsp-package package)
-  (cat "package " (package-name package)
-       " <" (fmt-join dsp (map version-tag (package-versions package)) " ")
-       ">"))
-
-(define (dsp-dependency dependency)
-  (cat (dsp-version (dependency-source dependency))
-       " -> {" (fmt-join dsp-version (dependency-targets dependency) " ") "}"))
-
-(define (dsp-version version)
-  (cat (package-name (version-package version)) " v" (version-tag version)))
-
-(define dsp-tier
-  (let ((tier-policy-names
-         (map (lambda (pair)
-                (cons (tier-policy (car pair)) (cdr pair)))
-              `((,maximum-tier . maximum)
-                (,conflict-tier . conflict)
-                (,already-generated-tier . already-generated)
-                (,defer-tier . defer-tier)
-                (,minimum-tier . minimum)))))
-    (lambda (tier)
-      (let* ((priority (tier-priority tier))
-             (priority-name (if (= priority (least-fixnum))
-                                'least
-                                priority)))
-        (cond ((assv-ref tier-policy-names (tier-policy tier))
-               => (lambda (policy-name)
-                    (dsp (cons policy-name priority-name))))
-              (else
-               (dsp (cons (tier-policy tier) priority-name))))))))
+  (import (dorodango solver internals))
 
 )

@@ -33,6 +33,7 @@
           choice-version
           choice-from-dep-source?
           choice-dep
+          choice-id
 
           choice-with-dep
           choice-with-id
@@ -405,9 +406,11 @@
                                                      (proc default)))
                (make-version-info (proc default) (make-wt-tree dependency-wt-type))))
           ((not (choice-from-dep-source? choice))
-           (when (eq? %not-found (version-info-not-from-dep-source info))
-             (increment-size!))
-           (version-info-with-not-from-dep-source info (proc default)))
+           (cond ((eq? %not-found (version-info-not-from-dep-source info))
+                  (increment-size!)
+                  (version-info-with-not-from-dep-source info (proc default)))
+                 (else
+                  (version-info-modify-not-from-dep-source info proc))))
           (else
            (let ((from-dep-source (version-info-from-dep-source info)))
              (unless (wt-tree/member? (choice-dep choice) from-dep-source)
@@ -477,7 +480,7 @@
   (let ((version (choice-version choice))
         (dep (choice-dep choice)))
     (define (visit-from-dep-source info)
-      (let* ((version-map (version-info-from-dep-source info)))
+      (let ((version-map (version-info-from-dep-source info)))
         (loop continue ((for i (up-from 0 (to (wt-tree/size version-map)))))
           => #f
           (let ((pair (wt-tree/index-pair version-map i)))

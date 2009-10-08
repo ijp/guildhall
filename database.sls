@@ -314,7 +314,7 @@
       (package-version=? (package-version) version)))
 
 (define-syntax in-database
-  (syntax-rules ()
+  (syntax-rules (sorted-by)
     ((_ (name-var items-var) (db-expr) cont . env)
      (cont
       (((name-vec items-vec)                       ;Outer bindings
@@ -324,6 +324,21 @@
       ((< i 0))                                    ;Termination conditions
       (((name-var) (vector-ref name-vec i))        ;Body bindings
        ((items-var) (vector-ref items-vec i)))     
+      ()                                           ;Final bindings
+      . env))
+    ((_ (name-var items-var) (db-expr (sorted-by <?)) cont . env)
+     (cont
+      (((table size name-vec)                           ;Outer bindings
+        (let ((table (database-pkg-table db-expr)))
+          (values table
+                  (hashtable-size table)
+                  (vector-sort <? (hashtable-keys table))))))
+      ((i 0 (+ i 1)))                              ;Loop variables
+      ()                                           ;Entry bindings
+      ((= i size))                                 ;Termination conditions
+      (((name-var items-var)                       ;Body bindings
+        (let ((name (vector-ref name-vec i)))
+          (values name (hashtable-ref table name #f)))))
       ()                                           ;Final bindings
       . env))))
 

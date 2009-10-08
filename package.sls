@@ -39,7 +39,10 @@
           package->form
           parse-package-form
 
-          package-version=?)
+          package-version=?
+          package-version<?
+          package-version>?
+          package-version-compare)
   (import (rnrs)
           (only (srfi :13) string-join)
           (srfi :67 compare-procedures)
@@ -115,14 +118,15 @@
   `(package (,(package-name package) . ,(package-version package))
             . ,(package-properties package)))
 
-(define (version-compare v1 v2)
+(define (package-version-compare v1 v2)
   (list-compare (lambda (p1 p2)
                   (list-compare integer-compare p1 p2))
                 v1
                 v2))
 
-(define (package-version=? v1 v2)
-  (= 0 (version-compare v1 v2)))
+(define package-version=? (=? package-version-compare))
+(define package-version<? (<? package-version-compare))
+(define package-version>? (>? package-version-compare))
 
 )
 

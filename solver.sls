@@ -32,6 +32,7 @@
           find-next-solution!
 
           solution?
+          solution-choices
 
           logger:dorodango.solver)
   (import (rnrs)
@@ -93,8 +94,9 @@
        (score/full-solution (option 'full-solution-score))
        
        (future-horizon (option 'future-horizon))
-       (initial-state (option 'initial-state))
        (remove-stupid? (option 'remove-stupid?))
+       (initial-state (extend-installation (make-empty-installation)
+                                           (option 'initial-choices)))
        (joint-scores (make-joint-score-set initial-state (option 'joint-scores)))
        (version-scores (make-version-scores universe (option 'version-scores)))
        
@@ -881,7 +883,7 @@
                            (goal-score . 10)
                            (full-solution-score . 10)
                            (future-horizon . 50)
-                           (initial-state . ,(make-empty-installation))
+                           (initial-choices . ,(make-choice-set))
                            (remove-stupid? . #t)
                            (joint-scores . ())
                            (version-scores . ()))))

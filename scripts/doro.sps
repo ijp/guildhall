@@ -182,9 +182,9 @@
 (define (find-db-items db packages)
   (loop ((for package (in-list packages))
          (for result
-              (appending-reverse
+              (listing
                (receive (name version) (parse-package-string package)
-                 (database-search db name version)))))
+                 (database-lookup db name version)))))
     => (reverse result)))
 
 (define (bail-out formatter)
@@ -242,16 +242,12 @@
 
 (define (select-package db package-string)
   (receive (name version) (parse-package-string package-string)
-    (let ((items (database-search db name version)))
-      (cond ((null? items)
+    (let ((item (database-lookup db name version)))
+      (cond ((not item)
              (bail-out (cat "Couldn't find any package matching \""
                             package-string "\"")))
-            ((not (null? (cdr items)))
-             (bail-out (cat "Multiple versions of package found:\n"
-                            "  " (fmt-join dsp-db-item-identifier items ", ")
-                            "Please specify a version as well.")))
             (else
-             (database-item-package (car items)))))))
+             (database-item-package item))))))
 
 (define (install-command vals)
   (let ((bundle-locations (opt-ref/list vals 'bundles))

@@ -33,9 +33,9 @@
           
           database-add-bundle!
           database-add-bundles!
-          
-          database-find
-          database-search
+
+          database-items
+          database-lookup
           in-database
           
           database-install!
@@ -296,23 +296,28 @@
 
 ;;; Querying
 
-(define (database-find db package)
-  (let ((version (package-version package)))
-    (find (lambda (item)
-            (package-version=? version (package-version (item-package item))))
-          (hashtable-ref (database-pkg-table db) (package-name package) '()))))
+(define (database-lookup db name version)
+  (define (lose msg . irritants)
+    (apply assertion-violation 'database-lookup msg irritants))
+  (let ((items (database-items db name)))
+    (cond ((eqv? version #f)
+           (or (find item-installed? items)
+               (and (pair? items) (car items))))
+          ((symbol? version)
+           (case version
+             ((installed) (find item-installed? items))
+             (else        (lose "invalid version" version))))
+          (else
+           (find-item-by-version items version)))))
 
-(define (database-search db name version)
-  (let ((items (hashtable-ref (database-pkg-table db) name '())))
-    (if (not version)
-        items
-        (filter (lambda (item)
-                  (version-match? (item-package item) version))
-                items))))
+(define (database-items db name)
+  (hashtable-ref (database-pkg-table db) name '()))
 
-(define (version-match? package version)
-  (or (not version)
-      (package-version=? (package-version) version)))
+(define (find-item-by-version items version)
+  (find (lambda (item)
+          (package-version=? version (package-version
+                                      (item-package item))))
+        items))
 
 (define-syntax in-database
   (syntax-rules (sorted-by)
@@ -395,10 +400,8 @@
       (save-package-info (database-package-info-pathname db package) package)
       (database-update! db package (lambda (item)
                                      (item-with-state item 'installed)))))
-  (let ((items (hashtable-ref (database-pkg-table db)
-                              (package-name package)
-                              '()))
-        (desired-item (database-find db package)))
+  (let* ((items (database-items db (package-name package)))
+         (desired-item (find-item-by-version items (package-version package))))
     (cond ((not desired-item)
            (lose "no such package in database" package))
           ((exists (lambda (item)

@@ -61,6 +61,7 @@
           choice-set-insert-or-narrow
           choice-set-merge
           choice-set-adjoin
+          choice-set-union
           choice-set->list
           choice-set-for-each
           choice-set-fold
@@ -244,6 +245,9 @@
                (guarantee-choice-set choice-set who)
                (choice-set-insert-or-narrow result choice)))
     => result))
+
+(define (choice-set-union cs1 cs2)
+  (wt-tree/union cs1 cs2))
 
 (define (choice-set-has-contained-choice? choice-set choice)
   (and (choice-set-choice-contained-by choice-set choice) #t))

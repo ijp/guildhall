@@ -174,7 +174,7 @@
 (define no-depends-option
   (option '("no-depends") #f
           "Ignore dependencies"
-          (value-setter 'no-depends? #f)))
+          (value-setter 'no-depends? #t)))
 
 (define (parse-package-string s)
   (values (string->symbol s) #f))
@@ -272,15 +272,21 @@
 
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
+        (no-depends? (assq-ref vals 'no-depends?))
         (db (config->database (assq-ref vals 'config))))
-    (loop ((for package-name (in-list packages)))
-      (unless (database-remove! db (string->symbol package-name))
-        (message "Package " package-name " was not installed.")))))
+    (cond (no-depends?
+           (loop ((for package-name (in-list packages)))
+             (unless (database-remove! db (string->symbol package-name))
+               (message "Package " package-name " was not installed."))))
+          (else
+           (loop ((for package-name (in-list packages))
+                  (for to-remove (listing (string->symbol package-name))))
+             => (apply-actions db '() to-remove))))))
 
 (define-command remove
   (description "Remove packages")
   (synopsis "remove PACKAGE...")
-  (options)
+  (options no-depends-option)
   (handler remove-command))
 
 

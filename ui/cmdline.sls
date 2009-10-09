@@ -42,6 +42,7 @@
           (spells foof-loop)
           (spells xvector)
           (spells finite-types)
+          (spells tracing)
           (only (spells record-types) define-record-type*)
           (dorodango private utils)
           (dorodango inventory)
@@ -88,14 +89,14 @@
       (cond ((universe-version-tag version)
              (database-install! db (universe-version->package version)))
             (else
-             (database-remove! db (package-name
+             (database-remove! db (universe-package-name
                                    (universe-version-package version))))))))
 
 (define (resolve-dependencies universe package-table to-install to-remove)
   (receive (initial-choices version-scores)
            (solver-options package-table to-install to-remove)
     (define (solution->actions solution)
-      (choice-set-merge initial-choices (solution-choices solution)))
+      (choice-set-union initial-choices (solution-choices solution)))
     (let ((solver (make-solver universe
                                `((version-scores . ,version-scores)
                                  (initial-choices . ,initial-choices))))
@@ -127,7 +128,7 @@
                            (cat "No more solutions. Proceed with previous solution?")
                            (cat message "Accept this solution?"))
                        (prompt-choices index (or exhausted? now-exhausted?)))
-                  ((#\y)       (solution->actions (vector-ref solutions index)))
+                  ((#\y)       (solution->actions (xvector-ref solutions index)))
                   ((#\n)       (iterate #f))
                   ((#\q)       #f)
                   ((#\.)       (iterate (+ index 1)))
@@ -244,7 +245,7 @@
                                          (if (not (null? action-list))))))
         => (fmt-join dsp message-parts "\n")))
     (loop continue
-        ((for choice (in-choice-set (choice-set-merge
+        ((for choice (in-choice-set (choice-set-union
                                      initial-choices
                                      (solution-choices solution))))
          (with risky? #f))
@@ -294,26 +295,47 @@
              " ")))
 
 ;; Find the universe version corresponding to a package
-(define (package-table-lookup table package)
-  (let ((desired-version (package-version package))
-        (universe-package (hashtable-ref table (package-name package) #f)))
+(define (package-table-lookup table package-name desired-version)
+  (let ((universe-package (hashtable-ref table package-name #f))
+        (matching-version?
+         (if desired-version
+             (lambda (version)
+               (package-version=? (universe-version-tag version)
+                                  desired-version))
+             (lambda (version)
+               (not (universe-version-tag version))))))
     (or (and universe-package
-             (find (lambda (version)
-                     (package-version=? (universe-version-tag version)
-                                        desired-version))
-                   (universe-package-versions universe-package)))
+             (find matching-version? (universe-package-versions universe-package)))
         (assertion-violation 'package-table-lookup
-                             "unable to find requested package" package))))
+                             "unable to find requested package"
+                             package-name desired-version))))
 
 (define (solver-options package-table to-install to-remove)
-  (loop ((for package (in-list (append to-install to-remove)))
-         (let version (package-table-lookup package-table package))
-         (for version-scores (listing-reverse (cons version 10000)))
-         (with choices
-               (make-choice-set)
-               (choice-set-insert-or-narrow choices
-                                            (make-install-choice version #f))))
-    => (values choices version-scores)))
+  (define (accumulate choices version-scores items find-version)
+    (loop ((for item (in-list items))
+           (let version (find-version item))
+           (for version-scores (listing-reverse (initial version-scores)
+                                                (cons version 10000)))
+           (with choices
+                 choices
+                 (choice-set-insert-or-narrow choices
+                                              (make-install-choice version #f))))
+          => (values choices version-scores)))
+  (define (package->version package)
+    (package-table-lookup package-table
+                          (package-name package)
+                          (package-version package)))
+  (define (package-name->uninstalled-version package-name)
+    (package-table-lookup package-table package-name #f))
+  (receive (choices version-scores)
+           (accumulate (make-choice-set)
+                       '()
+                       to-install
+                       package->version)
+    (accumulate choices
+                version-scores
+                to-remove
+                package-name->uninstalled-version)))
 
 (define (universe-version->package version)
   (let ((universe-package (universe-version-package version)))

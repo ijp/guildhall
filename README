@@ -8,12 +8,14 @@ Currently, it is not useable -- I just put the code oneline so
 interested developers can track its progress and chime in. Any help or
 feedback is welcome!
 
-=== Solver =============================================================
+=== Aptitude ============================================================
 
 For resolving dependencies, dorodango employs a Scheme "port" of
 aptitude's [0] solver. The code is based on aptitude changeset
 3258:f952da7ee794, Copyright (C) 2005, 2007-2009, Daniel Burrows,
-licensed under the GPL, version 2 or later.
+licensed under the GPL, version 2 or later. dorodango also takes some
+inspiration from aptitude's command line user interface, mostly in the
+form of similiar wording of messages.
 
 === License ============================================================
 

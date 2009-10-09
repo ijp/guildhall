@@ -17,6 +17,7 @@
 
 (library (dorodango private utils)
   (export in-hashtable
+          symbol<?
           
           wt-tree/update
           
@@ -102,6 +103,9 @@
                 (vector-ref datums index))))     ;Body bindings
       ()                                         ;Final bindings
       . env))))
+
+(define (symbol<? s1 s2)
+  (string<? (symbol->string s1) (symbol->string s2)))
 
 
 ;;; wt-tree utilities

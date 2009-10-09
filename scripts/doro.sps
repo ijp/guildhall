@@ -26,32 +26,36 @@
 
 (import (except (rnrs) file-exists? delete-file)
         (srfi :8 receive)
+        (only (srfi :13) string-null? string-trim-both)
+        (srfi :67 compare-procedures)
         (spells alist)
         (spells match)
         (spells fmt)
         (spells foof-loop)
-        (spells gc)
         (spells pathname)
         (spells filesys)
         (spells sysutils)
+        (spells define-values)
         (rename (spells args-fold)
                 (option %option))
         (spells logging)
         (spells tracing)
+        (only (spells record-types) define-record-type*)
         (dorodango private utils)
+        (dorodango package)
         (dorodango database)
         (dorodango destination)
-        (dorodango config)
         (dorodango bundle)
-        (dorodango package)
-        (dorodango inventory))
+        (only (dorodango solver) logger:dorodango.solver)
+        (dorodango config)
+        (dorodango ui cmdline))
 
 
 ;;; Command-line processing
 
-
-(define-record-type option-info
-  (fields %option metavar help))
+(define-record-type* option-info
+  (make-option-info %option metavar help)
+  ())
 
 (define (option-info-names opt-info)
   (option-names (option-info-%option opt-info)))
@@ -74,13 +78,13 @@
     ((? symbol? metavar)
      (info #t #f metavar))))
 
-(define (help-%option synopsis options)
+(define (help-%option command)
   (%option
    '("help" #\h) #f #f
    (lambda (option name arg vals)
      (values #t (acons 'run
                        (lambda (vals)
-                         (fmt #t (dsp-help synopsis options))
+                         (fmt #t (dsp-help command))
                          '())
                        vals)))))
 
@@ -95,25 +99,31 @@
              (else
               ""))))
 
-(define (dsp-help synopsis opt-infos)
+(define (dsp-help command)
+  (cat "doro "(apply-cat (command-synopsis command)) "\n"
+       (apply-cat (command-description command)) "\n"
+       "Options:\n"
+       (dsp-listing "  " (append
+                          (map (lambda (opt-info)
+                                 (dsp-opt-info/left-side opt-info))
+                               (command-options command))
+                          '("--help"))
+                    "  " (append (map option-info-help (command-options command))
+                                 '("Show this help and exit")))))
+
+;; This could use a better name
+(define (dsp-listing indent left-items separator right-items)
   (lambda (st)
     (let* ((left-sides
-            (append
-             (map (lambda (opt-info)
-                    (fmt #f (cat "  " (dsp-opt-info/left-side opt-info))))
-                  opt-infos)
-             '("  --help")))
-           (left-width (fold-left max 0 (map string-length left-sides)))
-           (right-sides (append (map option-info-help opt-infos)
-                                '("Show this help and exit"))))
-      ((cat
-        (apply-cat synopsis)
-        "\n"
-        "Options:\n"
-        (apply-cat
-         (map (lambda (left right)
-                (columnar (with-width left-width left) "   " (dsp right)))
-              left-sides right-sides)))
+            (map (lambda (left)
+                   (fmt #f (cat indent left)))
+                 left-items))
+           (left-width (fold-left max 0 (map string-length left-sides))))
+      ((apply-cat
+        (map (lambda (left right)
+               ;; TODO: use `columnar' and `wrap-lines' here
+               (cat (pad left-width (dsp left)) (cat separator right "\n")))
+             left-sides right-items))
        st))))
 
 
@@ -124,6 +134,15 @@
 (define (command-list)
   (reverse %commands))
 
+(define-record-type* command
+  (make-command name description synopsis options handler)
+  ())
+
+(define (find-command name)
+  (find (lambda (command)
+          (eq? name (command-name command)))
+        %commands))
+
 (define-syntax define-command
   (syntax-rules (description synopsis options handler)
     ((_ name
@@ -131,15 +150,13 @@
         (synopsis synopsis-item ...)
         (options option-item ...)
         (handler proc))
-     (set! %commands (cons (list 'name
-                                 (list description-item ...)
-                                 (list synopsis-item ...)
-                                 (list option-item ...)
-                                 proc)
-                           %commands)))))
-
-(define command-name car)
-(define command-description cadr)
+     (define-values ()
+       (set! %commands (cons (make-command 'name
+                                           (list description-item ...)
+                                           (list synopsis-item ...)
+                                           (list option-item ...)
+                                           proc)
+                             %commands))))))
 
 (define (arg-pusher name)
   (lambda (option-name arg vals)
@@ -153,6 +170,11 @@
   (option '("bundle" #\b) 'bundle
           "Additionally consider packages from BUNDLE"
           (arg-pusher 'bundles)))
+
+(define no-depends-option
+  (option '("no-depends") #f
+          "Ignore dependencies"
+          (value-setter 'no-depends? #f)))
 
 (define (parse-package-string s)
   (values (string->symbol s) #f))
@@ -172,23 +194,39 @@
 (define (opt-ref/list vals key)
   (reverse (or (assq-ref vals key) '())))
 
+
+
+(define-command list
+  (description "List packages")
+  (synopsis "list")
+  (options (option '("all") #f
+                   "Also show available packages"
+                   (value-setter 'all? #t))
+           bundle-option)
+  (handler
+   (lambda (vals)
+     (let ((all? (assq-ref vals 'all?))
+           (db (config->database (assq-ref vals 'config))))
+       (database-add-bundles! db (opt-ref/list vals 'bundles))
+       (loop ((for package items (in-database db (sorted-by symbol<?))))
+         (cond (all?
+                (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
+               ((find database-item-installed? items)
+                => (lambda (installed)
+                     (fmt #t (dsp-db-item/short installed) "\n")))))))))
+
 
 (define-command show
   (description "Show package information")
   (synopsis "show [--bundle BUNDLE]... PACKAGE...")
-  (options bundle-option
-           (option '("inventory") #f
-                   "Show the package inventories"
-                   (value-setter 'inventory #t)))
+  (options bundle-option)
   (handler
    (lambda (vals)
-     (let ((bundle-locations (opt-ref/list vals 'bundles))
-           (packages (opt-ref/list vals 'operands))
-           (inventory? (assq-ref vals 'inventory))
+     (let ((packages (opt-ref/list vals 'operands))
            (db (config->database (assq-ref vals 'config))))
-       (database-add-bundles! db bundle-locations)
+       (database-add-bundles! db (opt-ref/list vals 'bundles))
        (loop ((for item (in-list (find-db-items db packages))))
-         (fmt #t (dsp-database-item item)))))))
+         (fmt #t (dsp-db-item item)))))))
 
 
 (define-command show-bundle
@@ -197,34 +235,42 @@
   (options)
   (handler
    (lambda (vals)
-     (let ((bundle-locations (opt-ref/list vals 'operands)))
-       (loop ((for bundle-location (in-list bundle-locations)))
-         (let ((bundle (open-input-bundle bundle-location)))
-           (fmt #t (dsp-bundle bundle))))))))
+     (loop ((for bundle-location (in-list (opt-ref/list vals 'operands))))
+       (let ((bundle (open-input-bundle bundle-location)))
+         (fmt #t (dsp-bundle bundle)))))))
 
 
+(define (select-package db package-string)
+  (receive (name version) (parse-package-string package-string)
+    (let ((items (database-search db name version)))
+      (cond ((null? items)
+             (bail-out (cat "Couldn't find any package matching \""
+                            package-string "\"")))
+            ((not (null? (cdr items)))
+             (bail-out (cat "Multiple versions of package found:\n"
+                            "  " (fmt-join dsp-db-item-identifier items ", ")
+                            "Please specify a version as well.")))
+            (else
+             (database-item-package (car items)))))))
+
 (define (install-command vals)
   (let ((bundle-locations (opt-ref/list vals 'bundles))
         (packages (opt-ref/list vals 'operands))
+        (no-depends? (assq-ref vals 'no-depends?))
         (db (config->database (assq-ref vals 'config))))
     (database-add-bundles! db bundle-locations)
-    (loop ((for package (in-list packages)))
-      (receive (name version) (parse-package-string package)
-        (let ((items (database-search db name version)))
-          (cond ((null? items)
-                 (bail-out (cat "Couldn't find any package matching \""
-                                package "\"")))
-                ((not (null? (cdr items)))
-                 (bail-out (cat "Multiple versions of package found:\n"
-                                "  " (fmt-join dsp-item-identifier items " ")
-                                "Please specify a version as well.")))
-                (else
-                 (database-install! db (database-item-package (car items))))))))))
+    (loop ((for package (in-list packages))
+           (for to-install (listing (select-package db package))))
+      => (cond (no-depends?
+                (loop ((for package (in-list to-install)))
+                  (database-install! db package)))
+               (else
+                (apply-actions db to-install '()))))))
 
 (define-command install
   (description "Install new packages")
   (synopsis "install [--bundle BUNDLE]... PACKAGE...")
-  (options bundle-option)
+  (options bundle-option no-depends-option)
   (handler install-command))
 
 
@@ -242,78 +288,27 @@
   (handler remove-command))
 
 
-;;; UI helpers
-
-(define (message . formats)
-  (fmt #t (cat (apply-cat formats) nl)))
-
-
-;;; Formatting combinators
-
-(define (dsp-package pkg)
-  (cat "Package: " (package-name pkg) "\n"
-       (if (null? (package-version pkg))
-           fmt-null
-           (cat "Version: " (dsp-version (package-version pkg)) "\n"))
-       (fmt-join (lambda (category)
-                   (let ((inventory (package-category-inventory pkg category)))
-                     (if (inventory-empty? inventory)
-                         fmt-null
-                         (cat "Inventory: " category "\n"
-                              (dsp-inventory inventory)))))
-                 (package-categories pkg))))
-
-(define (dsp-database-item item)
-  (dsp-package (database-item-package item)))
-
-(define (dsp-version version)
-  (fmt-join (lambda (part)
-              (fmt-join dsp part "."))
-            version
-            "-"))
-
-(define (dsp-inventory inventory)
-  (define (dsp-node node path)
-    (lambda (state)
-      (loop next ((for cursor (in-inventory node))
-                  (with st state))
-        => st
-        (let ((path (cons (inventory-name cursor) path)))
-          (if (inventory-leaf? cursor)
-              (next (=> st ((cat " " (fmt-join dsp (reverse path) "/") "\n")
-                            st)))
-              (next (=> st ((dsp-node cursor path) st))))))))
-  (dsp-node inventory '()))
-
-(define (dsp-bundle bundle)
-  (fmt-join dsp-package (bundle-packages bundle) "\n"))
-
-
-(define (dsp-item-identifier item)
-  (dsp-package-identifier (database-item-package item)))
-
-(define (dsp-package-identifier package)
-  (cat (package-name package) "-" (dsp-version (package-version package))))
-
-
 ;;; Entry point
 
-(define (process-command-line cmd-line synopsis options processor seed-vals)
+(define (process-command-line command cmd-line seed-vals)
   (define (unrecognized-option option name arg vals)
     (error 'process-command-line "unrecognized option" name))
   (define (process-operand operand vals)
     (apush 'operands operand vals))
   (let ((vals (args-fold* cmd-line
-                          (cons (help-%option synopsis options)
-                                (map option-info-%option options))
+                          (cons (help-%option command)
+                                (map option-info-%option
+                                     (command-options command)))
                           unrecognized-option
                           process-operand
                           seed-vals)))
-    (cond ((assq-ref vals 'run)
-           => (lambda (run)
-                (run vals)))
+    (cond (((or (assq-ref vals 'run)
+               (command-handler command))
+            vals)
+           (exit))
           (else
-           (processor vals)))))
+           (fmt #t "Aborted.\n")
+           (exit #f)))))
 
 (define (dsp-usage)
   (cat "dorodango v0.0\n"
@@ -324,11 +319,10 @@
         "installing and inspecting packages containing R6RS libraries.")
        "\n"
        "Commands:\n"
-       (fmt-join (lambda (command)
-                   (cat "   " (command-name command)
-                        " - " (apply-cat (command-description command))))
-                 (command-list)
-                 "\n")
+       (dsp-listing "  " (map command-name (command-list))
+                    "  " (map (lambda (command)
+                                 (apply-cat (command-description command)))
+                               (command-list)))
        "\n\n"
        "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
        (pad/both 72 "This doro has Super Ball Powers.")))
@@ -370,28 +364,30 @@
      (handlers
       ,(lambda (entry)
          (default-log-formatter entry (current-output-port))))))
+  (set-logger-properties!
+   logger:dorodango.solver
+   `((threshold warning)
+     (handlers
+      ,(lambda (entry)
+         (default-log-formatter entry (current-output-port))))))
   (match argv
     ((self)
      (fmt #t (dsp-usage)))
     ((self "--help" . rest)
      (fmt #t (dsp-usage)))
     ((self command . rest)
-     (cond ((assq (string->symbol command) %commands)
+     (cond ((find-command (string->symbol command))
             => (lambda (command)
                  (let ((config (read-default-config)))
-                   (match command
-                     ((name description synopsis options processor)
-                      (process-command-line rest
-                                            (append '("doro ") synopsis)
-                                            options
-                                            processor
-                                            `((operands . ())
-                                              (config . ,config))))))))
+                   (process-command-line command
+                                         rest
+                                         `((operands . ())
+                                           (config . ,config))))))
            (else
             (error 'main "unknown command" command))))))
 
 (main (command-line))
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop (match 1))
+;; scheme-indent-styles: (foof-loop (match 1) (make-finite-type-vector 3))
 ;; End:

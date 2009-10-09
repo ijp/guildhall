@@ -231,17 +231,21 @@
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
         (db (config->database (assq-ref vals 'config))))
-    (loop ((for package (in-list packages)))
-      (receive (name version) (parse-package-string package)
-        (loop ((for item (in-list (database-search db name version))))
-          (when (database-item-installed? item)
-            (database-remove! db (database-item-package item))))))))
+    (loop ((for package-name (in-list packages)))
+      (unless (database-remove! db (string->symbol package-name))
+        (message "Package " package-name " was not installed.")))))
 
 (define-command remove
   (description "Remove packages")
   (synopsis "remove PACKAGE...")
   (options)
   (handler remove-command))
+
+
+;;; UI helpers
+
+(define (message . formats)
+  (fmt #t (cat (apply-cat formats) nl)))
 
 
 ;;; Formatting combinators

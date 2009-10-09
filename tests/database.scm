@@ -107,7 +107,7 @@
         (directory->tree dest-dir))
 
       ;; Test removal
-      (database-remove! db package:foo)
+      (database-remove! db 'foo)
       (test-equal '(("share" ("r6rs-libs")))
         (directory->tree dest-dir))
       (close-database db))
@@ -136,7 +136,7 @@
           (database-install! db package:file-conflict-foo)
           'no-exception))
       
-      (database-remove! db package:foo)
+      (database-remove! db 'foo)
       (database-install! db package:file-conflict-foo)
       (let ((item (database-find db package:file-conflict-foo)))
         (test-eqv #t (database-item? item))

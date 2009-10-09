@@ -53,6 +53,7 @@
           database-file-conflict-pathname)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map)
+          (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
           (spells foof-loop)
@@ -461,22 +462,20 @@
                           (list category))))
         (put-string port "\n")))))
 
-(define (database-remove! db package)
-  (define (lose msg . irritants)
-    (apply error 'database-remove! msg irritants))
-  (let ((item (or (database-find db package)
-                  (lose "no such package in database" package))))
-    (when (item-installed? item)
-      (let ((package (item-package item)))
-        (log/db 'info (cat "removing " (package-identifier package)))
-        (remove-package-files! db package)
-        (delete-file (database-package-info-pathname db package))
-        (database-update! db
-                          package
-                          (lambda (item)
-                            (if (null? (item-sources item))
-                                #f
-                                (item-with-state item 'available))))))))
+(define (database-remove! db package-name)
+  (and-let* ((item (find item-installed?
+                         (hashtable-ref (database-pkg-table db) package-name '()))))
+    (let ((package (item-package item)))
+      (log/db 'info (cat "removing " (package-identifier package)))
+      (remove-package-files! db package)
+      (delete-file (database-package-info-pathname db package))
+      (database-update! db
+                        package
+                        (lambda (item)
+                          (if (null? (item-sources item))
+                              #f
+                              (item-with-state item 'available))))
+      #t)))
 
 (define (remove-package-files! db package)
   (let ((file-table (database-file-table db))

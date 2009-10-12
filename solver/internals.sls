@@ -214,9 +214,7 @@
   (number-compare (dependency-id d1) (dependency-id d2)))
 
 (define (dependency-hash dependency)
-  (hash-fold version-hash
-             (version-hash (dependency-source dependency))
-             (dependency-targets dependency)))
+  (dependency-id dependency))
 
 (define dependency-wt-type (make-wt-tree-type dependency<?))
 

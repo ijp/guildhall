@@ -167,7 +167,6 @@
                      (search-graph-step graph best-future-solution)))
                (sanity-check-not-deferred best-future-solution)
                (let ((result (make-solution (step-actions best-future-solution-step)
-                                            initial-state
                                             (step-score best-future-solution-step)
                                             (step-tier best-future-solution-step))))
                  (log/info "--- Returning the future solution "
@@ -769,7 +768,7 @@
 ;;; Solution
 
 (define-record-type* solution
-  (make-solution choices initial-state score tier)
+  (make-solution choices score tier)
   ())
 
 (define (dsp-solution solution)

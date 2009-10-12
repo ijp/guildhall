@@ -104,15 +104,19 @@
          => car)
         (else #f)))
 
-(define (parse-package-form form make-categories)
-  (match form
-    (('package (name . version) . properties)
-     (make-package name
-                   version
-                   properties
-                   (make-categories properties)))
-    (_
-     #f)))
+(define parse-package-form
+  (case-lambda
+    ((form make-categories)
+     (match form
+       (('package (name . version) . properties)
+        (make-package name
+                      version
+                      properties
+                      (make-categories properties)))
+       (_
+        #f)))
+    ((form)
+     (parse-package-form form (lambda (properties) '())))))
 
 (define (package->form package)
   `(package (,(package-name package) . ,(package-version package))

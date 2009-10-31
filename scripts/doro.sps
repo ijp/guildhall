@@ -25,9 +25,13 @@
 #!r6rs
 
 (import (except (rnrs) file-exists? delete-file)
+        (only (srfi :1) last unfold)
         (srfi :8 receive)
-        (only (srfi :13) string-null? string-trim-both)
+        (only (srfi :13)
+              string-null? string-suffix? string-trim-both)
         (srfi :67 compare-procedures)
+        (spells lazy)
+        (spells misc)
         (spells alist)
         (spells match)
         (spells fmt)
@@ -36,10 +40,12 @@
         (spells filesys)
         (spells sysutils)
         (spells define-values)
+        (spells process)
         (rename (spells args-fold)
                 (option %option))
         (spells logging)
         (spells tracing)
+        (spells sysutils)
         (only (spells record-types) define-record-type*)
         (dorodango private utils)
         (dorodango package)
@@ -100,7 +106,7 @@
               ""))))
 
 (define (dsp-help command)
-  (cat "doro "(apply-cat (command-synopsis command)) "\n"
+  (cat "doro " (apply-cat (command-synopsis command)) "\n"
        (apply-cat (command-description command)) "\n"
        "Options:\n"
        (dsp-listing "  " (append
@@ -162,6 +168,10 @@
   (lambda (option-name arg vals)
     (values #f (apush name arg vals))))
 
+(define (arg-setter name)
+  (lambda (option-name arg vals)
+    (values #f (acons name arg vals))))
+
 (define (value-setter name value)
   (lambda (option-name arg vals)
     (values #f (acons name value vals))))
@@ -196,6 +206,8 @@
 
 
 
+;;; Querying
+
 (define-command list
   (description "List packages")
   (synopsis "list")
@@ -215,7 +227,6 @@
                 => (lambda (installed)
                      (fmt #t (dsp-db-item/short installed) "\n")))))))))
 
-
 (define-command show
   (description "Show package information")
   (synopsis "show [--bundle BUNDLE]... PACKAGE...")
@@ -228,7 +239,6 @@
        (loop ((for item (in-list (find-db-items db packages))))
          (fmt #t (dsp-db-item item)))))))
 
-
 (define-command show-bundle
   (description "Show bundle contents")
   (synopsis "show-bundle BUNDLE...")
@@ -240,6 +250,8 @@
          (fmt #t (dsp-bundle bundle)))))))
 
 
+;;; Package installation and removal
+
 (define (select-package db package-string)
   (receive (name version) (parse-package-string package-string)
     (let ((item (database-lookup db name version)))
@@ -269,7 +281,6 @@
   (options bundle-option no-depends-option)
   (handler install-command))
 
-
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
         (no-depends? (assq-ref vals 'no-depends?))
@@ -288,6 +299,165 @@
   (synopsis "remove PACKAGE...")
   (options no-depends-option)
   (handler remove-command))
+
+
+;;; Packaging
+
+(define (create-bundle-command vals)
+  (define (compute-bundle-name pkg-lists)
+    (loop ((for pathname (in-list pkg-lists))
+           (for packages (appending-reverse
+                          (call-with-input-file (->namestring pathname)
+                            read-pkg-list))))
+      => (match packages
+           (()
+            (bail-out "All package lists have been empty."))
+           ((package)
+            (package-identifier package))
+           (_
+            (bail-out "Multiple packages found and no bundle name specified.")))))
+  (let ((directories (match (opt-ref/list vals 'operands)
+                       (()
+                        (list (make-pathname #f '() #f)))
+                       (operands
+                        (map pathname-as-directory operands))))
+        (output-directory (or (and=> (assq-ref vals 'output-directory)
+                                     pathname-as-directory)
+                              (make-pathname #f '() #f)))
+        (output-filename (assq-ref vals 'output-filename)))
+    (let ((pkg-lists (find-pkg-lists directories)))
+      (when (null? pkg-lists)
+        (bail-out (cat "No package lists found in or below "
+                       (fmt-join dsp-pathname pkg-lists ", ")) "."))
+      (create-bundle (or output-filename
+                         (->namestring
+                          (pathname-with-file output-directory
+                                              (compute-bundle-name pkg-lists))))
+                     (map (lambda (pathname) (pathname-with-file pathname #f))
+                          pkg-lists)))))
+
+(define (create-bundle bundle-filename directories)
+  (let ((filename (cond ((string-suffix? ".zip" bundle-filename)
+                         bundle-filename)
+                        (else
+                         (string-append bundle-filename ".zip")))))
+    (delete-file filename)
+    (message "Creating " filename)
+    (match directories
+      ((directory)
+       (zip-files filename
+                  directory
+                  (list-files directory (make-pathname #f '() #f))))
+      (_
+       (loop ((for directory (in-list directories)))
+         (zip-files filename
+                    (pathname-container directory)
+                    (list-files directory
+                                (->pathname
+                                 `((,(last (pathname-directory directory))))))))))))
+
+(define (zip-files zip-filename directory pathnames)
+  (let ((zip-path (force %zip-path)))
+    (unless zip-path
+      (bail-out "`zip' executable not found in PATH."))
+    (with-working-directory directory
+      (lambda ()
+        (call-with-values
+          (lambda ()
+            (call-with-process-input #f (list zip-path "-q" "-@" zip-filename)
+              (lambda (port)
+                (loop ((for pathname (in-list pathnames)))
+                  (put-string port (->namestring pathname))
+                  (put-string port "\n")))))
+            (process-status-checker zip-path 0))))))
+
+(define (process-status-checker program-path expected-status)
+  (lambda (status signal . results)
+    (cond (signal
+           (bail-out (cat "`zip' was terminated by signal " signal)))
+          ((= status 0)
+           (if (null? results)
+               (unspecific)
+               (apply values results)))
+          (else
+           (bail-out (cat "`zip' returned with unexpected status " status))))))
+
+(define %zip-path (delay (find-exec-path "zip")))
+
+(define %git-path (delay (find-exec-path "git")))
+(define %bzr-path (delay (find-exec-path "bzr")))
+(define %darcs-path (delay (find-exec-path "darcs")))
+
+(define (list-files directory prefix)
+  (let ((directory (pathname-as-directory directory)))
+    (define (run-rcs-lister argv)
+      (with-working-directory directory
+        (lambda ()
+          (map (lambda (line)
+                 (pathname-join prefix (->pathname line)))
+               (call-with-values
+                 (lambda () (apply run-process/lines #f argv))
+                 (process-status-checker (car argv) 0))))))
+    (define (builtin-lister)
+      (loop ((for filename (in-directory directory))
+             (for result
+                  (appending-reverse
+                   (let ((pathname (pathname-with-file directory filename)))
+                     (if (file-directory? pathname)
+                         (if (member filename '(".git" ".bzr" ".hg" "_darcs" ".svn"))
+                             '()
+                             (list-files pathname
+                                         (pathname-join prefix `((,filename)))))
+                         (list (pathname-with-file prefix filename)))))))
+        => (reverse result)))
+    (loop continue
+        ((for rcs (in-list `((".git" ,%git-path "ls-files")
+                             (".bzr" ,%bzr-path "ls" "--recursive" "--versioned")
+                             ("_darcs" ,%darcs-path "query" "files")))))
+      => (builtin-lister)
+      (match rcs
+        ((dir program-path-promise . arguments)
+         (if (file-directory? (pathname-with-file directory dir))
+             (cond ((force program-path-promise)
+                    => (lambda (program)
+                         (run-rcs-lister (cons program arguments))))
+                   (else
+                    (builtin-lister)))
+             (continue)))))))
+
+(define (read-pkg-list port)
+  (unfold eof-object?
+          parse-package-form
+          (lambda (seed) (read port))
+          (read port)))
+
+(define (find-pkg-lists directories)
+  (define (subdirectory-pkg-lists directory)
+    (loop ((for filename (in-directory directory))
+           (let pathname
+               (pathname-join directory
+                              (make-pathname #f (list filename) "pkg-list.scm")))
+           (for result (listing pathname (if (file-exists? pathname)))))
+      => result))
+  (loop ((for directory (in-list directories))
+         (for result
+              (appending-reverse
+               (let ((pathname (pathname-with-file directory "pkg-list.scm")))
+                 (if (file-exists? pathname)
+                     (list pathname)
+                     (subdirectory-pkg-lists directory))))))
+    => (reverse result)))
+
+(define-command create-bundle
+  (description "Create a bundle")
+  (synopsis "create-bundle [DIRECTORY...]")
+  (options (option '("output" #\o) 'filename
+                   "Bundle filename"
+                   (arg-setter 'output-filename))
+           (option '("directory" #\d) 'directory
+                   "Output directory when using implicit filename"
+                   (arg-setter 'output-directory)))
+  (handler create-bundle-command))
 
 
 ;;; Entry point
@@ -347,7 +517,7 @@
 (define (default-config)
   (make-config 'default (list (default-destination))))
 
-(define (read-default-config)
+(define (read-config/default)
   (let ((pathname (default-config-location)))
     (if (file-exists? pathname)
         (call-with-input-file (->namestring pathname)
@@ -380,7 +550,7 @@
     ((self command . rest)
      (cond ((find-command (string->symbol command))
             => (lambda (command)
-                 (let ((config (read-default-config)))
+                 (let ((config (read-config/default)))
                    (process-command-line command
                                          rest
                                          `((operands . ())

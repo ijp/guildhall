@@ -45,7 +45,7 @@
           (spells fmt)
           (spells foof-loop)
           (spells lazy-streams)
-          (spenet wt-tree)
+          (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver universe)
           (dorodango solver choice))

@@ -105,7 +105,7 @@
           (srfi :2 and-let*)
           (srfi :8 receive)
           (srfi :67 compare-procedures)
-          (spenet wt-tree)
+          (ocelotl wt-tree)
           (spells record-types)
           (spells xvector)
           (spells foof-loop)

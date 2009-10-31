@@ -48,7 +48,7 @@
           (spells logging)
           (spells foof-loop)
           (spells lazy-streams)
-          (spenet wt-tree) ;need to move this somewhere else
+          (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver logging)
           (dorodango solver choice)

@@ -52,7 +52,7 @@
           (spells xvector)
           (spells fmt)
           (spells foof-loop)
-          (spenet wt-tree)
+          (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver logging)
           (dorodango solver choice)

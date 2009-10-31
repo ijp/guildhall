@@ -99,7 +99,7 @@
           (spells fmt)
           (spells foof-loop)
           (spells tracing)
-          (spenet wt-tree)
+          (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver universe))
 

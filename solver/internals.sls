@@ -118,7 +118,7 @@
           (spells hash-utils)
           (spells record-types)
           (spells tracing)
-          (spenet wt-tree)
+          (ocelotl wt-tree)
           (only (dorodango private utils)
                 define-guarantor))
 

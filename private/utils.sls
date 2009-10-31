@@ -37,7 +37,7 @@
           make-fmt-log)
   (import (rnrs)
           (srfi :8 receive)
-          (spenet wt-tree)
+          (ocelotl wt-tree)
           (spells foof-loop)
           (spells alist)
           (spells xvector)

@@ -345,12 +345,16 @@
 
 ;;; UI helpers
 
+(define (fmt/stdout . formats)
+  (fmt #t (apply-cat formats))
+  (flush-output-port (current-output-port)))
+
 (define (message . formats)
-  (fmt #t (cat (apply-cat formats) nl)))
+  (fmt/stdout (cat (apply-cat formats) nl)))
 
 (define (y-or-n default message)
   (loop prompt-again ()
-    (fmt #t (cat message " [" (if (eqv? default #t) "Y/n" "y/N") "] "))
+    (fmt/stdout (cat message " [" (if (eqv? default #t) "Y/n" "y/N") "] "))
     (let ((input (string-downcase (string-trim-both
                                    (get-line (current-input-port))))))
       (if (string-null? input)
@@ -359,7 +363,7 @@
             ((#\y) #t)
             ((#\n) #f)
             (else
-             (fmt #t (cat "Please answer 'y' or 'n'.\n"))
+             (fmt/stdout (cat "Please answer 'y' or 'n'.\n"))
              (prompt-again)))))))
 
 (define (prompt message choices)
@@ -378,7 +382,7 @@
          (for keys (listing key))
          (for help-texts (listing (cat key ": " help))))
     => (loop prompt-again ()
-         (fmt #t (cat message " ["
+         (fmt/stdout (cat message " ["
                       (char-upcase (car keys)) "/" (fmt-join dsp (cdr keys) "/")
                       "/?] "))
          (let ((input (string-downcase (string-trim-both
@@ -386,15 +390,17 @@
            (cond ((string-null? input)
                   (car keys))
                  ((string=? "?" input)
-                  (fmt #t (cat "The following choices are available:\n"
-                               (fmt-join/suffix (lambda (text) (cat "  " text))
-                                                help-texts
-                                                "\n")))
+                  (fmt/stdout
+                   (cat "The following choices are available:\n"
+                        (fmt-join/suffix (lambda (text) (cat "  " text))
+                                         help-texts
+                                         "\n")))
                   (prompt-again))
                  ((lookup-key keys input) => values)
                  (else
-                  (fmt #t (cat "Invalid response. Please enter a valid choice"
-                               " or '?' for help.\n"))
+                  (fmt/stdout
+                   (cat "Invalid response. Please enter a valid choice"
+                        " or '?' for help.\n"))
                   (prompt-again)))))))
 
 

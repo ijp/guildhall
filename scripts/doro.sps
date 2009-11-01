@@ -109,16 +109,18 @@
               ""))))
 
 (define (dsp-help command)
-  (cat "doro " (apply-cat (command-synopsis command)) "\n"
-       (apply-cat (command-description command)) "\n"
-       "Options:\n"
-       (dsp-listing "  " (append
-                          (map (lambda (opt-info)
-                                 (dsp-opt-info/left-side opt-info))
-                               (command-options command))
-                          '("--help"))
-                    "  " (append (map option-info-help (command-options command))
-                                 '("Show this help and exit")))))
+  (let ((synopsis (command-synopsis command)))
+    (cat "doro " (car synopsis) "\n"
+         (fmt-columns (list "     " (fmt-join/suffix dsp (cdr synopsis) "\n")))
+         (apply-cat (command-description command)) "\n"
+         "Options:\n"
+         (dsp-listing "  " (append
+                            (map (lambda (opt-info)
+                                   (dsp-opt-info/left-side opt-info))
+                                 (command-options command))
+                            '("--help"))
+                      "  " (append (map option-info-help (command-options command))
+                                   '("Show this help and exit"))))))
 
 ;; This could use a better name
 (define (dsp-listing indent left-items separator right-items)
@@ -130,8 +132,9 @@
            (left-width (fold-left max 0 (map string-length left-sides))))
       ((apply-cat
         (map (lambda (left right)
-               ;; TODO: use `columnar' and `wrap-lines' here
-               (cat (pad left-width (dsp left)) (cat separator right "\n")))
+               (columnar left-width (dsp left)
+                         separator
+                         (with-width (- 78 left-width) (wrap-lines right))))
              left-sides right-items))
        st))))
 

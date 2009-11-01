@@ -28,7 +28,10 @@
         (only (srfi :1) last unfold)
         (srfi :8 receive)
         (only (srfi :13)
-              string-null? string-suffix? string-trim-both)
+              string-null?
+              string-prefix?
+              string-suffix?
+              string-trim-both)
         (srfi :67 compare-procedures)
         (spells lazy)
         (spells misc)
@@ -553,17 +556,66 @@
 (define (default-config)
   (make-config 'default (list (default-destination))))
 
-(define (read-config/default)
-  (let ((pathname (default-config-location)))
-    (if (file-exists? pathname)
-        (call-with-input-file (->namestring pathname)
-          read-config)
-        (default-config))))
-
 (define (config->database config)
   (open-database (default-database-directory)
                  (config-default-destination config)
                  '()))
+
+(define config-option
+  (option '("config" #\c) 'config
+          (cat "Use configuration file CONFIG"
+               " (default: `" (dsp-pathname (default-config-location)) "')")
+          (arg-setter 'config)))
+
+
+
+;; TODO: This is a kludge; should add the capabilty to stop on first
+;; non-option argument to args-fold*
+(define (split-command-line cmd-line)
+  (loop continue ((for argument arguments (in-list cmd-line))
+                  (for option-arguments (listing-reverse argument))
+                  (with option-arg? #f))
+    => (values (reverse option-arguments) arguments)
+    (cond (option-arg?
+           (continue (=> option-arg? #f)))
+          ((string-prefix? "-" argument)
+           (cond ((member argument '("--destination" "-d"
+                                     "--config" "-c"))
+                  (continue (=> option-arg? #t)))
+                 (else
+                  (continue))))
+          (else
+           (values (reverse option-arguments) arguments)))))
+
+(define (main-handler vals)
+  (define (read-config/default pathname)
+    (guard (c ((i/o-file-does-not-exist-error? c)
+               (cond (pathname
+                      (bail-out
+                       (cat "Specified config file `"
+                            (dsp-pathname pathname) "' does not exist.")))
+                     (else (default-config)))))
+      (call-with-input-file (->namestring (or pathname (default-config-location)))
+        read-config)))
+  (let ((operands (opt-ref/list vals 'operands)))
+    (cond ((null? operands)
+           (fmt #t (dsp-usage)))
+          ((find-command (string->symbol (car operands)))
+           => (lambda (command)
+                (let ((config (read-config/default (assq-ref vals 'config))))
+                  (process-command-line command
+                                        (cdr operands)
+                                        `((operands . ())
+                                          (config . ,config))))))
+          (else
+           (error 'main "unknown command" (car operands))))))
+
+(define main-command
+  (make-command '%main
+                '("Manage packages")
+                '("[OPTION...] COMMAND [ARGS...]")
+                (list config-option)
+                main-handler))
 
 (define (main argv)
   (set-logger-properties!
@@ -578,21 +630,10 @@
      (handlers
       ,(lambda (entry)
          (default-log-formatter entry (current-output-port))))))
-  (match argv
-    ((self)
-     (fmt #t (dsp-usage)))
-    ((self "--help" . rest)
-     (fmt #t (dsp-usage)))
-    ((self command . rest)
-     (cond ((find-command (string->symbol command))
-            => (lambda (command)
-                 (let ((config (read-config/default)))
-                   (process-command-line command
-                                         rest
-                                         `((operands . ())
-                                           (config . ,config))))))
-           (else
-            (error 'main "unknown command" command))))))
+  (receive (option-arguments arguments) (split-command-line (cdr argv))
+    (process-command-line main-command
+                          option-arguments
+                          `((operands . ,(reverse arguments))))))
 
 (main (command-line))
 

@@ -27,8 +27,10 @@
           make-config
           read-config
           
+          config-destination
+          config-database-location
           config-default-destination
-          config-destination)
+          config-default-database-location)
   (import (rnrs)
           (spells alist)
           (spells match)
@@ -37,22 +39,30 @@
 
 (define-record-type (config %make-config config?)
   (fields default-destination
-          destinations))
+          destinations
+          database-locations))
 
-(define (make-config default destinations)
-  (%make-config/validate 'make-config default destinations))
+(define (make-config default destinations database-locations)
+  (%make-config/validate 'make-config default destinations database-locations))
 
-(define (%make-config/validate who default destinations)
+(define (%make-config/validate who default destinations database-locations)
+  (loop ((for destination (in-list destinations)))
+    (let ((name (destination-name destination)))
+      (unless (assq-ref database-locations name)
+        (lose who "no database location for destination" name))))
   (if default
       (cond ((find-destination destinations default)
              => (lambda (default-destination)
-                  (%make-config default-destination destinations)))
+                  (%make-config default-destination
+                                destinations
+                                database-locations)))
             (else
-             (error who "default configuration undefined" default)))
+             (lose who "default configuration undefined" default)))
       (if (null? destinations)
-          (error who "no destinations defined")
-          (make-config (car destinations)
-                       destinations))))
+          (lose who "no destinations defined")
+          (make-config (destination-name (car destinations))
+                       destinations
+                       database-locations))))
 
 (define (find-destination destinations name)
   (find (lambda (destination)
@@ -62,36 +72,56 @@
 (define (config-destination config name)
   (find-destination (config-destinations config) name))
 
+(define (config-database-location config name)
+  (assq-ref (config-database-locations config) name))
+
+(define (config-default-database-location config)
+  (config-database-location
+   config
+   (destination-name (config-default-destination config))))
+
 (define (read-config port)
   (define who 'read-config)
   (loop continue ((for form (in-port port read))
                   (with default #f)
-                  (with destinations '()))
-    => (%make-config/validate who default destinations)
+                  (with destinations '())
+                  (with database-locations '()))
+    => (%make-config/validate who default destinations database-locations)
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))
-      (('destination ((? symbol? name))
-                     dest-spec)
+      (('destination (? symbol? name)
+                     dest-spec
+                     ('database location))
        (continue (=> destinations
-                     (cons (cons name (dest-spec->destination who dest-spec))
-                           destinations))))
+                     (cons (dest-spec->destination who name dest-spec)
+                           destinations))
+                 (=> database-locations
+                     (cons (cons name location) database-locations))))
       (else
-       (error who "invalid configuration form" form)))))
+       (lose who "invalid configuration form" form)))))
 
 (define destination-kinds
   `((fhs . ,make-fhs-destination)))
 
-(define (dest-spec->destination who spec)
+(define (dest-spec->destination who name spec)
   (match spec
     (((? symbol? kind) . construct-args)
-     (cond ((assq-ref kind destination-kinds)
+     (cond ((assq-ref destination-kinds kind)
             => (lambda (constructor)
-                 (apply constructor construct-args)))
+                 (apply constructor name construct-args)))
            (else
-            (error who "unkown destination kind" kind))))
+            (lose who "unkown destination kind" kind))))
     (else
-     (error who "invalid destination specification" spec))))
+     (lose who "invalid destination specification" spec))))
+
+(define-condition-type &config &error
+  make-config-error config-error?)
+
+(define (lose who message . irritants)
+  (raise (condition (make-config-error)
+                    (make-message-condition message)
+                    (make-irritants-condition irritants))))
 
 )
 

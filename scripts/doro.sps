@@ -187,7 +187,10 @@
           (value-setter 'no-depends? #t)))
 
 (define (parse-package-string s)
-  (values (string->symbol s) #f))
+  (values (string->symbol s) #f)) ;++version
+
+(define (string->package s)
+  (make-package (string->symbol s) '())) ;++version
 
 (define (find-db-items db packages)
   (loop ((for package (in-list packages))
@@ -299,6 +302,39 @@
   (synopsis "remove PACKAGE...")
   (options no-depends-option)
   (handler remove-command))
+
+
+;;; Querying
+
+(define (config-command vals)
+  (let* ((config (assq-ref vals 'config))
+         (operands (opt-ref/list vals 'operands))
+         (n-operands (length operands)))
+    (if (null? operands)
+        (dsp-config config)
+        (case (string->symbol (car operands))
+          ((destination)
+           (unless (<= 3 n-operands 4)
+             (bail-out "`config destination' requires 2 or 3 arguments"))
+           (let ((destination (config-default-destination config))
+                 (package (string->package (list-ref operands 1)))
+                 (category (string->symbol (list-ref operands 2)))
+                 (pathname (if (> n-operands 3)
+                               (->pathname (list-ref operands 3))
+                               (make-pathname #f '() #f))))
+             (for-each
+              (lambda (pathname)
+                (fmt #t (dsp-pathname pathname) "\n"))
+              (destination-pathnames destination package category pathname))))))))
+
+(define (dsp-config config)
+  (dsp "Sorry, not yet implemented."))
+
+(define-command config
+  (description "Show configuration")
+  (synopsis "config destination PACKAGE CATEGORY [FILENAME]")
+  (options)
+  (handler config-command))
 
 
 ;;; Packaging

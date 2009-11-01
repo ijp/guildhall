@@ -1,0 +1,69 @@
+#!/bin/sh
+
+SUPPORTED_IMPLS="ypsilon ikarus"
+REQUIRED_LIBS="srfi spells/spells parscheme/parscheme industria/weinholt ocelotl dorodango"
+LIBS_DIR="../_libs"
+
+setup_symlinks() {
+    exclude_rx="$1"
+    mkdir -p "$LIBS_DIR"
+    find "$LIBS_DIR" -type l -delete
+    for lib in $REQUIRED_LIBS; do
+        if ! echo "$lib" | grep -q "$exclude_rx"; then
+            ln -s "../$lib" "$LIBS_DIR/"
+        fi
+    done
+}
+
+impl_setup() {
+    impl="$1"
+    case "$impl" in
+        ikarus|ypsilon|mosh)
+            setup_symlinks '^$'
+            ;;
+        plt)
+            setup_symlinks '^srfi$'
+            ;;
+        *)
+            echo "Unsupported implementation '$impl'; patches welcome ;-)"
+            exit 1
+            ;;
+    esac
+}
+
+IMPL=none
+while true; do
+    case "$1" in
+        -i) shift; IMPL="$1" shift
+            ;;
+        *)
+            break
+    esac
+done
+
+if [ "$IMPL" = none ]; then
+    for impl in $SUPPORTED_IMPLS; do
+        if command -v "$impl" > /dev/null; then
+            IMPL="$impl"
+            break
+        fi
+    done
+    if [ "$IMPL" = none ]; then
+        echo "Error: no supported implementation found in PATH" >&2
+        echo "You need one of ($SUPPORTED_IMPLS) installed" >&2
+    fi
+fi
+
+export R6RS_LIBRARY_PATH="$LIBS_DIR"
+
+echo "* Using $IMPL to install dorodango"
+impl_setup "$IMPL"
+runner="scripts/r6rs-script.$IMPL"
+
+$runner scripts/doro.sps install --bundle ..  dorodango
+
+# Use awk instead of "tail -n 1" here to avoid causing a "broken pipe" error
+bindir=`$runner scripts/doro.sps config destination none programs | awk 'NR == 1 { print }'`
+echo "* Installing \`r6rs-script' launcher for $IMPL to $bindir"
+cp "scripts/r6rs-script.$IMPL" "$bindir/r6rs-script"
+chmod +x "$bindir/r6rs-script"

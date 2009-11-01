@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export IKARUS_LIBRARY_PATH="$R6RS_LIBRARY_PATH"
+exec ikarus --r6rs-script "$@"

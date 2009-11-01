@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export YPSILON_SITELIB="$R6RS_LIBRARY_PATH"
+exec ypsilon --r6rs -- "$@"

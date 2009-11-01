@@ -203,9 +203,9 @@
                  (database-lookup db name version)))))
     => (reverse result)))
 
-(define (bail-out formatter)
-  (fmt (current-error-port) (cat formatter "\n"))
-  (exit 1))
+(define (die formatter)
+  (fmt (current-error-port) (cat "doro: " formatter "\n"))
+  (exit #f))
 
 (define (opt-ref/list vals key)
   (reverse (or (assq-ref vals key) '())))
@@ -262,8 +262,8 @@
   (receive (name version) (parse-package-string package-string)
     (let ((item (database-lookup db name version)))
       (cond ((not item)
-             (bail-out (cat "Couldn't find any package matching \""
-                            package-string "\"")))
+             (die (cat "could not find any package matching `"
+                       package-string "'")))
             (else
              (database-item-package item))))))
 
@@ -318,7 +318,7 @@
         (case (string->symbol (car operands))
           ((destination)
            (unless (<= 3 n-operands 4)
-             (bail-out "`config destination' requires 2 or 3 arguments"))
+             (die "`config destination' requires 2 or 3 arguments"))
            (let ((destination (config-default-destination config))
                  (package (string->package (list-ref operands 1)))
                  (category (string->symbol (list-ref operands 2)))
@@ -350,11 +350,11 @@
                             read-pkg-list))))
       => (match packages
            (()
-            (bail-out "All package lists have been empty."))
+            (die "all package lists have been empty."))
            ((package)
             (package-identifier package))
            (_
-            (bail-out "Multiple packages found and no bundle name specified.")))))
+            (die "multiple packages found and no bundle name specified.")))))
   (let ((directories (match (opt-ref/list vals 'operands)
                        (()
                         (list (make-pathname #f '() #f)))
@@ -366,8 +366,8 @@
         (output-filename (assq-ref vals 'output-filename)))
     (let ((pkg-lists (find-pkg-lists directories)))
       (when (null? pkg-lists)
-        (bail-out (cat "No package lists found in or below "
-                       (fmt-join dsp-pathname pkg-lists ", ")) "."))
+        (die (cat "no package lists found in or below "
+                  (fmt-join dsp-pathname pkg-lists ", ")) "."))
       (create-bundle (or output-filename
                          (->namestring
                           (pathname-with-file output-directory
@@ -398,7 +398,7 @@
 (define (zip-files zip-filename directory pathnames)
   (let ((zip-path (force %zip-path)))
     (unless zip-path
-      (bail-out "`zip' executable not found in PATH."))
+      (die "`zip' executable not found in PATH."))
     (with-working-directory directory
       (lambda ()
         (call-with-values
@@ -413,13 +413,13 @@
 (define (process-status-checker program-path expected-status)
   (lambda (status signal . results)
     (cond (signal
-           (bail-out (cat "`zip' was terminated by signal " signal)))
+           (die (cat "`zip' was terminated by signal " signal)))
           ((= status 0)
            (if (null? results)
                (unspecific)
                (apply values results)))
           (else
-           (bail-out (cat "`zip' returned with unexpected status " status))))))
+           (die (cat "`zip' returned with unexpected status " status))))))
 
 (define %zip-path (delay (find-exec-path "zip")))
 
@@ -591,9 +591,8 @@
   (define (read-config/default pathname)
     (guard (c ((i/o-file-does-not-exist-error? c)
                (cond (pathname
-                      (bail-out
-                       (cat "Specified config file `"
-                            (dsp-pathname pathname) "' does not exist.")))
+                      (die (cat "specified config file `"
+                                (dsp-pathname pathname) "' does not exist.")))
                      (else (default-config)))))
       (call-with-input-file (->namestring (or pathname (default-config-location)))
         read-config)))

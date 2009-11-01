@@ -30,8 +30,10 @@
           apush
           
           warn
+          die
           define-guarantor
-          
+
+          opt-ref/list
           dsp-pathname
           logger:dorodango
           make-fmt-log)
@@ -63,12 +65,19 @@
                (make-message-condition message)
                (make-irritants-condition irritants))))
 
+(define (die formatter)
+  (fmt (current-error-port) (cat "doro: " formatter "\n"))
+  (exit #f))
+
 (define (apush k v vals)
   (cond ((assq k vals)
          => (lambda (entry)
               (acons k (cons v (cdr entry)) (remq entry vals))))
         (else
          (acons k (list v) vals))))
+
+(define (opt-ref/list vals key)
+  (reverse (or (assq-ref vals key) '())))
 
 (define make-fmt-log
   (case-lambda

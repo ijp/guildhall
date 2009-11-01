@@ -285,16 +285,17 @@
 
 
 (define (dsp-action-list actions)
-  (wrap-lines
-   (fmt-join dsp
-             (loop ((for package.action (in-list actions))
-                    (for formats
-                         (listing ((vector-ref action-compliance-decorators
-                                               (package-action-compliance-index
-                                                (cdr package.action)))
-                                   (package-name (car package.action))))))
-               => formats)
-             " ")))
+  (lambda (st)
+    ((wrap-lines
+       (fmt-join dsp
+                 (loop ((for package.action (in-list actions))
+                        (for formats
+                             (listing ((vector-ref action-compliance-decorators
+                                                   (package-action-compliance-index
+                                                    (cdr package.action)))
+                                       (package-name (car package.action))))))
+                   => formats)
+                 " ")) st)))
 
 ;; Find the universe version corresponding to a package
 (define (package-table-lookup table package-name desired-version)

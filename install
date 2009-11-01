@@ -34,7 +34,7 @@ impl_setup() {
 IMPL=none
 while true; do
     case "$1" in
-        -i) shift; IMPL="$1" shift
+        -i) shift; IMPL="$1"; shift
             ;;
         *)
             break
@@ -60,7 +60,7 @@ echo "* Using $IMPL to install dorodango"
 impl_setup "$IMPL"
 runner="scripts/r6rs-script.$IMPL"
 
-$runner scripts/doro.sps install --bundle ..  dorodango
+$runner scripts/doro.sps "$@" install --bundle ..  dorodango
 
 # Use awk instead of "tail -n 1" here to avoid causing a "broken pipe" error
 bindir=`$runner scripts/doro.sps config destination none programs | awk 'NR == 1 { print }'`

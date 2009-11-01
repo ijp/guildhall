@@ -517,7 +517,7 @@
                           process-operand
                           seed-vals)))
     (cond (((or (assq-ref vals 'run)
-               (command-handler command))
+                (command-handler command))
             vals)
            (exit))
           (else

@@ -122,22 +122,24 @@
                         ((risky? message) (assess-solution solution
                                                            initial-choices
                                                            package-table)))
-            (if risky?
-                (case (prompt
-                       (if now-exhausted?
-                           (cat "No more solutions. Proceed with previous solution?")
-                           (cat message "Accept this solution?"))
-                       (prompt-choices index (or exhausted? now-exhausted?)))
-                  ((#\y)       (solution->actions (xvector-ref solutions index)))
-                  ((#\n)       (iterate #f))
-                  ((#\q)       #f)
-                  ((#\.)       (iterate (+ index 1)))
-                  ((#\,)       (iterate (- index 1)))
-                  (else
-                   (assert #f)))
-                (if (y-or-n #t (cat message "Do you want to continue?"))
-                    (solution->actions solution)
-                    #f))))
+            (cond
+              (risky?
+               (case (prompt
+                      (if now-exhausted?
+                          (cat "No more solutions. Proceed with previous solution?")
+                          (cat message "Accept this solution?"))
+                      (prompt-choices index (or exhausted? now-exhausted?)))
+                 ((#\y)       (solution->actions (xvector-ref solutions index)))
+                 ((#\n)       (iterate #f))
+                 ((#\q)       #f)
+                 ((#\.)       (iterate (+ index 1)))
+                 ((#\,)       (iterate (- index 1)))
+                 (else
+                  (assert #f))))
+              ((y-or-n #t (cat message "Do you want to continue?"))
+               (solution->actions solution))
+              (else
+               #f))))
         (cond (selected-index
                (solution-prompt #f selected-index))
               ((and (not exhausted?)
@@ -442,8 +444,8 @@
   (dsp-package-identifier (database-item-package item)))
 
 (define (dsp-package-identifier package)
-  (cat (package-name package) " " (dsp-package-version
-                                   (package-version package))))
+  (cat (dsp-package-name package)
+       " " (dsp-package-version (package-version package))))
 
 (define (dsp-package-name package)
   (dsp (package-name package)))
@@ -461,3 +463,7 @@
                    version
                    "-"))))
 )
+
+;; Local Variables:
+;; scheme-indent-styles: (foof-loop)
+;; End:

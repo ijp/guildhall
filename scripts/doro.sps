@@ -547,17 +547,17 @@
 (define (default-config-location)
   (home-pathname '((".config" "dorodango") "config.scm")))
 
-(define (default-database-directory)
-  (home-pathname '((".local" "var" "lib" "dorodango"))))
-
-(define (default-destination)
-  (make-fhs-destination 'default (home-pathname '((".local")))))
-
 (define (default-config)
-  (make-config 'default (list (default-destination))))
+  (make-prefix-config (home-pathname ".local")))
+
+(define (make-prefix-config prefix)
+  (make-config 'default
+               (list (make-fhs-destination 'default prefix))
+               `((default  . ,(pathname-join (pathname-as-directory prefix)
+                                             '(("var" "lib" "dorodango")))))))
 
 (define (config->database config)
-  (open-database (default-database-directory)
+  (open-database (config-default-database-location config)
                  (config-default-destination config)
                  '()))
 
@@ -567,7 +567,10 @@
                " (default: `" (dsp-pathname (default-config-location)) "')")
           (arg-setter 'config)))
 
-
+(define prefix-option
+  (option '("prefix") 'prefix
+          (cat "Set installation prefix and database location")
+          (arg-setter 'prefix)))
 
 ;; TODO: This is a kludge; should add the capabilty to stop on first
 ;; non-option argument to args-fold*
@@ -580,7 +583,8 @@
            (continue (=> option-arg? #f)))
           ((string-prefix? "-" argument)
            (cond ((member argument '("--destination" "-d"
-                                     "--config" "-c"))
+                                     "--config" "-c"
+                                     "--prefix"))
                   (continue (=> option-arg? #t)))
                  (else
                   (continue))))
@@ -596,12 +600,15 @@
                      (else (default-config)))))
       (call-with-input-file (->namestring (or pathname (default-config-location)))
         read-config)))
-  (let ((operands (opt-ref/list vals 'operands)))
+  (let ((operands (opt-ref/list vals 'operands))
+        (prefix (assq-ref vals 'prefix)))
     (cond ((null? operands)
            (fmt #t (dsp-usage)))
           ((find-command (string->symbol (car operands)))
            => (lambda (command)
-                (let ((config (read-config/default (assq-ref vals 'config))))
+                (let ((config (if prefix
+                                  (make-prefix-config prefix)
+                                  (read-config/default (assq-ref vals 'config)))))
                   (process-command-line command
                                         (cdr operands)
                                         `((operands . ())
@@ -613,7 +620,7 @@
   (make-command '%main
                 '("Manage packages")
                 '("[OPTION...] COMMAND [ARGS...]")
-                (list config-option)
+                (list config-option prefix-option)
                 main-handler))
 
 (define (main argv)

@@ -79,6 +79,7 @@
   "Package database")
 
 (define package:foo (make-package 'foo '()))
+(define package:bar (make-package 'bar '()))
 (define package:file-conflict-foo (make-package 'file-conflict-foo '()))
 
 (define-test-case db-tests install+remove
@@ -103,12 +104,15 @@
         (inventory->tree
          (package-category-inventory (database-item-package item)
                                      'libraries)))
-      (test-equal '(("share" ("r6rs-libs" ("foo" "a.sls"))))
+      (test-equal '(("bin" "foo")
+                    ("share"
+                     ("libr6rs-foo" ("programs" "foo"))
+                     ("r6rs-libs" ("foo" "a.sls"))))
         (directory->tree dest-dir))
 
       ;; Test removal
       (database-remove! db 'foo)
-      (test-equal '(("share" ("r6rs-libs")))
+      (test-equal '()
         (directory->tree dest-dir))
       (close-database db))
     (let* ((db (open-test-database))
@@ -143,10 +147,36 @@
         (test-eqv #t (database-item-installed? item)))
       (close-database db))))
 
+(define-test-case db-tests directory-removal
+  ((setup
+    (assert-clear-stage))
+   (teardown
+    (clear-stage)))
+  (begin
+    (let ((db (open-test-database)))
+      (database-install! db package:foo)
+      (database-install! db package:bar)
+      (close-database db))
+    (test-equal '(("bin" "foo")
+                  ("share"
+                   ("libr6rs-foo" ("programs" "foo"))
+                   ("r6rs-libs"
+                    ("bar" "b.sls")
+                    ("foo" "a.sls"))))
+      (directory->tree dest-dir))
+    (let ((db (open-test-database)))
+      (database-remove! db 'bar)
+      (close-database db))
+    (test-equal '(("bin" "foo")
+                  ("share"
+                   ("libr6rs-foo" ("programs" "foo"))
+                   ("r6rs-libs" ("foo" "a.sls"))))
+      (directory->tree dest-dir))))
+
 #;
 (set-logger-properties!
  logger:dorodango
- `((threshold debug)
+ `((threshold trace)
    (handlers
     ,(lambda (entry)
        (default-log-formatter entry (current-output-port))))))

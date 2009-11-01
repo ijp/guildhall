@@ -52,7 +52,7 @@
           database-file-conflict-offender
           database-file-conflict-pathname)
   (import (except (rnrs) file-exists? delete-file)
-          (only (srfi :1) filter-map)
+          (only (srfi :1) filter-map lset-adjoin)
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
@@ -111,6 +111,7 @@
 ;;; Database loading
 
 (define (open-database directory destination repositories)
+  (log/db 'debug "opening database in " (dsp-pathname directory))
   (let* ((directory (pathname-as-directory directory))
          (status-directory (status-subdirectory directory destination)))
     (unless (file-exists? status-directory)
@@ -191,35 +192,46 @@
                               package))))))
 
 (define (update-file-table! table destination package)
-  (define (fill! directory category inventory)
+  (define (fill-table directory category inventory)
     (loop ((for cursor (in-inventory inventory)))
       (let ((pathname (pathname-with-file directory (inventory-name cursor))))
-        (cond ((destination-pathname destination package category pathname)
-               => (lambda (real-pathname)
-                    (hashtable-update!
-                     table
-                     real-pathname
-                     (if (inventory-leaf? cursor)
-                         (lambda (value)
-                           (if value
-                               (file-conflict value
-                                              package
-                                              real-pathname)
-                               package))
-                         (lambda (value)
-                           (cond ((package? value)
-                                  (file-conflict value
-                                                 package
-                                                 real-pathname))
-                                 (else
-                                  (fill! (pathname-as-directory pathname)
-                                         category
-                                         cursor)
-                                  (cons package (or value '()))))))
-                     #f)))))))
+        (define (calculate-new-value old-value real-pathname)
+          (cond ((inventory-leaf? cursor)
+                 (if old-value
+                     (file-conflict old-value
+                                    package
+                                    real-pathname)
+                     package))
+                ((package? old-value)
+                 (file-conflict old-value
+                                package
+                                real-pathname))
+                (else
+                 (fill-table (pathname-as-directory pathname)
+                             category
+                             cursor)
+                 (lset-adjoin package=? (or old-value '()) package))))
+        (for-each
+         (lambda (real-pathname)
+           (loop ((with ancestor-directory
+                        (pathname-container real-pathname)
+                        (pathname-container ancestor-directory))
+                  (until (pathname=? ancestor-directory
+                                     (destination-prefix destination))))
+             (hashtable-update! table
+                                ancestor-directory
+                                (lambda (old-value)
+                                  (lset-adjoin package=? old-value package))
+                                '()))
+           (hashtable-set! table
+                           real-pathname
+                           (calculate-new-value
+                            (hashtable-ref table real-pathname #f)
+                            real-pathname)))
+         (destination-pathnames destination package category pathname)))))
   (loop ((for inventory (in-list (package-inventories package))))
     (let ((category (inventory-name inventory)))
-      (fill! (make-pathname #f '() #f) category inventory))))
+      (fill-table (make-pathname #f '() #f) category inventory))))
 
 (define (load-package-info pathname)
   (call-with-input-file (->namestring pathname)
@@ -436,17 +448,11 @@
 (define (extract-package bundle package destination)
   (loop ((for category (in-list (package-categories package))))
     (define (extract-file pathname extractor)
-      (cond ((destination-pathname destination
-                                   package
-                                   category
-                                   pathname)
-             => (lambda (destination-pathname)
-                  (create-directory*
-                   (pathname-with-file destination-pathname #f))
-                  (let ((filename (->namestring destination-pathname)))
-                    (log/db 'debug "installing " filename)
-                    (call-with-port (open-file-output-port filename)
-                      extractor))))))
+      (destination-install destination
+                           package
+                           category
+                           pathname
+                           extractor))
     (let ((inventory (package-category-inventory package category)))
       (bundle-walk-inventory bundle inventory extract-file))))
 
@@ -482,40 +488,57 @@
 
 (define (remove-package-files! db package)
   (let ((file-table (database-file-table db))
-        (destination (database-destination db)))
+        (destination (database-destination db))
+        (maybe-remove (make-hashtable pathname-hash pathname=?)))
     (define (delete-inventory category inventory path)
       (loop continue ((for cursor (in-inventory inventory)))
-        (let ((pathname (destination-pathname
-                         destination
-                         package
-                         category
-                         (make-pathname #f path (inventory-name cursor)))))
-          (when pathname
-            (cond ((inventory-container? cursor)
-                   (delete-inventory category
-                                     cursor
-                                     (append path
-                                             (list (inventory-name cursor))))
-                   (let ((packages
-                          (remp (lambda (providing-package)
-                                  (package=? providing-package
-                                             package))
-                                (hashtable-ref file-table pathname #f))))
-                     (cond ((null? packages)
-                            (log/db 'debug (cat "removing directory "
-                                                (dsp-pathname pathname)))
-                            (delete-file pathname)
-                            (hashtable-delete! file-table pathname))
-                           (else
-                            (hashtable-set! file-table pathname packages)))))
-                  (else
-                   (log/db 'debug (cat "deleting " (dsp-pathname pathname)))
-                   (delete-file pathname)
-                   (hashtable-delete! file-table pathname))))
+        (loop ((for pathname
+                    (in-list (destination-pathnames
+                              destination
+                              package
+                              category
+                              (make-pathname #f path (inventory-name cursor))))))
+          (cond ((inventory-container? cursor)
+                 (delete-inventory category
+                                   cursor
+                                   (append path
+                                           (list (inventory-name cursor))))
+                 (maybe-remove-directory pathname (null? path)))
+                (else
+                 (log/db 'debug (cat "deleting " (dsp-pathname pathname)))
+                 (delete-file pathname)
+                 (hashtable-delete! file-table pathname)
+                 (when (null? path)
+                   (hashtable-set! maybe-remove
+                                   (pathname-container pathname)
+                                   #t))))
           (continue))))
+    (define (maybe-remove-directory pathname include-ancestors?)
+      (when (not (pathname=? pathname (destination-prefix destination)))
+        (let ((packages
+               (remp (lambda (providing-package)
+                       (package=? providing-package
+                                  package))
+                     (hashtable-ref file-table pathname '()))))
+          (cond ((null? packages)
+                 (guard (c ((i/o-error? c)
+                            ;; This condition should only occur when
+                            ;; the user has placed something into the
+                            ;; directory
+                            #f))
+                   (delete-file pathname)
+                   (log/db 'debug (cat "removed directory "
+                                       (dsp-pathname pathname))))
+                 (hashtable-delete! file-table pathname)
+                 (when include-ancestors?
+                   (maybe-remove-directory (pathname-container pathname) #t)))
+                (else
+                 (hashtable-set! file-table pathname packages))))))
     (loop ((for category (in-list (package-categories package))))
       (let ((package-inventory (package-category-inventory package category)))
-        (delete-inventory category package-inventory '())))))
+        (delete-inventory category package-inventory '())))
+    (loop ((for directory (in-vector (hashtable-keys maybe-remove))))
+      (maybe-remove-directory directory #t))))
 
 (define logger:dorodango.db (make-logger logger:dorodango 'db))
 (define log/db (make-fmt-log logger:dorodango.db))

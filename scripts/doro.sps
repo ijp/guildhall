@@ -533,7 +533,7 @@
                                (command-list)))
        "\n\n"
        "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
-       (pad/both 72 "This doro has Super Ball Powers.")))
+       (pad/both 72 "This doro has Super Ball Powers.") "\n"))
 
 (define (home-pathname pathname)
   (pathname-join (pathname-as-directory

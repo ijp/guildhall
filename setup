@@ -56,14 +56,22 @@ fi
 
 export R6RS_LIBRARY_PATH="$LIBS_DIR"
 
-echo "* Using $IMPL to install dorodango"
+echo "* Using $IMPL"
 impl_setup "$IMPL"
 runner="scripts/r6rs-script.$IMPL"
 
-$runner scripts/doro.sps "$@" install --bundle ..  dorodango
+case "$1" in
+    dist)
+        $runner scripts/maint.sps "$@"
+        ;;
+    *)
+        echo "* Installing dorodango"
+        $runner scripts/doro.sps "$@" install --bundle ..  dorodango
 
-# Use awk instead of "tail -n 1" here to avoid causing a "broken pipe" error
-bindir=`$runner scripts/doro.sps config destination none programs | awk 'NR == 1 { print }'`
-echo "* Installing \`r6rs-script' launcher for $IMPL to $bindir"
-cp "scripts/r6rs-script.$IMPL" "$bindir/r6rs-script"
-chmod +x "$bindir/r6rs-script"
+        # Use awk instead of "tail -n 1" here to avoid causing a "broken pipe" error
+        bindir=`$runner scripts/doro.sps config destination none programs | awk 'NR == 1 { print }'`
+        echo "* Installing launcher for $IMPL as $bindir \`r6rs-script'"
+        cp "scripts/r6rs-script.$IMPL" "$bindir/r6rs-script"
+        chmod +x "$bindir/r6rs-script"
+        ;;
+esac

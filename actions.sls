@@ -23,7 +23,8 @@
 #!r6rs
 
 (library (dorodango actions)
-  (export create-bundle)
+  (export create-bundle
+          list-files)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) last)
           (only (srfi :13) string-suffix?)
@@ -117,7 +118,9 @@
         => (reverse result)))
     (loop continue
         ((for rcs (in-list `((".git" ,%git-path "ls-files")
-                             (".bzr" ,%bzr-path "ls" "--recursive" "--versioned")
+                             (".bzr" ,%bzr-path "ls"
+                              "--recursive" "--versioned"
+                              "--kind=file")
                              ("_darcs" ,%darcs-path "query" "files")))))
       => (builtin-lister)
       (match rcs

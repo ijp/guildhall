@@ -425,6 +425,42 @@
                    (arg-setter 'append-version)))
   (handler create-bundle-command))
 
+(define (scan-bundles-in-directory directory base)
+  (let ((directory (pathname-as-directory directory))
+        (base (pathname-as-directory base)))
+    (define (scan-entry filename)
+      (let ((pathname (pathname-with-file directory filename)))
+        (cond ((file-directory? pathname)
+               (scan-bundles-in-directory pathname
+                                          (pathname-with-file base filename)))
+              ((and (file-regular? pathname)
+                    (string-suffix? ".zip" (file-namestring pathname)))
+               (call-with-input-bundle pathname (bundle-options no-inventory)
+                 (lambda (bundle)
+                   (collect-list ((for package (in-list (bundle-packages bundle))))
+                     (cons package (pathname-with-file base filename)))))))))
+    (loop ((for filename (in-directory directory))
+           (for result (appending-reverse (scan-entry filename))))
+      => result)))
+
+(define (scan-bundles-command vals)
+  (iterate! (for directory (in-list (opt-ref/list vals 'operands)))
+      (for entry (in-list (scan-bundles-in-directory directory directory)))
+    (match entry
+      ((package . bundle-pathname)
+       (fmt #t
+            (pretty/unshared
+             (package->form (package-with-property
+                             package
+                             'location
+                             (list (pathname->location bundle-pathname))))))))))
+
+(define-command scan-bundles
+  (description "Scan one or more directories for bundles")
+  (synopsis "scan-bundles DIRECTORY...")
+  (options)
+  (handler scan-bundles-command))
+
 
 ;;; Entry point
 

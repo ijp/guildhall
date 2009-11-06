@@ -26,6 +26,7 @@
   (export bundle?
           open-input-bundle
           close-bundle
+          call-with-input-bundle
 
           bundle-options
           
@@ -93,6 +94,7 @@
 
 
 
+;;++ register bundle with GC
 (define open-input-bundle
   (case-lambda
     ((pathname options)
@@ -102,6 +104,14 @@
             (open-zip-input-bundle pathname options))))
     ((pathname)
      (open-input-bundle pathname (bundle-options)))))
+
+(define call-with-input-bundle
+  (case-lambda
+    ((pathname options proc)
+     (let ((bundle (open-input-bundle pathname options)))
+       (receive results (proc bundle)
+         (close-bundle bundle)
+         (apply values results))))))
 
 
 ;;; Filesystem bundles

@@ -35,6 +35,8 @@
 
           opt-ref/list
           dsp-pathname
+          pathname->location
+          location->pathname
           rm-rf
           logger:dorodango
           make-fmt-log)
@@ -97,6 +99,12 @@
 (define (dsp-pathname pathname)
   (lambda (st)
     ((dsp (->namestring pathname)) st)))
+
+(define (pathname->location pathname)
+  (append (pathname-directory pathname) (list (file-namestring pathname))))
+
+(define (location->pathname location)
+  (make-pathname #f (drop-right location 1) (last location)))
 
 (define-syntax in-hashtable
   (syntax-rules ()

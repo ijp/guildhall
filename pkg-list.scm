@@ -1,5 +1,5 @@
 ;;@ A package manager for R6RS implementations.
-(package (dorodango)
+(package (dorodango (0))
   (depends (srfi)
            (spells)
            (industria)

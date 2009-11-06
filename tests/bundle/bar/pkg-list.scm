@@ -1,4 +1,4 @@
-(package (bar)
+(package (bar (0))
   (libraries (libs -> "bar")))
 
 ;; Local Variables:

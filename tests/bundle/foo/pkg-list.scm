@@ -1,4 +1,4 @@
-(package (foo)
+(package (foo (0))
   (libraries ("libraries" -> "foo"))
   (programs (("programs" "foo.sps") -> "foo")))
 

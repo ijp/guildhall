@@ -78,9 +78,9 @@
 (define-test-suite db-tests
   "Package database")
 
-(define package:foo (make-package 'foo '()))
-(define package:bar (make-package 'bar '()))
-(define package:file-conflict-foo (make-package 'file-conflict-foo '()))
+(define package:foo (make-package 'foo '((0))))
+(define package:bar (make-package 'bar '((0))))
+(define package:file-conflict-foo (make-package 'file-conflict-foo '((0))))
 
 (define-test-case db-tests install+remove
   ((setup
@@ -91,12 +91,12 @@
     ;; Install package
     (let ((db (open-test-database)))
       (database-install! db package:foo)
-      (let ((item (database-lookup db 'foo '())))
+      (let ((item (database-lookup db 'foo '((0)))))
         (test-eqv #t (database-item? item))
         (test-eqv #t (database-item-installed? item)))
       (close-database db))
     (let* ((db (open-test-database))
-           (item (database-lookup db 'foo '())))
+           (item (database-lookup db 'foo '((0)))))
       ;; Test installation correctness
       (test-eqv #t (database-item? item))
       (test-eqv #t (database-item-installed? item))
@@ -116,7 +116,7 @@
         (directory->tree dest-dir))
       (close-database db))
     (let* ((db (open-test-database))
-           (item (database-lookup db 'foo '())))
+           (item (database-lookup db 'foo '((0)))))
       (test-eqv #t (database-item? item))
       (test-eqv #f (database-item-installed? item))
       (close-database db))))
@@ -142,7 +142,7 @@
       
       (database-remove! db 'foo)
       (database-install! db package:file-conflict-foo)
-      (let ((item (database-lookup db 'file-conflict-foo '())))
+      (let ((item (database-lookup db 'file-conflict-foo '((0)))))
         (test-eqv #t (database-item? item))
         (test-eqv #t (database-item-installed? item)))
       (close-database db))))

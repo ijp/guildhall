@@ -1,4 +1,4 @@
-(package (file-conflict-foo)
+(package (file-conflict-foo (0))
   (libraries ("libraries" -> "foo")))
 
 ;; Local Variables:

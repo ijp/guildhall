@@ -35,17 +35,20 @@
 
           opt-ref/list
           dsp-pathname
+          rm-rf
           logger:dorodango
           make-fmt-log)
-  (import (rnrs)
+  (import (except (rnrs) file-exists? delete-file)
+          (only (srfi :1) drop-right last)
           (srfi :8 receive)
-          (ocelotl wt-tree)
           (spells foof-loop)
           (spells alist)
           (spells xvector)
           (spells fmt)
           (spells pathname)
-          (spells logging))
+          (spells filesys)
+          (spells logging)
+          (ocelotl wt-tree))
 
 (define-syntax define-guarantor
   (syntax-rules ()
@@ -186,6 +189,13 @@
                     st)))
         => st))))
 
+(define (rm-rf pathname)
+  (when (and (file-directory? pathname)
+             (not (file-symbolic-link? pathname)))
+    (let ((directory (pathname-as-directory pathname)))
+      (loop ((for filename (in-directory directory)))
+        (rm-rf (pathname-with-file directory filename)))))
+  (delete-file pathname))
 
 
 ;; This doesn't really belong here

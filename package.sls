@@ -123,12 +123,12 @@
 (define (package-with-property package property-name property-value)
   (make-package (package-name package)
                 (package-version package)
-                (cons (cons property-name property-value)
-                      (package-properties package))
                 (if (eq? 'depends property-name)
                     (%forms->dependencies property-value
                                           (make-loser 'package-with-property))
                     (package-dependencies package))
+                (cons (cons property-name property-value)
+                      (package-properties package))
                 (package-inventories package)))
 
 (define (package-identifier package)

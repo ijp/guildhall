@@ -29,6 +29,54 @@
 (define-test-suite package-tests
   "Package datastructures")
 
+
+;;; Dependency stuff
+
+(define-test-suite (package-tests.dependencies package-tests)
+  "Package dependencies")
+
+(define-test-case package-tests.dependencies roundtrip ()
+  (for-each (lambda (constraint)
+              (test-equal constraint
+                (version-constraint->form
+                 (form->version-constraint constraint))))
+            '((or (and (>= (1)) (not (>= (2)))) (>= (2 1)))
+              (>= (1))
+              ((2 3)))))
+
+(define-syntax test-satisfied
+  (syntax-rules ()
+    ((_ value form package-name version)
+     (test-eqv value
+       (dependency-choice-satisfied?
+        (form->dependency-choice form)
+        (make-package package-name version))))))
+
+(define-test-case package-tests.dependencies satisfaction ()
+  (test-satisfied #t '(spells)
+    'spells '((0 1)))
+  (test-satisfied #f '(spells)
+    'srfi '((0 1)))
+  (test-satisfied #t '(spells (not (0)))
+    'spells '((1 2)))
+  (test-satisfied #f '(spells (not (0)))
+    'spells '((0)))
+  (test-satisfied #t '(spells (>= (1)))
+    'spells '((1 2)))
+  (test-satisfied #f '(spells (>= (1)))
+    'spells '((0 9)))
+  (test-satisfied #t '(spells (and (>= (1)) (<= (2))))
+    'spells '((1 1)))
+  (test-satisfied #f '(spells (and (>= (1)) (<= (2))))
+    'spells '((2 1)))
+  (test-satisfied #t '(spells (and (> (1)) (<= (2))))
+    'spells '((2)))
+  (test-satisfied #f '(spells (and (> (1)) (<= (2))))
+    'spells '((2 1))))
+
+
+;;; Form parsing
+
 (define-test-suite (package-tests.parsing package-tests)
   "Parsing package forms")
 
@@ -59,46 +107,14 @@
                `(form-error ,(package-error-form c))))
       (parse-package-form '(package (foo 0 1))))))
 
-
-;;; Dependency stuff
-
-(define-test-suite (package-tests.dependencies package-tests)
-  "Package dependencies")
-
-(define-test-case package-tests.dependencies roundtrip ()
-  (for-each (lambda (constraint)
-              (test-equal constraint
-                (version-constraint->form
-                 (form->version-constraint constraint))))
-            '((or (and (>= (1)) (not (>= (2)))) (>= (2 1)))
-              (>= (1))
-              ((2 3)))))
-
-(define-syntax test-satisfied
-  (syntax-rules ()
-    ((_ value form package-name version)
-     (test-eqv value
-       (dependency-choice-satisfied?
-        (form->dependency-choice form)
-        (make-package package-name version))))))
-
-
-
-(define-test-case package-tests.dependencies satisfaction ()
-  (test-satisfied #t '(spells)
-    'spells '((0 1)))
-  (test-satisfied #f '(spells)
-    'srfi '((0 1)))
-  (test-satisfied #t '(spells (not (0)))
-    'spells '((1 2)))
-  (test-satisfied #f '(spells (not (0)))
-    'spells '((0)))
-  (test-satisfied #t '(spells (>= (1)))
-    'spells '((1 2)))
-  (test-satisfied #f '(spells (>= (1)))
-    'spells '((0 9)))
-  (test-satisfied #t '(spells (and (>= (1)) (<= (2))))
-    'spells '((1 1))))
+(define-test-case package-tests.parsing roundtrip ()
+  (for-each
+   (lambda (package-form)
+     (test-equal package-form
+       (package->form (parse-package-form package-form))))
+   '((package (foo (0 1))
+              (depends (bar (0 1))
+                       (or (foo) (frobotz (and (>= (1 1)) (< (2))))))))))
 
 
 (set-test-debug-errors?! #t)

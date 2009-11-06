@@ -25,17 +25,19 @@
 #!r6rs
 
 (import (except (rnrs) file-exists? delete-file)
-        (only (srfi :1) unfold)
+        (only (srfi :1) unfold concatenate)
         (srfi :8 receive)
         (only (srfi :13)
               string-null?
               string-prefix?
+              string-suffix?
               string-trim-both)
         (srfi :67 compare-procedures)
         (spells alist)
         (spells match)
         (spells fmt)
         (spells foof-loop)
+        (spells nested-foof-loop)
         (spells pathname)
         (spells filesys)
         (spells define-values)
@@ -335,18 +337,26 @@
 ;;; Packaging
 
 (define (create-bundle-command vals)
-  (define (compute-bundle-name pkg-lists)
-    (loop ((for pathname (in-list pkg-lists))
-           (for packages (appending-reverse
-                          (call-with-input-file (->namestring pathname)
-                            read-pkg-list))))
-      => (match packages
-           (()
-            (die "all package lists have been empty."))
-           ((package)
-            (package-identifier package))
-           (_
-            (die "multiple packages found and no bundle name specified.")))))
+  (define (read-packages-list pkg-list-files append-version)
+    (collect-list (for pathname (in-list pkg-list-files))
+      (let ((packages (call-with-input-file (->namestring pathname)
+                        read-pkg-list)))
+        (if (null? append-version)
+            packages
+            (map (lambda (package)
+                   (package-modify-version
+                    package
+                    (lambda (version)
+                      (append version append-version))))
+                 packages)))))
+  (define (compute-bundle-name packages)
+    (match packages
+      (()
+       (die "all package lists have been empty."))
+      ((package)
+       (package-identifier package))
+      (_
+       (die "multiple packages found and no bundle name specified."))))
   (let ((directories (match (opt-ref/list vals 'operands)
                        (()
                         (list (make-pathname #f '() #f)))
@@ -355,17 +365,28 @@
         (output-directory (or (and=> (assq-ref vals 'output-directory)
                                      pathname-as-directory)
                               (make-pathname #f '() #f)))
-        (output-filename (assq-ref vals 'output-filename)))
-    (let ((pkg-lists (find-pkg-lists directories)))
-      (when (null? pkg-lists)
+        (output-filename (assq-ref vals 'output-filename))
+        (append-version (or (and=> (assq-ref vals 'append-version)
+                                   string->package-version)
+                            '())))
+    (let ((pkg-list-files (find-pkg-list-files directories))
+          (need-rewrite? (not (null? append-version))))
+      (when (null? pkg-list-files)
         (die (cat "no package lists found in or below "
-                  (fmt-join dsp-pathname pkg-lists ", ")) "."))
-      (create-bundle (or output-filename
-                         (->namestring
-                          (pathname-with-file output-directory
-                                              (compute-bundle-name pkg-lists))))
-                     (map (lambda (pathname) (pathname-with-file pathname #f))
-                          pkg-lists)))))
+                  (fmt-join dsp-pathname pkg-list-files ", ")) "."))
+      (let* ((packages-list (read-packages-list pkg-list-files append-version))
+             (output
+              (or output-filename
+                  (->namestring
+                   (pathname-with-file
+                    output-directory
+                    (compute-bundle-name (concatenate packages-list)))))))
+        (create-bundle output
+                       (map (lambda (pathname)
+                              (pathname-with-file pathname #f))
+                            pkg-list-files)
+                       packages-list
+                       need-rewrite?)))))
 
 (define (read-pkg-list port)
   (unfold eof-object?
@@ -373,8 +394,8 @@
           (lambda (seed) (read port))
           (read port)))
 
-(define (find-pkg-lists directories)
-  (define (subdirectory-pkg-lists directory)
+(define (find-pkg-list-files directories)
+  (define (subdirectory-pkg-list-files directory)
     (loop ((for filename (in-directory directory))
            (let pathname
                (pathname-join directory
@@ -387,7 +408,7 @@
                (let ((pathname (pathname-with-file directory "pkg-list.scm")))
                  (if (file-exists? pathname)
                      (list pathname)
-                     (subdirectory-pkg-lists directory))))))
+                     (subdirectory-pkg-list-files directory))))))
     => (reverse result)))
 
 (define-command create-bundle
@@ -398,7 +419,10 @@
                    (arg-setter 'output-filename))
            (option '("directory" #\d) 'directory
                    "Output directory when using implicit filename"
-                   (arg-setter 'output-directory)))
+                   (arg-setter 'output-directory))
+           (option '("append-version") 'version
+                   "Append VERSION to each package's version"
+                   (arg-setter 'append-version)))
   (handler create-bundle-command))
 
 

@@ -77,6 +77,7 @@
   (fields directory
           destination
           repositories
+          cache-dir
           file-table
           pkg-table))
 
@@ -110,21 +111,34 @@
 
 ;;; Database loading
 
-(define (open-database directory destination repositories)
-  (log/db 'debug "opening database in " (dsp-pathname directory))
-  (let* ((directory (pathname-as-directory directory))
-         (status-directory (status-subdirectory directory destination)))
-    (unless (file-exists? status-directory)
-      (create-directory* status-directory))
-    (receive (pkg-table file-table)
-             (load-installed-packages status-directory destination)
-      (let ((db (make-database directory
-                               destination
-                               repositories
-                               file-table
-                               pkg-table)))
-        (load-available-files! db directory repositories)
-        db))))
+(define open-database
+  (case-lambda
+    ((directory destination repositories cache-dir)
+     (log/db 'debug "opening database in " (dsp-pathname directory))
+     (let* ((directory (pathname-as-directory directory))
+            (status-directory (status-subdirectory directory destination)))
+       (unless (file-exists? status-directory)
+         (create-directory* status-directory))
+       (receive (pkg-table file-table)
+                (load-installed-packages status-directory destination)
+         (let ((db (make-database directory
+                                  destination
+                                  repositories
+                                  cache-dir
+                                  file-table
+                                  pkg-table)))
+           (load-available-files! db repositories)
+           db))))
+    ((directory destination repositories)
+     (let ((directory (pathname-as-directory directory)))
+       (open-database directory
+                      destination
+                      repositories
+                      (pathname-join directory '(("cache"))))))))
+
+(define (database-cache-directory db repo)
+  (and-let* ((repo-name (repository-name repo)))
+    (pathname-join (database-cache-dir db) `((,repo-name)))))
 
 (define (status-subdirectory directory destination)
   (pathname-join directory `(("status" ,(destination-name destination)))))
@@ -147,9 +161,12 @@
                         (hashtable-set! closed-bundles bundle #t))))))))
     (hashtable-clear! pkg-table)))
 
-(define (load-available-files! db cache-dir repositories)
+(define (load-available-files! db repositories)
   (loop ((for repository (in-list repositories)))
-    (let ((pathname (repository-available-pathname repository)))
+    (let ((pathname (repository-available-pathname
+                     repository
+                     (database-cache-directory db repository))))
+      ;;(when (file-exists? pathname))
       (load-available-file! db repository pathname))))
 
 (define (load-available-file! db repository pathname)
@@ -237,11 +254,7 @@
   (call-with-input-file (->namestring pathname)
     (lambda (port)
       (let* ((package-form (get-datum port))
-             (package (or (parse-package-form package-form (lambda (properties) '()))
-                          (error 'load-package-info
-                                 "invalid package form encountered"
-                                 package-form
-                                 pathname)))
+             (package (parse-package-form package-form (lambda (properties) '())))
              (name (package-name package)))
         (loop ((for form (in-port port read))
                (for inventories (listing (tree->inventory form name))))
@@ -431,9 +444,11 @@
     (when (null? sources)
       (error 'open-bundle! "no sources for package" (item-package item)))
     (let* ((source (car sources))
+           (repo (source-repository source))
            (bundle (open-input-bundle (repository-fetch-bundle
-                                       (source-repository source)
-                                       (source-location source)))))
+                                       repo
+                                       (source-location source)
+                                       (database-cache-directory db repo)))))
       (loop ((for package (in-list (bundle-packages bundle))))
         (database-update! db
                           package

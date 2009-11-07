@@ -37,12 +37,14 @@
           dsp-pathname
           pathname->location
           location->pathname
+          home-pathname
           rm-rf
           logger:dorodango
           make-fmt-log)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) drop-right last)
           (srfi :8 receive)
+          (srfi :98 os-environment-variables)
           (spells foof-loop)
           (spells alist)
           (spells xvector)
@@ -127,6 +129,10 @@
 (define (symbol<? s1 s2)
   (string<? (symbol->string s1) (symbol->string s2)))
 
+(define (home-pathname pathname)
+  (pathname-join (pathname-as-directory
+                  (get-environment-variable "HOME"))
+                 pathname))
 
 ;;; wt-tree utilities
 

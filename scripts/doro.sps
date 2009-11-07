@@ -313,7 +313,8 @@
           ((destination)
            (unless (<= 3 n-operands 4)
              (die "`config destination' requires 2 or 3 arguments"))
-           (let ((destination (config-default-destination config))
+           (let ((destination (config-item-destination
+                               (config-default-item config)))
                  (package (string->package (list-ref operands 1)))
                  (category (string->symbol (list-ref operands 2)))
                  (pathname (if (> n-operands 3)
@@ -501,28 +502,16 @@
        "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
        (pad/both 72 "This doro has Super Ball Powers.") "\n"))
 
-(define (home-pathname pathname)
-  (pathname-join (pathname-as-directory
-                  (lookup-environment-variable "HOME"))
-                 pathname))
-
 ;; This should be different on non-POSIX systems, I guess
 (define (default-config-location)
   (home-pathname '((".config" "dorodango") "config.scm")))
 
-(define (default-config)
-  (make-prefix-config (home-pathname ".local")))
-
-(define (make-prefix-config prefix)
-  (make-config 'default
-               (list (make-fhs-destination 'default prefix))
-               `((default  . ,(pathname-join (pathname-as-directory prefix)
-                                             '(("var" "lib" "dorodango")))))))
-
 (define (config->database config)
-  (open-database (config-default-database-location config)
-                 (config-default-destination config)
-                 '()))
+  (let ((default (config-default-item config)))
+    (open-database (config-item-database-location default)
+                   (config-item-destination default)
+                   (config-item-repositories default)
+                   (config-item-cache-directory default))))
 
 (define config-option
   (option '("config" #\c) 'config
@@ -570,7 +559,7 @@
           ((find-command (string->symbol (car operands)))
            => (lambda (command)
                 (let ((config (if prefix
-                                  (make-prefix-config prefix)
+                                  (make-prefix-config prefix '())
                                   (read-config/default (assq-ref vals 'config)))))
                   (process-command-line command
                                         (cdr operands)

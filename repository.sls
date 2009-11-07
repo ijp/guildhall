@@ -24,45 +24,59 @@
 
 (library (dorodango repository)
   (export repository?
+          repository-name
           repository-available-pathname
           repository-fetch-available
           repository-fetch-bundle
 
-          null-repository)
-  (import (rnrs)
+          null-repository
+          make-file-repository)
+  (import (except (rnrs) delete-file file-exists?)
           (only (srfi :13) string-map)
-          (spells operations))
+          (srfi :14 char-sets)
+          (spells operations)
+          (spells ports)
+          (spells pathname)
+          (spells filesys)
+          (dorodango private utils))
 
 (define-record-type repository
-  (fields ops))
+  (fields name ops))
 
-(define-operation (repository/available-pathname repo))
-(define-operation (repository/fetch-available repo))
-(define-operation (repository/fetch-bundle repo location))
+(define-operation (repository/available-pathname repo cache-directory))
+(define-operation (repository/fetch-available repo cache-directory))
+(define-operation (repository/fetch-bundle repo location cache-directory))
 
-(define (repository-available-pathname repo)
-  (repository/available-pathname (repository-ops repo)))
+(define (repository-available-pathname repo cache-directory)
+  (repository/available-pathname (repository-ops repo) cache-directory))
 
-(define (repository-fetch-available repo)
-  (repository/fetch-available (repository-ops repo)))
+(define (repository-fetch-available repo cache-directory)
+  (repository/fetch-available (repository-ops repo) cache-directory))
 
-(define (repository-fetch-bundle repo location)
-  (repository/fetch-bundle (repository-ops repo) location))
+(define (repository-fetch-bundle repo location cache-directory)
+  (repository/fetch-bundle (repository-ops repo) location cache-directory))
 
 (define null-repository
-  (make-repository (object #f
-                     ((repository/fetch-bundle repo location)
-                      location))))
+  (make-repository
+   #f
+   (object #f
+     ((repository/fetch-bundle repo location cache-directory)
+      location))))
 
-#;
-(define (repository->filename repository filename)
-  (string-append
-   (string-map (lambda (c)
-                 (case c
-                   ((#\/) #\_)
-                   (else  c)))
-               (repository-identifier repository))
-   "_" filename))
+(define (make-file-repository name directory)
+  (let* ((directory (pathname-as-directory directory))
+         (available-pathname (pathname-with-file directory "available.scm")))
+    (make-repository
+     name
+     (object #f
+       ((repository/available-pathname repo cache-directory)
+        cache-directory                 ;ignored
+        available-pathname)
+       ((repository/fetch-available repo cache-directory)
+        cache-directory                 ;ignored
+        available-pathname)
+       ((repository/fetch-bundle repo location cache-directory)
+        (pathname-join directory (location->pathname location)))))))
 
 )
 

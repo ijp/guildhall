@@ -25,79 +25,156 @@
 (library (dorodango config)
   (export config?
           make-config
-          read-config
+          make-prefix-config
           
-          config-destination
-          config-database-location
-          config-default-destination
-          config-default-database-location)
+          read-config
+          default-config
+          
+          config-ref
+          config-default-item
+
+          config-item?
+          config-item-destination
+          config-item-database-location
+          config-item-repositories
+          config-item-cache-directory)
   (import (rnrs)
+          (only (srfi :1) append-reverse)
+          (srfi :8 receive)
+          (only (srfi :13) string-prefix?)
+          (srfi :98 os-environment-variables)
+          (only (spells misc) and=>)
           (spells alist)
           (spells match)
           (spells foof-loop)
-          (dorodango destination))
+          (spells record-types)
+          (spells pathname)
+          (spells tracing)
+          (dorodango private utils)
+          (dorodango destination)
+          (dorodango repository))
 
 (define-record-type (config %make-config config?)
-  (fields default-destination
-          destinations
-          database-locations))
+  (fields items))
 
-(define (make-config default destinations database-locations)
-  (%make-config/validate 'make-config default destinations database-locations))
+(define-record-type config-item
+  (fields destination database-location repositories cache-directory))
 
-(define (%make-config/validate who default destinations database-locations)
-  (loop ((for destination (in-list destinations)))
+(define-functional-fields config-item
+  destination database-location repositories cache-directory)
+
+(define (make-config default destinations database-locations repositories)
+  (define who 'make-config)
+  (loop continue ((for destination (in-list destinations))
+                  (with items '()))
+    => (%make-config/validate who
+                              default
+                              items
+                              repositories)
     (let ((name (destination-name destination)))
-      (unless (assq-ref database-locations name)
-        (lose who "no database location for destination" name))))
-  (if default
-      (cond ((find-destination destinations default)
-             => (lambda (default-destination)
-                  (%make-config default-destination
-                                destinations
-                                database-locations)))
+      (cond ((assq-ref database-locations name)
+             => (lambda (location)
+                  (continue
+                   (=> items
+                       (cons (cons name (make-config-item destination location '() #f))
+                             items)))))
             (else
-             (lose who "default configuration undefined" default)))
-      (if (null? destinations)
-          (lose who "no destinations defined")
-          (make-config (destination-name (car destinations))
-                       destinations
-                       database-locations))))
+             (lose who "no database location for destination" name))))))
 
-(define (find-destination destinations name)
-  (find (lambda (destination)
-          (eq? (destination-name destination) name))
-        destinations))
+(define (%make-config/validate who
+                                     default
+                                     items
+                                     repositories)
+  (define (complete-items items)
+    (map (lambda (name.item)
+           (let ((new-item
+                  (receive (destination
+                            database-location
+                            old-repositories
+                            old-cache-dir)
+                           (config-item-components (cdr name.item))
+                    (make-config-item destination
+                                      database-location
+                                      (if (null? old-repositories)
+                                          repositories
+                                          old-repositories)
+                                      (or old-cache-dir (default-cache-dir))))))
+             (cons (car name.item) new-item)))
+         items))
+  (cond ((null? items)
+         (lose who "no destinations defined"))
+        (default
+         (loop continue ((for name.item remaining (in-list items))
+                         (for processed (listing-reverse name.item)))
+           => (lose who "default destination undefined" default)
+           (if (eq? default (car name.item))
+               (%make-config (complete-items
+                              (cons name.item
+                                    (append-reverse (reverse processed)
+                                                    (cdr remaining)))))
+               (continue))))
+        (else
+         (%make-config (complete-items items)))))
 
-(define (config-destination config name)
-  (find-destination (config-destinations config) name))
+(define (config-ref config name)
+  (assq-ref (config-items config) name))
 
-(define (config-database-location config name)
-  (assq-ref (config-database-locations config) name))
+(define (config-default-item config)
+  (cdar (config-items config)))
 
-(define (config-default-database-location config)
-  (config-database-location
-   config
-   (destination-name (config-default-destination config))))
+(define supported-repository-types
+  (list
+   (lambda (name uri-string)
+     (and (string-prefix? "file://" uri-string)
+          (make-file-repository
+           name
+           (substring uri-string 7 (string-length uri-string)))))))
+
+(define (default-config)
+  (make-prefix-config (home-pathname ".local") (list)))
+
+(define (default-cache-dir)
+  (home-pathname '((".cache" "dorodango"))))
+
+(define (make-prefix-config prefix repositories)
+  (make-config 'default
+               (list (make-fhs-destination 'default prefix))
+               `((default  . ,(pathname-join (pathname-as-directory prefix)
+                                             '(("var" "lib" "dorodango")))))
+               repositories))
 
 (define (read-config port)
   (define who 'read-config)
   (loop continue ((for form (in-port port read))
                   (with default #f)
-                  (with destinations '())
-                  (with database-locations '()))
-    => (%make-config/validate who default destinations database-locations)
+                  (with items '())
+                  (with repositories '()))
+    => (%make-config/validate who
+                              default
+                              (if (null? items)
+                                  (config-items (default-config))
+                                  items)
+                              repositories)
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))
-      (('destination (? symbol? name)
-                     dest-spec
-                     ('database location))
-       (continue (=> destinations
-                     (cons (dest-spec->destination who name dest-spec)
-                           destinations))
-                 (=> database-locations
-                     (cons (cons name location) database-locations))))
+      (('destination (? symbol? name) dest-spec ('database location))
+       (continue
+        (=> items
+            (cons (cons name (make-config-item
+                              (dest-spec->destination who name dest-spec)
+                              location
+                              '()
+                              #f))
+                  items))))
+      (('repository (? symbol? name) (? string? uri))
+       (loop next-type ((for constructor (in-list supported-repository-types)))
+         => (lose who "unsupported repository URI" uri)
+         (cond ((constructor name uri)
+                => (lambda (repo)
+                     (continue (=> repositories (cons repo repositories)))))
+               (else
+                (next-type)))))
       (else
        (lose who "invalid configuration form" form)))))
 

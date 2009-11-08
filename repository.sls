@@ -38,6 +38,8 @@
           (spells ports)
           (spells pathname)
           (spells filesys)
+          (spells logging)
+          (spells fmt)
           (dorodango private utils))
 
 (define-record-type repository
@@ -74,9 +76,21 @@
         available-pathname)
        ((repository/fetch-available repo cache-directory)
         cache-directory                 ;ignored
-        available-pathname)
+        (check-existence available-pathname))
        ((repository/fetch-bundle repo location cache-directory)
-        (pathname-join directory (location->pathname location)))))))
+        (check-existence
+         (pathname-join directory (location->pathname location))))))))
+
+(define (check-existence pathname)
+  (cond ((file-exists? pathname)
+         pathname)
+        (else
+         (log/repo 'warning (cat "repository file `" (dsp-pathname pathname)
+                                 "' does not exist"))
+         #f)))
+
+(define logger:dorodango.repo (make-logger logger:dorodango 'repo))
+(define log/repo (make-fmt-log logger:dorodango.repo))
 
 )
 

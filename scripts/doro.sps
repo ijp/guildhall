@@ -252,6 +252,16 @@
 
 ;;; Package installation and removal
 
+(define-command update
+  (description "Update repository information")
+  (synopsis "update")
+  (options)
+  (handler
+   (lambda (vals)
+     (let ((db (config->database (assq-ref vals 'config))))
+       (database-update! db)
+       (close-database db)))))
+
 (define (select-package db package-string)
   (receive (name version) (parse-package-string package-string)
     (let ((item (database-lookup db name version)))

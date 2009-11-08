@@ -37,7 +37,8 @@
           database-items
           database-lookup
           in-database
-          
+
+          database-update!
           database-install!
           database-remove!
 
@@ -166,8 +167,8 @@
     (let ((pathname (repository-available-pathname
                      repository
                      (database-cache-directory db repository))))
-      ;;(when (file-exists? pathname))
-      (load-available-file! db repository pathname))))
+      (when (file-exists? pathname)
+        (load-available-file! db repository pathname)))))
 
 (define (load-available-file! db repository pathname)
   (define (lose msg . irritants)
@@ -299,12 +300,22 @@
                      update-items
                      '()))
 
-;; This is not yet used
-(define (remove-repositories! db repositories)
-  (define (item-without-repositories item)
+(define (database-update! db)
+  (loop ((for repository (in-list (database-repositories db))))
+    (cond ((repository-fetch-available
+            repository
+            (database-cache-directory db repository))
+           => (lambda (available-pathname)
+                (log/db 'info (cat "loading available information for repository `"
+                                   (repository-name repository) "'"))
+                (remove-repository! db repository)
+                (load-available-file! db repository available-pathname))))))
+
+(define (remove-repository! db repository)
+  (define (item-without-repository item)
     (let ((remaining (filter (lambda (source)
-                               (not (memq (source-repository source)
-                                          repositories)))
+                               (not (eq? (source-repository source)
+                                         repository)))
                              (item-sources item))))
       (if (and (null? remaining)
                (eq? 'available (item-state item)))
@@ -315,7 +326,7 @@
       (hashtable-update! pkg-table
                          pkg-name
                          (lambda (items)
-                           (filter-map item-without-repositories items))
+                           (filter-map item-without-repository items))
                          '()))))
 
 
@@ -373,7 +384,7 @@
       ()                                           ;Final bindings
       . env))))
 
-(define database-update!
+(define database-update-item!
   (case-lambda
     ((db package proc default)
      (let ((version (package-version package)))
@@ -385,7 +396,7 @@
                              (default (cons default result))
                              (else
                               (assertion-violation
-                               'database-update!
+                               'database-update-item!
                                "requested item not found and no default provided"
                                db package))))
            (if (package-version=? version (package-version (item-package item)))
@@ -402,7 +413,7 @@
                           update-items
                           '())))
     ((db package proc)
-     (database-update! db package proc #f))))
+     (database-update-item! db package proc #f))))
 
 
 ;;; Installation & removal
@@ -423,8 +434,8 @@
                           package)
       (extract-package bundle package (database-destination db))
       (save-package-info (database-package-info-pathname db package) package)
-      (database-update! db package (lambda (item)
-                                     (item-with-state item 'installed)))))
+      (database-update-item! db package (lambda (item)
+                                          (item-with-state item 'installed)))))
   (let* ((items (database-items db (package-name package)))
          (desired-item (find-item-by-version items (package-version package))))
     (cond ((not desired-item)
@@ -450,14 +461,14 @@
                                        (source-location source)
                                        (database-cache-directory db repo)))))
       (loop ((for package (in-list (bundle-packages bundle))))
-        (database-update! db
-                          package
-                          (lambda (item)
-                            (make-item package
-                                       (item-state item)
-                                       (item-sources item)
-                                       bundle))
-                          (make-item package 'available (list source) #f)))
+        (database-update-item! db
+                               package
+                               (lambda (item)
+                                 (make-item package
+                                            (item-state item)
+                                            (item-sources item)
+                                            bundle))
+                               (make-item package 'available (list source) #f)))
       bundle)))
 
 (define (extract-package bundle package destination)
@@ -493,12 +504,12 @@
       (log/db 'info (cat "removing " (package-identifier package)))
       (remove-package-files! db package)
       (delete-file (database-package-info-pathname db package))
-      (database-update! db
-                        package
-                        (lambda (item)
-                          (if (null? (item-sources item))
-                              #f
-                              (item-with-state item 'available))))
+      (database-update-item! db
+                             package
+                             (lambda (item)
+                               (if (null? (item-sources item))
+                                   #f
+                                   (item-with-state item 'available))))
       #t)))
 
 (define (remove-package-files! db package)

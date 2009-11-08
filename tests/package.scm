@@ -117,7 +117,6 @@
                        (or (foo) (frobotz (and (>= (1 1)) (< (2))))))))))
 
 
-(set-test-debug-errors?! #t)
 (run-test-suite package-tests)
 
 ;; Local Variables:

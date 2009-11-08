@@ -181,7 +181,7 @@
                      (make-package-form-error form)
                      (make-who-condition 'parse-package-form)
                      (make-message-condition  "invalid package form")
-                     (make-irritants-condition form)
+                     (make-irritants-condition (list form))
                      (if stacked
                          (list (make-stacked-condition stacked))
                          '()))))

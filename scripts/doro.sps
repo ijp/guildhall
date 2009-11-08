@@ -25,7 +25,7 @@
 #!r6rs
 
 (import (except (rnrs) file-exists? delete-file)
-        (only (srfi :1) unfold concatenate)
+        (only (srfi :1) drop concatenate unfold)
         (srfi :8 receive)
         (only (srfi :13)
               string-null?
@@ -585,19 +585,36 @@
                 (list config-option prefix-option)
                 main-handler))
 
+(define (make-message-log-handler name-drop)
+  (lambda (entry)
+    (let ((port (current-output-port))
+          (obj (log-entry-object entry))
+          (level-name (log-entry-level-name entry))
+          (name (drop (log-entry-logger-name entry) name-drop)))
+      (fmt port
+           (if (memq level-name '(info))
+                    fmt-null
+                    (cat "doro: " level-name ": "))
+           (if (null? name)
+                    fmt-null
+                    (cat "[" (fmt-join dsp name ".") "] ")))
+      (if (procedure? obj)
+          (obj port)
+          (display obj port))
+      (fmt port "\n"))))
+
 (define (main argv)
-  (set-logger-properties!
-   logger:dorodango
-   `((threshold info)
-     (handlers
-      ,(lambda (entry)
-         (default-log-formatter entry (current-output-port))))))
-  (set-logger-properties!
-   logger:dorodango.solver
-   `((threshold warning)
-     (handlers
-      ,(lambda (entry)
-         (default-log-formatter entry (current-output-port))))))
+  (for-each
+   (match-lambda
+    ((logger . properties)
+     (set-logger-properties!
+      logger
+      properties)))
+   `((,logger:dorodango
+      (handlers (info ,(make-message-log-handler 1))))
+     (,logger:dorodango.solver
+      (propagate? #f)
+      (handlers (warning ,(make-message-log-handler 1))))))
   (receive (option-arguments arguments) (split-command-line (cdr argv))
     (process-command-line main-command
                           option-arguments

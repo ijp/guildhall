@@ -89,8 +89,7 @@
       (cond ((universe-version-tag version)
              (database-install! db (universe-version->package version)))
             (else
-             (database-remove! db (universe-package-name
-                                   (universe-version-package version))))))))
+             (database-remove! db (universe-version-package-name version)))))))
 
 (define (resolve-dependencies universe package-table to-install to-remove)
   (receive (initial-choices version-scores)
@@ -235,8 +234,8 @@
                 (else        (action-compliance auto)))))))
 
 (define (assess-solution solution initial-choices package-table)
-  (define (package.action<? p1 p2)
-    (symbol<? (package-name (car p1)) (package-name (car p2))))
+  (define (package-name.action<? p1 p2)
+    (symbol<? (car p1) (car p2)))
   (let ((action-lists (make-vector (vector-length action-types) '())))
     (define (accumulate-message)
       (loop ((for type (in-vector action-types))
@@ -256,15 +255,15 @@
            (let ((type-index (action-type-index type)))
              (vector-set! action-lists
                           type-index
-                          (list-sort package.action<?
+                          (list-sort package-name.action<?
                                      (vector-ref action-lists type-index)))))
       (let* ((chosen-version (choice-set-version-of
                              initial-choices
                              (universe-version-package (choice-version choice))))
-             (package (universe-version->package (choice-version choice)))
+             (package-name (universe-version-package-name (choice-version choice)))
              (current-version
               (universe-package-current-version
-               (hashtable-ref package-table (package-name package) #f)))
+               (hashtable-ref package-table package-name #f)))
              (action (compute-action (universe-version-tag current-version)
                                      (universe-version-tag (choice-version choice))
                                      (and chosen-version
@@ -275,7 +274,7 @@
              (type-index (package-action-type-index action)))
         (vector-set! action-lists
                      type-index
-                     (cons (cons package action)
+                     (cons (cons package-name action)
                            (vector-ref action-lists type-index)))
         (continue (=> risky? (or risky?
                                  (package-action-disobedient? action)
@@ -293,7 +292,7 @@
                              (listing ((vector-ref action-compliance-decorators
                                                    (package-action-compliance-index
                                                     (cdr package.action)))
-                                       (package-name (car package.action))))))
+                                       (car package.action)))))
                    => formats)
                  " ")) st)))
 
@@ -344,6 +343,9 @@
   (let ((universe-package (universe-version-package version)))
     (make-package (universe-package-name universe-package)
                   (universe-version-tag version))))
+
+(define (universe-version-package-name version)
+  (universe-package-name (universe-version-package version)))
 
 
 ;;; UI helpers

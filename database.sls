@@ -34,6 +34,7 @@
           database-add-bundle!
           database-add-bundles!
 
+          database-package-names
           database-items
           database-lookup
           in-database
@@ -331,6 +332,9 @@
 
 
 ;;; Querying
+
+(define (database-package-names db)
+  (vector->list (hashtable-keys (database-pkg-table db))))
 
 (define (database-lookup db name version)
   (define (lose msg . irritants)

@@ -59,9 +59,11 @@
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
           (spells foof-loop)
+          (spells nested-foof-loop)
           (spells pathname)
           (spells filesys)
           (spells fmt)
+          (spells match)
           (only (spells record-types)
                 define-functional-fields)
           (spells logging)
@@ -129,6 +131,8 @@
                                   cache-dir
                                   file-table
                                   pkg-table)))
+           (iterate! (for repository (in-list repositories))
+             (create-directory* (database-cache-directory db repository)))
            (load-available-files! db repositories)
            db))))
     ((directory destination repositories)
@@ -179,13 +183,12 @@
       (loop ((for form (in-port port read)))
         (cond ((parse-package-form form (lambda (properties) '()))
                => (lambda (package)
-                    (add-package-source!
-                     db
-                     package
-                     (make-source
-                      repository
-                      (or (package-property package 'location #f)
-                          (lose "missing location in available file" form))))))
+                    (match (package-property package 'location #f)
+                      (((location ___))
+                       (add-package-source! db package
+                                            (make-source repository location)))
+                      (_
+                       (lose "missing or invalid location in available file" form)))))
               (else
                (lose "invalid package form in available file" form)))))))
 
@@ -442,7 +445,8 @@
   (define (lose msg . irritants)
     (apply error 'database-install! msg irritants))
   (define (do-install! desired-item)
-    (let* ((bundle (open-bundle! db desired-item))
+    (let* ((bundle (or (open-bundle! db desired-item)
+                       (lose "could not obtain bundle for package" package)))
            (package (bundle-package-ref bundle package)))
       (log/db 'info (cat "installing " (package-identifier package)))
       (update-file-table! (database-file-table db)
@@ -466,26 +470,32 @@
            (do-install! desired-item)))))
 
 (define (open-bundle! db item)
+  (define (update-bundle-packages bundle source)
+    (loop ((for package (in-list (bundle-packages bundle))))
+      (database-update-item! db
+                             package
+                             (lambda (item)
+                               (make-item package
+                                          (item-state item)
+                                          (item-sources item)
+                                          bundle))
+                             (make-item package 'available (list source) #f))))
   (let ((sources (item-sources item)))
-    ;; TODO: what to do with other sources here?
     (when (null? sources)
       (error 'open-bundle! "no sources for package" (item-package item)))
-    (let* ((source (car sources))
-           (repo (source-repository source))
-           (bundle (open-input-bundle (repository-fetch-bundle
-                                       repo
-                                       (source-location source)
-                                       (database-cache-directory db repo)))))
-      (loop ((for package (in-list (bundle-packages bundle))))
-        (database-update-item! db
-                               package
-                               (lambda (item)
-                                 (make-item package
-                                            (item-state item)
-                                            (item-sources item)
-                                            bundle))
-                               (make-item package 'available (list source) #f)))
-      bundle)))
+    (loop continue ((for source (in-list sources)))
+      => #f
+      (let ((repo (source-repository source)))
+        (cond ((repository-fetch-bundle
+                repo
+                (source-location source)
+                (database-cache-directory db repo))
+               => (lambda (bundle-pathname)
+                    (let ((bundle (open-input-bundle bundle-pathname)))
+                      (update-bundle-packages bundle source)
+                      bundle)))
+              (else
+               (continue)))))))
 
 (define (extract-package bundle package destination)
   (loop ((for category (in-list (package-categories package))))

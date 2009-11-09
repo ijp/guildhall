@@ -26,6 +26,7 @@
 
 (import (except (rnrs) file-exists? delete-file)
         (only (srfi :1) drop concatenate unfold)
+        (srfi :2 and-let*)
         (srfi :8 receive)
         (only (srfi :13)
               string-null?
@@ -192,10 +193,11 @@
           (value-setter 'no-depends? #t)))
 
 (define (parse-package-string s)
-  (values (string->symbol s) #f)) ;++version
-
-(define (string->package s)
-  (make-package (string->symbol s) '())) ;++version
+  (cond ((package-identifier->package s)
+         => (lambda (package)
+              (values (package-name package) (package-version package))))
+        (else
+         (values (string->symbol s) #f))))
 
 (define (find-db-items db packages)
   (loop ((for package (in-list packages))
@@ -262,14 +264,20 @@
        (database-update! db)
        (close-database db)))))
 
-(define (select-package db package-string)
+(define (select-package/string db package-string)
   (receive (name version) (parse-package-string package-string)
-    (let ((item (database-lookup db name version)))
-      (cond ((not item)
-             (die (cat "could not find any package matching `"
-                       package-string "'")))
-            (else
-             (database-item-package item))))))
+    (select-package db name version)))
+
+(define (select-package db name version)
+  (let ((item (database-lookup db name version)))
+    (cond ((not item)
+           (die (cat "could not find any package matching `"
+                     name (if (package-version? version)
+                              (cat "-" (dsp-package-version version))
+                              fmt-null)
+                     "'")))
+          (else
+           (database-item-package item)))))
 
 (define (install-command vals)
   (let ((bundle-locations (opt-ref/list vals 'bundles))
@@ -278,7 +286,7 @@
         (db (config->database (assq-ref vals 'config))))
     (database-add-bundles! db bundle-locations)
     (loop ((for package (in-list packages))
-           (for to-install (listing (select-package db package))))
+           (for to-install (listing (select-package/string db package))))
       => (cond (no-depends?
                 (loop ((for package (in-list to-install)))
                   (database-install! db package)))
@@ -310,6 +318,25 @@
   (options no-depends-option)
   (handler remove-command))
 
+(define (upgrade-command vals)
+  (let ((packages (opt-ref/list vals 'operands))
+        (db (config->database (assq-ref vals 'config))))
+    (define (select-upgrade package-name)
+      (and-let* ((installed (database-lookup db package-name 'installed))
+                 (item (database-lookup db package-name 'newest)))
+        (database-item-package item)))
+    (loop ((for package-name (in-list (if (null? packages)
+                                          (database-package-names db)
+                                          (map string->symbol packages))))
+           (for to-upgrade (listing (select-upgrade package-name) => values)))
+      => (apply-actions db to-upgrade '()))))
+
+(define-command upgrade
+  (description "Upgrade packages")
+  (synopsis "upgrade [PACKAGE...]")
+  (options)
+  (handler upgrade-command))
+
 
 ;;; Querying
 
@@ -325,7 +352,7 @@
              (die "`config destination' requires 2 or 3 arguments"))
            (let ((destination (config-item-destination
                                (config-default-item config)))
-                 (package (string->package (list-ref operands 1)))
+                 (package (package-identifier->package (list-ref operands 1)))
                  (category (string->symbol (list-ref operands 2)))
                  (pathname (if (> n-operands 3)
                                (->pathname (list-ref operands 3))

@@ -329,7 +329,6 @@
 ;; This whole traverser business is probably over-general and could be
 ;; simplified.
 (define (make-intersection-traverser promotion-set subset? proc)
-  (define traversal-aborted (list 'traversal-aborted))
   (define (traverse proc seed choice-set)
     (choice-set-traverse
      (lambda (choice seed return)
@@ -342,30 +341,30 @@
                      "intersection-traverser: breaking out of set traversal at "
                      (dsp-choice choice) " because nothing matches it and we are"
                      " looking for a superset.")
-                    (return traversal-aborted)))
+                    (return seed)))
              (loop ((for entry (in-list entries))
-                    (with seed seed (proc entry seed return)))
+                    (with seed seed (proc entry seed)))
                => seed))))
      seed
      choice-set))
   (let ((hit-counts (make-eq-hashtable)))
     (lambda (choice-set seed)
-      (traverse (lambda (entry seed return)
+      (traverse (lambda (entry seed)
                   (hashtable-update! hit-counts entry (lambda (n) (+ 1 n)) 0))
                 #f
                 choice-set)
-      (traverse (lambda (entry seed return)
+      (traverse (lambda (entry seed)
                   (let* ((hit-count (hashtable-ref hit-counts entry #f))
                          (new-seed (if (not hit-count)
                                        seed
-                                       (proc entry hit-count seed return))))
+                                       (proc entry hit-count seed))))
                     (hashtable-set! hit-counts entry #f)
                     new-seed))
                 seed
                 choice-set))))
 
 (define (make-supersets-finder required-hits maximum-tier)
-  (lambda (entry hit-count entries return)
+  (lambda (entry hit-count entries)
     (cond ((tier<? maximum-tier (promotion-tier entry))
            entries)
           ((= hit-count required-hits)
@@ -377,7 +376,7 @@
            entries))))
 
 (define (make-subset-finder)
-  (lambda (entry hit-count result return)
+  (lambda (entry hit-count result)
     (if (and (= hit-count (choice-set-size (promotion-choices entry)))
              (or (not result)
                  (tier<? (promotion-tier result) (promotion-tier entry))))
@@ -385,7 +384,7 @@
         result)))
 
 (define (make-incipient-subset-finder output-incipient output-domain)
-  (lambda (entry hit-count non-incipient return)
+  (lambda (entry hit-count non-incipient)
     (let* ((choices (promotion-choices entry))
            (choices-size (choice-set-size choices)))
       (cond ((= (+ hit-count 1) choices-size)
@@ -415,7 +414,8 @@
                          #f))))
 
 (define (make-unary-promotion-finder promotion-set output)
-  (lambda (choice promotion)
+  (lambda (choice value)
+    value ;ignored
     (loop ((for entry (in-list (find-index-list promotion-set choice))))
       (let ((choices (promotion-choices entry)))
         (when (= 1 (choice-set-size choices))
@@ -426,10 +426,11 @@
              (lambda (old-promotion)
                (if old-promotion
                    (or (and (tier<? (promotion-tier old-promotion)
-                                    (promotion-tier promotion))
-                            promotion)
+                                    (promotion-tier entry))
+                            entry)
                        old-promotion)
-                   promotion)))))))))
+                   entry))
+             #f)))))))
 
 (define (find-index-list promotion-set choice)
   (or (and-let* ((index-entry (vector-ref (promotion-set-index promotion-set)

@@ -210,28 +210,43 @@
     (disobedient (lambda (name) (cat name "{!}")))
     (already (lambda (name) (cat name "{=}")))))
 
-(define (compute-action current-version version to-install? to-remove?)
-  (cond ((and (not current-version) version)
-         (make-package-action
-          (action-type install)
-          (cond (to-install?  (action-compliance ordered))
-                (to-remove?   (action-compliance disobedient))
-                (else         (action-compliance auto)))))
-        ((and current-version (not version))
-         (make-package-action
-          (action-type remove)
-          (cond (to-remove?   (action-compliance ordered))
-                (to-install?  (action-compliance disobedient))
-                (else         (action-compliance auto)))))
-        ((and current-version version)
-         (make-package-action
-          (if3 (package-version-compare current-version version)
-               (action-type upgrade)
-               (action-type keep)
-               (action-type downgrade))
-          (cond (to-remove? (action-compliance disobedient))
-                (to-install? (action-compliance already))
-                (else        (action-compliance auto)))))))
+(define (compute-action current-version chosen-version version)
+  (let ((to-install (and chosen-version
+                         (universe-version-tag chosen-version)))
+        (to-remove? (and chosen-version
+                         (not (universe-version-tag chosen-version)))))
+    (cond ((and (not current-version) version)
+           (make-package-action
+            (action-type install)
+            (cond (to-install  (action-compliance ordered))
+                  (to-remove?  (action-compliance disobedient))
+                  (else        (action-compliance auto)))))
+          ((and current-version (not version))
+           (make-package-action
+            (action-type remove)
+            (cond (to-remove?  (action-compliance ordered))
+                  (to-install  (action-compliance disobedient))
+                  (else        (action-compliance auto)))))
+          ((and current-version version)
+           (let ((type (if3 (package-version-compare current-version version)
+                            (action-type upgrade)
+                            (action-type keep)
+                            (action-type downgrade))))
+             (make-package-action
+              type
+              (cond (to-remove?
+                     (action-compliance disobedient))
+                    (to-install
+                     (if3 (package-version-compare current-version to-install)
+                          (if (eq? (action-type upgrade) type)
+                              (action-compliance ordered)
+                              (action-compliance disobedient))
+                          (action-compliance already)
+                          (if (eq? (action-type downgrade) type)
+                              (action-compliance ordered)
+                              (action-compliance disobedient))))
+                    (else
+                     (action-compliance auto)))))))))
 
 (define (assess-solution solution initial-choices package-table)
   (define (package-name.action<? p1 p2)
@@ -265,12 +280,8 @@
               (universe-package-current-version
                (hashtable-ref package-table package-name #f)))
              (action (compute-action (universe-version-tag current-version)
-                                     (universe-version-tag (choice-version choice))
-                                     (and chosen-version
-                                          (universe-version-tag chosen-version)
-                                          #t)
-                                     (and chosen-version
-                                          (not (universe-version-tag chosen-version)))))
+                                     chosen-version
+                                     (universe-version-tag (choice-version choice))))
              (type-index (package-action-type-index action)))
         (vector-set! action-lists
                      type-index

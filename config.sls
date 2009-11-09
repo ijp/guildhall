@@ -81,10 +81,7 @@
             (else
              (lose who "no database location for destination" name))))))
 
-(define (%make-config/validate who
-                                     default
-                                     items
-                                     repositories)
+(define (%make-config/validate who default items repositories)
   (define (complete-items items)
     (map (lambda (name.item)
            (let ((new-item
@@ -156,8 +153,8 @@
                               default
                               (if (null? items)
                                   (config-items (default-config))
-                                  items)
-                              repositories)
+                                  (reverse items))
+                              (reverse repositories))
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))

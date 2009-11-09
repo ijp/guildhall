@@ -346,6 +346,7 @@
           ((symbol? version)
            (case version
              ((installed) (find item-installed? items))
+             ((newest)    (find-newest-item items))
              (else        (lose "invalid version" version))))
           (else
            (find-item-by-version items version)))))
@@ -358,6 +359,17 @@
           (package-version=? version (package-version
                                       (item-package item))))
         items))
+
+(define (find-newest-item items)
+  (loop ((for item (in-list items))
+         (with newest
+               #f
+               (if (or (not newest)
+                       (package-version>? (package-version (item-package item))
+                                          (package-version (item-package newest))))
+                   item
+                   newest)))
+    => newest))
 
 (define-syntax in-database
   (syntax-rules (sorted-by)

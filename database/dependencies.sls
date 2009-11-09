@@ -26,8 +26,10 @@
   (export database->universe
           irreparable-packages)
   (import (rnrs)
+          (srfi :2 and-let*)
           (srfi :8 receive)
           (spells foof-loop)
+          (spells nested-foof-loop)
           (spells lazy-streams)
           (spells match)
           (spells tracing)
@@ -74,19 +76,13 @@
              (with count 0 new-count)
              (with version-count version-count adjusted-version-count))
         => (values dependencies version-count)))
+    
     (define (construct-dependencies version db-item count version-count)
       (let ((db-package (database-item-package db-item)))
         (loop continue
-            ((for depend-clause
-                  (in-list (db:package-property db-package 'depends '())))
+            ((for dependency-choices (in-list (db:package-dependencies db-package)))
              (let-values (targets adjusted-version-count)
-               (match depend-clause
-                 ((package-name)
-                  (list-dependency-targets package-name version-count))
-                 (_
-                  (error 'database->universe
-                         "unrecognized dependency clause"
-                         depend-clause))))
+               (list-dependency-targets dependency-choices version-count))
              (with dependencies '())
              (for count (up-from count))
              (with version-count version-count adjusted-version-count))
@@ -96,21 +92,31 @@
             (loop ((for target (in-list targets)))
               (version-add-reverse-dependency! target dependency))
             (continue (=> dependencies (cons dependency dependencies)))))))
-    (define (list-dependency-targets package-name version-count)
-      (receive (package version-count)
-               (cond ((hashtable-ref package-table package-name #f)
-                      => (lambda (package)
-                           (values package version-count)))
-                     (else
-                      (let ((package (make-package (hashtable-size package-table)
-                                                   package-name)))
-                        (set-package-versions!
-                         package
-                         (list (make-version version-count #f package)))
-                        (hashtable-set! package-table package-name package)
-                        (values package (+ version-count 1)))))
-        (values (filter version-tag (package-versions package))
-                version-count)))
+    
+    (define (list-dependency-targets dependency-choices version-count)
+      (iterate-values ((targets '()) (version-count version-count))
+          (for choice (in-list dependency-choices))
+          (let-values (package updated-version-count)
+            (get/create-package (db:dependency-choice-target choice) version-count))
+          (let constraint (db:dependency-choice-version-constraint choice))
+          (for version (in-list (package-versions package)))
+          (if (and-let* ((db-version (version-tag version)))
+                (db:version-constraint-satisified? constraint db-version)))
+          (values (cons version targets) updated-version-count)))
+    
+    (define (get/create-package package-name version-count)
+      (cond ((hashtable-ref package-table package-name #f)
+             => (lambda (package)
+                  (values package version-count)))
+            (else
+             (let ((package (make-package (hashtable-size package-table)
+                                          package-name)))
+               (set-package-versions!
+                package
+                (list (make-version version-count #f package)))
+               (hashtable-set! package-table package-name package)
+               (values package (+ version-count 1))))))
+    
     (loop ((for package-name db-items (in-database database))
            (let package (construct-package (hashtable-size package-table)
                                            package-name

@@ -65,6 +65,8 @@
 
           package-form-error?
           package-error-form
+
+          version-constraint-satisified?
           
           ;; these are mainly for the test suite
           form->dependency-choice

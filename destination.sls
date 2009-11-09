@@ -19,6 +19,14 @@
 
 ;;; Commentary:
 
+;; Currently, FHS destinations install a wrapper shell script for each
+;; R6RS program. This wrapper sets the environment variable
+;; R6RS_LIBRARY_PATH and executes `r6rs-script', which in turn sets
+;; the implementation-specific library search path based on that
+;; setting. Once SRFI 103 (and hence R6RS_LIBRARY_PATH) is widely
+;; implemented, r6rs-script may be changed to a symlink or dropped in
+;; favor of `scheme-script', as recommended by R6RS D.2.
+
 ;;; Code:
 #!r6rs
 

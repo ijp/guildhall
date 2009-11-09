@@ -30,7 +30,8 @@
           repository-fetch-bundle
 
           null-repository
-          make-file-repository)
+          make-file-repository
+          make-http-repository)
   (import (except (rnrs) delete-file file-exists?)
           (only (srfi :13) string-map)
           (srfi :14 char-sets)
@@ -40,6 +41,9 @@
           (spells filesys)
           (spells logging)
           (spells fmt)
+          (ocelotl net uri)
+          (ocelotl net http)
+          (ocelotl net http-client)
           (dorodango private utils))
 
 (define-record-type repository
@@ -80,6 +84,47 @@
        ((repository/fetch-bundle repo location cache-directory)
         (check-existence
          (pathname-join directory (location->pathname location))))))))
+
+
+;;; HTTP support
+
+(define (make-http-repository name uri-string)
+  (let* ((base-uri (uri-with-directory-path (object->uri uri-string)))
+         (available-uri (merge-uris (string->uri "available.scm") base-uri))
+         (available-filename "available.scm"))
+    (make-repository
+     name
+     (object #f
+       ((repository/available-pathname repo cache-directory)
+        (pathname-with-file cache-directory available-filename))
+       ((repository/fetch-available repo cache-directory)
+        (http-download (repository/available-pathname repo cache-directory)
+                       available-uri))
+       ((repository/fetch-bundle repo location cache-directory)
+        (http-download (pathname-join cache-directory
+                                      (location->pathname location))
+                            (merge-uris (make-uri #f #f location #f #f)
+                                        base-uri)))))))
+
+(define (http-download destination uri)
+  (call-with-http-response 'GET uri '() ""
+    (lambda (response response-port)
+      (case (http-response/status-type response)
+        ((success)
+         (call-with-output-file/atomic destination 'block
+           (lambda (port)
+             (copy-port response-port port)
+             destination)))
+        ;;++ handle redirects
+        (else
+         (log/repo 'warning
+                   (cat "unable to download `" (uri->string uri) "': "
+                        (http-response/status-code response) " "
+                        (http-response/reason response)))
+         #f)))))
+
+
+;;; Utilities
 
 (define (check-existence pathname)
   (cond ((file-exists? pathname)

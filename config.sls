@@ -128,7 +128,10 @@
      (and (string-prefix? "file://" uri-string)
           (make-file-repository
            name
-           (substring uri-string 7 (string-length uri-string)))))))
+           (substring uri-string 7 (string-length uri-string)))))
+   (lambda (name uri-string)
+     (and (string-prefix? "http://" uri-string)
+          (make-http-repository name uri-string)))))
 
 (define (default-config)
   (make-prefix-config (home-pathname ".local") (list)))

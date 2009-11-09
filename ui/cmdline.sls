@@ -28,6 +28,7 @@
           message
           prompt
           
+          dsp-package-version
           dsp-bundle
           
           dsp-db-item

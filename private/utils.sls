@@ -37,6 +37,7 @@
           dsp-pathname
           pathname->location
           location->pathname
+          uri-with-directory-path
           home-pathname
           rm-rf
           logger:dorodango
@@ -52,7 +53,9 @@
           (spells pathname)
           (spells filesys)
           (spells logging)
-          (ocelotl wt-tree))
+          (ocelotl wt-tree)
+          (ocelotl net uri))
+
 
 (define-syntax define-guarantor
   (syntax-rules ()
@@ -107,6 +110,20 @@
 
 (define (location->pathname location)
   (make-pathname #f (drop-right location 1) (last location)))
+
+;;++ Also in irclogs; need to consolidate
+(define (uri-with-directory-path uri)
+  (let ((path (uri-path uri)))
+    (make-uri (uri-scheme uri)
+              (uri-authority uri)
+              (if (null? path)
+                  '("")
+                  (let ((last-elt (last path)))
+                    (if (string=? last-elt "")
+                        path
+                        (append path (list "")))))
+              (uri-query uri)
+              (uri-fragment uri))))
 
 (define-syntax in-hashtable
   (syntax-rules ()

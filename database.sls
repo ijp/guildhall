@@ -499,14 +499,15 @@
 
 (define (extract-package bundle package destination)
   (loop ((for category (in-list (package-categories package))))
-    (define (extract-file pathname extractor)
+    (loop ((for pathname extractor (in-bundle-inventory
+                                    bundle
+                                    (package-category-inventory package
+                                                                category))))
       (destination-install destination
                            package
                            category
                            pathname
-                           extractor))
-    (let ((inventory (package-category-inventory package category)))
-      (bundle-walk-inventory bundle inventory extract-file))))
+                           extractor))))
 
 (define managed-categories '(libraries documentation programs))
 

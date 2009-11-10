@@ -33,7 +33,7 @@
           bundle-packages
           bundle-package-ref
 
-          bundle-walk-inventory)
+          in-bundle-inventory)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map last)
           (srfi :8 receive)
@@ -69,19 +69,30 @@
 (define (close-bundle bundle)
   (bundle/close (bundle-ops bundle)))
 
-(define (bundle-walk-inventory bundle inventory proc)
-  (let recur ((inventory inventory)
-              (directory (make-pathname #f '() #f)))
-    (loop ((for cursor (in-inventory inventory)))
-      (let ((pathname (pathname-with-file directory (inventory-name cursor))))
-        (cond ((inventory-leaf? cursor)
-               (proc pathname
-                     (lambda (port)
-                       (bundle/extract-entry (bundle-ops bundle)
-                                             (inventory-data cursor)
-                                             port))))
-              (else
-               (recur cursor (pathname-as-directory pathname))))))))
+(define-syntax in-bundle-inventory
+  (syntax-rules ()
+    ((_ (pathname-var extractor-var) (bundle-expr inventory-expr) cont . env)
+     (cont
+      (((bundle) bundle-expr))                   ;Outer bindings
+      ((cursor                                   ;Loop variables
+        (inventory-cursor inventory-expr)
+        (inventory-cursor-next cursor)))
+      ()                                         ;Entry bindings
+      ((not cursor))                             ;Termination conditions
+      (((pathname-var)                           ;Body bindings
+        (inventory-cursor->pathname cursor))
+       ((extractor-var)
+        (lambda (port)
+          (bundle/extract-entry (bundle-ops bundle)
+                                (inventory-cursor-data cursor)
+                                port))))
+      ()                                         ;Final bindings
+      . env))))
+
+(define (inventory-cursor->pathname cursor)
+  (make-pathname #f
+                 (reverse (inventory-cursor-path cursor))
+                 (inventory-cursor-name cursor)))
 
 (define-enumeration bundle-option
   (no-inventory)

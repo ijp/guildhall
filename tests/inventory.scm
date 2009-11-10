@@ -36,6 +36,23 @@
            (and (inventory-leaf? entry)
                 (inventory-data entry)))))
 
+(define (->inventory tree)
+  (let ((inventory (make-inventory (car tree) 'data)))
+    (loop continue ((for item (in-list (reverse (cdr tree))))
+                    (with cursor (inventory-open inventory)))
+      => (inventory-leave cursor)
+      (continue
+       (=> cursor (if (pair? item)
+                      (inventory-insert cursor (->inventory item))
+                      (inventory-insert cursor item #f 'data)))))))
+
+(define (->tree inventory)
+  (if (inventory-leaf? inventory)
+      (inventory-name inventory)
+      (loop ((for cursor (in-inventory inventory))
+             (for result (listing (->tree cursor))))
+        => (cons (inventory-name inventory) result))))
+
 ;;; Tests
 
 (define-test-suite inventory-tests
@@ -97,25 +114,23 @@
                                    (result result))))
       => (inventory-name result))))
 
+(define (flatten-tree/inventory-cursor tree)
+  (loop ((with cursor
+               (inventory-cursor (->inventory tree))
+               (inventory-cursor-next cursor))
+         (while cursor)
+         (for result (listing (cons (inventory-cursor-name cursor)
+                                    (inventory-cursor-path cursor)))))
+    => result))
+
+(define-test-case inventory-tests cursor ()
+  (test-equal '((1) (2) (3 b) (4 c b) (5 c b) (6 c b) (7))
+    (flatten-tree/inventory-cursor '(a 1 2 (b 3 (c 4 5 6)) 7)))
+  (test-equal '((1 c b) (2))
+    (flatten-tree/inventory-cursor '(a (b (c 1)) 2))))
+
 (define-test-suite (inventory-tests.merge inventory-tests)
-  "merging")
-
-(define (->inventory tree)
-  (let ((inventory (make-inventory (car tree) 'data)))
-    (loop continue ((for item (in-list (reverse (cdr tree))))
-                    (with cursor (inventory-open inventory)))
-      => (inventory-leave cursor)
-      (continue
-       (=> cursor (if (pair? item)
-                      (inventory-insert cursor (->inventory item))
-                      (inventory-insert cursor item #f 'data)))))))
-
-(define (->tree inventory)
-  (if (inventory-leaf? inventory)
-      (inventory-name inventory)
-      (loop ((for cursor (in-inventory inventory))
-             (for result (listing (->tree cursor))))
-        => (cons (inventory-name inventory) result))))
+  "Merging")
 
 (define (raise-conflict to from)
   (raise (list 'conflict (->tree to) (->tree from))))
@@ -135,6 +150,7 @@
                          (->inventory '(b ("foo" "x" "y")))
                          raise-conflict))))
 
+(set-test-debug-errors?! #t)
 (run-test-suite inventory-tests)
 
 ;; Local Variables:

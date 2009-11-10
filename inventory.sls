@@ -41,6 +41,14 @@
 
           in-inventory
           
+          inventory-cursor
+          inventory-cursor?
+          inventory-cursor-node
+          inventory-cursor-name
+          inventory-cursor-data
+          inventory-cursor-path
+          inventory-cursor-next
+          
           inventory-insert
           inventory-delete
           inventory-relabel
@@ -60,6 +68,7 @@
           inventory-mapper-map-container
           apply-inventory-mapper)
   (import (rnrs)
+          (srfi :2 and-let*)
           (srfi :8 receive)
           (spells foof-loop)
           (spells tracing)
@@ -162,6 +171,51 @@
                          (inventory-leave cursor)
                          inventory))) ;Final bindings
       . env))))
+
+;;; Cursors
+
+;; An `inventory-cursor' iterates over the leaf nodes of an inventory
+;; in depth-first order, and keeps track of the "path" back to the
+;; root of the traversal.
+
+(define-record-type (:inventory-cursor make-inventory-cursor inventory-cursor?)
+  (fields
+   (immutable node inventory-cursor-node)
+   (immutable path inventory-cursor-path)))
+
+(define (inventory-cursor-name cursor)
+  (inventory-name (inventory-cursor-node cursor)))
+
+(define (inventory-cursor-data cursor)
+  (inventory-data (inventory-cursor-node cursor)))
+
+(define (inventory-cursor inventory)
+  (and-let* (((inventory-container? inventory))
+             (node (inventory-enter inventory)))
+    (maybe-container-next-cursor node '())))
+
+(define (maybe-container-next-cursor node path)
+  (cond ((inventory-leaf? node)
+         (make-inventory-cursor node path))
+        ((inventory-enter node)
+         => (lambda (child)
+              (maybe-container-next-cursor child
+                                           (cons (inventory-name node) path))))
+        (else
+         (next-cursor node path))))
+
+(define (next-cursor node path)
+  (cond ((inventory-next node)
+         => (lambda (next-node)
+              (maybe-container-next-cursor next-node path)))
+        ((null? path)
+         #f)
+        (else
+         (next-cursor (inventory-leave node) (cdr path)))))
+
+(define (inventory-cursor-next cursor)
+  (next-cursor (inventory-cursor-node cursor)
+               (inventory-cursor-path cursor)))
 
 (define (inventory-ref/aux inventory path not-found)
   (loop continue ((for path-elt path-rest (in-list path))

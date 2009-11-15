@@ -44,8 +44,7 @@
         (spells define-values)
         (only (spells misc) and=>)
         (only (spells sysutils) lookup-environment-variable)
-        (rename (spells args-fold)
-                (option %option))
+        (spells args-fold)
         (spells logging)
         (spells tracing)
         (only (spells record-types) define-record-type*)
@@ -62,47 +61,22 @@
 
 ;;; Command-line processing
 
-(define-record-type* option-info
-  (make-option-info %option metavar help)
-  ())
-
-(define (option-info-names opt-info)
-  (option-names (option-info-%option opt-info)))
-
-(define (%option-proc proc)
-  (lambda (option name arg . seeds)
-    (apply proc name arg seeds)))
-
-(define (option names arg-info help proc)
-  (define (info arg-required? arg-optional? metavar)
-    (make-option-info (%option names
-                               arg-required?
-                               arg-optional?
-                               (%option-proc proc))
-                      metavar
-                      help))
-  (match arg-info
-    ('#f
-     (info #f #f #f))
-    ((? symbol? metavar)
-     (info #t #f metavar))))
-
-(define (help-%option command)
-  (%option
+(define (make-help-option command)
+  (option
    '("help" #\h) #f #f
-   (lambda (option name arg vals)
-     (values #t (acons 'run
-                       (lambda (vals)
-                         (fmt #t (dsp-help command))
-                         '())
-                       vals)))))
+   (lambda (option option-name arg vals)
+     (acons 'run
+            (lambda (vals)
+              (fmt #t (dsp-help command))
+              '())
+            vals))))
 
 (define (dsp-option-name name)
   (cat (if (string? name) "--" "-") name))
 
-(define (dsp-opt-info/left-side opt-info)
-  (cat (fmt-join dsp-option-name (option-info-names opt-info) ", ")
-       (cond ((option-info-metavar opt-info)
+(define (dsp-option/left-side option)
+  (cat (fmt-join dsp-option-name (option-names option) ", ")
+       (cond ((option-argument option)
               => (lambda (metavar)
                    (cat " " (string-upcase (symbol->string metavar)))))
              (else
@@ -115,11 +89,11 @@
          (apply-cat (command-description command)) "\n"
          "Options:\n"
          (dsp-listing "  " (append
-                            (map (lambda (opt-info)
-                                   (dsp-opt-info/left-side opt-info))
+                            (map (lambda (option)
+                                   (dsp-option/left-side option))
                                  (command-options command))
                             '("--help"))
-                      "  " (append (map option-info-help (command-options command))
+                      "  " (append (map option-description (command-options command))
                                    '("Show this help and exit"))))))
 
 ;; This could use a better name
@@ -171,26 +145,35 @@
                              %commands))))))
 
 (define (arg-pusher name)
-  (lambda (option-name arg vals)
-    (values #f (apush name arg vals))))
+  (lambda (option option-name arg vals)
+    (apush name arg vals)))
 
 (define (arg-setter name)
-  (lambda (option-name arg vals)
-    (values #f (acons name arg vals))))
+  (lambda (option option-name arg vals)
+    (acons name arg vals)))
 
 (define (value-setter name value)
-  (lambda (option-name arg vals)
-    (values #f (acons name value vals))))
+  (lambda (option option-name arg vals)
+    (acons name value vals)))
 
-(define bundle-option
-  (option '("bundle" #\b) 'bundle
-          "Additionally consider packages from BUNDLE"
-          (arg-pusher 'bundles)))
+(define-syntax define-option
+  (syntax-rules ()
+    ((_ identifier names argument description processor)
+     (define identifier
+       (option 'names
+               'argument
+               #f
+               #f
+               description
+               processor)))))
 
-(define no-depends-option
-  (option '("no-depends") #f
-          "Ignore dependencies"
-          (value-setter 'no-depends? #t)))
+(define-option bundle-option ("bundle" #\b) bundle
+  "Additionally consider packages from BUNDLE"
+  (arg-pusher 'bundles))
+
+(define-option no-depends-option ("no-depends") #f
+  "Ignore dependencies"
+  (value-setter 'no-depends? #t))
 
 (define (parse-package-string s)
   (cond ((package-identifier->package s)
@@ -213,7 +196,7 @@
 (define-command list
   (description "List packages")
   (synopsis "list")
-  (options (option '("all") #f
+  (options (option '("all") #f #f #f
                    "Also show available packages"
                    (value-setter 'all? #t))
            bundle-option)
@@ -452,13 +435,13 @@
 (define-command create-bundle
   (description "Create a bundle")
   (synopsis "create-bundle [DIRECTORY...]")
-  (options (option '("output" #\o) 'filename
+  (options (option '("output" #\o) 'filename #f #f
                    "Bundle filename"
                    (arg-setter 'output-filename))
-           (option '("directory" #\d) 'directory
+           (option '("directory" #\d) 'directory #f #f
                    "Output directory when using implicit filename"
                    (arg-setter 'output-directory))
-           (option '("append-version") 'version
+           (option '("append-version") 'version #f #f
                    "Append VERSION to each package's version"
                    (arg-setter 'append-version)))
   (handler create-bundle-command))
@@ -508,9 +491,9 @@
   (define (process-operand operand vals)
     (apush 'operands operand vals))
   (let ((vals (args-fold* cmd-line
-                          (cons (help-%option command)
-                                (map option-info-%option
-                                     (command-options command)))
+                          (cons (make-help-option command)
+                                (command-options command))
+                          #t
                           unrecognized-option
                           process-operand
                           seed-vals)))
@@ -550,35 +533,14 @@
                    (config-item-repositories default)
                    (config-item-cache-directory default))))
 
-(define config-option
-  (option '("config" #\c) 'config
-          (cat "Use configuration file CONFIG"
-               " (default: `" (dsp-pathname (default-config-location)) "')")
-          (arg-setter 'config)))
+(define-option config-option ("config" #\c) config
+  (cat "Use configuration file CONFIG"
+       " (default: `" (dsp-pathname (default-config-location)) "')")
+  (arg-setter 'config))
 
-(define prefix-option
-  (option '("prefix") 'prefix
-          (cat "Set installation prefix and database location")
-          (arg-setter 'prefix)))
-
-;; TODO: This is a kludge; should add the capabilty to stop on first
-;; non-option argument to args-fold*
-(define (split-command-line cmd-line)
-  (loop continue ((for argument arguments (in-list cmd-line))
-                  (for option-arguments (listing-reverse argument))
-                  (with option-arg? #f))
-    => (values (reverse option-arguments) arguments)
-    (cond (option-arg?
-           (continue (=> option-arg? #f)))
-          ((string-prefix? "-" argument)
-           (cond ((member argument '("--destination" "-d"
-                                     "--config" "-c"
-                                     "--prefix"))
-                  (continue (=> option-arg? #t)))
-                 (else
-                  (continue))))
-          (else
-           (values (reverse option-arguments) arguments)))))
+(define-option prefix-option ("prefix") prefix
+  "Set installation prefix and database location"
+  (arg-setter 'prefix))
 
 (define (main-handler vals)
   (define (read-config/default pathname)
@@ -642,10 +604,9 @@
      (,logger:dorodango.solver
       (propagate? #f)
       (handlers (warning ,(make-message-log-handler 1))))))
-  (receive (option-arguments arguments) (split-command-line (cdr argv))
-    (process-command-line main-command
-                          option-arguments
-                          `((operands . ,(reverse arguments))))))
+  (process-command-line main-command
+                        (cdr argv)
+                        `((operands))))
 
 (main (command-line))
 

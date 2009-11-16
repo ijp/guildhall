@@ -41,7 +41,8 @@
           home-pathname
           rm-rf
           logger:dorodango
-          make-fmt-log)
+          make-fmt-log
+          fmt-indented)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) drop-right last)
           (srfi :8 receive)
@@ -100,6 +101,10 @@
      (let ((log (make-log logger level)))
        (lambda formats
          (log (lambda (port) (apply fmt port formats))))))))
+
+(define (fmt-indented indent . formatters)
+  (fmt-columns (list (lambda (line) (cat indent line))
+                     (apply-cat formatters))))
 
 (define (dsp-pathname pathname)
   (lambda (st)

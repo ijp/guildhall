@@ -109,6 +109,7 @@
                            targets))
               (dependency (make-dependency
                            (dummy-db-dependency-count db)
+                           #f
                            source
                            (delete-duplicates targets version=?))))
          (version-add-dependency! source dependency)

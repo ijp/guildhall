@@ -70,6 +70,7 @@
           guarantee-version
           
           dependency?
+          dependency-tag
           dependency-source
           dependency-targets
 

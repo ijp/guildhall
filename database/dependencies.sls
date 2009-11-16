@@ -24,10 +24,15 @@
 
 (library (dorodango database dependencies)
   (export database->universe
-          irreparable-packages)
+          irreparable-packages
+
+          dependency-info?
+          dependency-info-package
+          dependency-info-choices)
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :8 receive)
+          (spells record-types)
           (spells foof-loop)
           (spells nested-foof-loop)
           (spells lazy-streams)
@@ -37,6 +42,10 @@
           (prefix (dorodango package)
                   db:)
           (dorodango solver internals))
+
+(define-record-type* dependency-info
+  (make-dependency-info package choices)
+  ())
 
 (define (construct-package id name db-items version-count)
   (let* ((package (make-package id name))
@@ -87,7 +96,12 @@
              (for count (up-from count))
              (with version-count version-count adjusted-version-count))
           => (values dependencies count version-count)
-          (let ((dependency (make-dependency count version targets)))
+          (let ((dependency (make-dependency count
+                                             (make-dependency-info
+                                              db-package
+                                              dependency-choices)
+                                             version
+                                             targets)))
             (version-add-dependency! version dependency)
             (loop ((for target (in-list targets)))
               (version-add-reverse-dependency! target dependency))

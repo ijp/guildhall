@@ -81,6 +81,7 @@
           
           make-dependency
           dependency?
+          dependency-tag
           dependency-source
           dependency-targets
 
@@ -201,7 +202,7 @@
 ;;; Dependencies
 
 (define-record-type* dependency
-  (make-dependency id source targets)
+  (make-dependency id tag source targets)
   ())
 
 (define (dependency=? d1 d2)

@@ -85,10 +85,13 @@
               ""))))
 
 (define (dsp-help command)
-  (let ((synopsis (command-synopsis command)))
-    (cat "doro " (car synopsis) "\n"
-         (fmt-columns (list "     " (fmt-join/suffix dsp (cdr synopsis) "\n")))
-         (apply-cat (command-description command)) "\n"
+  (let ((synopsis (command-synopsis command))
+        (description (command-description command)))
+    (cat "Usage: doro " (car synopsis) "\n"
+         (fmt-join/suffix dsp (cdr synopsis) "\n")
+         (fmt-indented "  " (car description))
+         (fmt-join dsp (cdr description) "\n")
+         "\n"
          "Options:\n"
          (dsp-listing "  " (append
                             (map (lambda (option)
@@ -96,7 +99,9 @@
                                  (command-options command))
                             '("--help"))
                       "  " (append (map option-description (command-options command))
-                                   '("Show this help and exit"))))))
+                                   '("Show this help and exit")))
+         "\n"
+         (apply-cat (command-footer command)))))
 
 ;; This could use a better name
 (define (dsp-listing indent left-items separator right-items)
@@ -123,8 +128,23 @@
   (reverse %commands))
 
 (define-record-type* command
-  (make-command name description synopsis options handler)
+  (make-command name description synopsis footer options handler)
   ())
+
+(define (clause-alist->command name clauses)
+  (define (list-clause name)
+    (cond ((assq name clauses) => cdr)
+          (else                   '())))
+  (make-command name
+                (list-clause 'description)
+                (list-clause 'synopsis)
+                (list-clause 'footer)
+                (list-clause 'options)
+                (cond ((assq 'handler clauses)
+                       => cadr)
+                      (else
+                       (assertion-violation 'clause-alist->command
+                                            "handler clause missing")))))
 
 (define (find-command name)
   (find (lambda (command)
@@ -133,17 +153,12 @@
 
 (define-syntax define-command
   (syntax-rules (description synopsis options handler)
-    ((_ name
-        (description description-item ...)
-        (synopsis synopsis-item ...)
-        (options option-item ...)
-        (handler proc))
+    ((_ name (clause-name clause-content ...) ...)
      (define-values ()
-       (set! %commands (cons (make-command 'name
-                                           (list description-item ...)
-                                           (list synopsis-item ...)
-                                           (list option-item ...)
-                                           proc)
+       (set! %commands (cons (clause-alist->command
+                              'name
+                              (list (list 'clause-name clause-content ...)
+                                    ...))
                              %commands))))))
 
 (define (arg-pusher name)
@@ -196,8 +211,8 @@
 ;;; Querying
 
 (define-command list
-  (description "List packages")
   (synopsis "list")
+  (description "List packages")
   (options (option '("all") #f #f #f
                    "Also show available packages"
                    (value-setter 'all? #t))
@@ -216,8 +231,8 @@
 
 (define-command show
   (description "Show package information")
-  (synopsis "show [--bundle BUNDLE]... PACKAGE...")
   (options bundle-option)
+  (synopsis "show [--bundle BUNDLE]... PACKAGE...")
   (handler
    (lambda (vals)
      (let ((packages (opt-ref/list vals 'operands))
@@ -227,9 +242,8 @@
          (fmt #t (dsp-db-item item)))))))
 
 (define-command show-bundle
-  (description "Show bundle contents")
   (synopsis "show-bundle BUNDLE...")
-  (options)
+  (description "Show bundle contents")
   (handler
    (lambda (vals)
      (loop ((for bundle-location (in-list (opt-ref/list vals 'operands))))
@@ -240,9 +254,8 @@
 ;;; Package installation and removal
 
 (define-command update
-  (description "Update repository information")
   (synopsis "update")
-  (options)
+  (description "Update repository information")
   (handler
    (lambda (vals)
      (let ((db (config->database (assq-ref vals 'config))))
@@ -279,8 +292,8 @@
                 (apply-actions db to-install '()))))))
 
 (define-command install
-  (description "Install new packages")
   (synopsis "install [--bundle BUNDLE]... PACKAGE...")
+  (description "Install new packages")
   (options bundle-option no-depends-option)
   (handler install-command))
 
@@ -507,23 +520,6 @@
            (fmt #t "Aborted.\n")
            (exit #f)))))
 
-(define (dsp-usage)
-  (cat "dorodango v0.0\n"
-       "Usage: doro COMMAND OPTION... ARG...\n"
-       "\n"
-       (wrap-lines
-        "doro is a simple command-line interface for downloading, "
-        "installing and inspecting packages containing R6RS libraries.")
-       "\n"
-       "Commands:\n"
-       (dsp-listing "  " (map command-name (command-list))
-                    "  " (map (lambda (command)
-                                 (apply-cat (command-description command)))
-                               (command-list)))
-       "\n\n"
-       "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
-       (pad/both 72 "This doro has Super Ball Powers.") "\n"))
-
 ;; This should be different on non-POSIX systems, I guess
 (define (default-config-location)
   (home-pathname '((".config" "dorodango") "config.scm")))
@@ -556,7 +552,7 @@
   (let ((operands (opt-ref/list vals 'operands))
         (prefix (assq-ref vals 'prefix)))
     (cond ((null? operands)
-           (fmt #t (dsp-usage)))
+           (fmt #t (dsp-help (find-command 'main))))
           ((find-command (string->symbol (car operands)))
            => (lambda (command)
                 (let ((config (if prefix
@@ -569,12 +565,24 @@
           (else
            (error 'main "unknown command" (car operands))))))
 
-(define main-command
-  (make-command '%main
-                '("Manage packages")
-                '("[OPTION...] COMMAND [ARGS...]")
-                (list config-option prefix-option)
-                main-handler))
+(define-command main
+  (synopsis "[OPTIONS] COMMAND [COMMAND-OPTIONS] [ARGS]\n")
+  (description
+   (wrap-lines
+    "doro is a command-line interface for downloading, "
+    "installing and inspecting packages containing R6RS libraries.")
+   ""
+   "Commands:"
+   ""
+   (dsp-listing "  " (map command-name (command-list))
+                "  " (map (lambda (command)
+                            (apply-cat (command-description command)))
+                          (command-list))))
+  (footer "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
+          (pad/both 72 "This doro has Super Ball Powers.")
+          "\n")
+  (options config-option prefix-option)
+  (handler main-handler))
 
 (define (make-message-log-handler name-drop)
   (define (titlecase s)
@@ -618,7 +626,7 @@
       (propagate? #f)
       (handlers (warning ,(make-message-log-handler 1))))))
   (parameterize ((current-ui (make-cmdline-ui)))
-    (process-command-line main-command
+    (process-command-line (find-command 'main)
                           (cdr argv)
                           `((operands)))))
 

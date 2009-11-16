@@ -39,7 +39,7 @@
 
 (define (test-bundle-contents bundle)
   (test-eqv #t (bundle? bundle))
-  (test-equal '(bar file-conflict-foo foo)
+  (test-equal '(bar file-conflict-foo foo unsatisfied-depends)
     (list-sort symbol<? (map package-name (bundle-packages bundle)))))
 
 (define-test-case bundle-tests open/directory ()

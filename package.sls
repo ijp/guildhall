@@ -67,6 +67,7 @@
           package-error-form
 
           version-constraint-satisified?
+          null-version-constraint?
           
           ;; these are mainly for the test suite
           form->dependency-choice
@@ -381,7 +382,7 @@
 
 (define (version-constraint->form constraint)
   (define (range-form lower-check lower upper-check upper)
-    (cond ((equal? lower upper)
+    (cond ((and lower upper (package-version=? lower upper))
            lower)
           ((not upper)
            `(,lower-check ,@lower))

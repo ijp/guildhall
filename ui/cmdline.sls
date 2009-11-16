@@ -54,7 +54,8 @@
           (dorodango solver)
           (dorodango solver choice)
           (prefix (dorodango solver universe)
-                  universe-))
+                  universe-)
+          (dorodango ui dsp-universe))
 
 
 ;;; Dependency management
@@ -103,40 +104,51 @@
           (solutions (make-xvector))
           (max-steps 5000))
       (define (prompt-choices index exhausted?)
-        (append '((#\y "Accept this solution"))
+        (append '((#\y "accept this solution"))
                 (if exhausted? '() '((#\n "Try to find another solution")))
-                '((#\q "Quit the operation"))
+                '((#\q "quit the operation"))
                 (if (< index (- (xvector-length solutions) 1))
-                    '((#\. "Select next solution"))
+                    '((#\. "select next solution"))
                     '())
                 (if (> index 0)
-                    '((#\, "Select previous solution"))
-                    '())))
+                    '((#\, "select previous solution"))
+                    '())
+                `((#\o
+                   ,(cat "toggle between the contents of the solution and"
+                         "an explanation of the solution")))))
       (loop continue ((with selected-index #f)
+                      (with show-story? #f)
                       (with exhausted? #f))
         (define (solution-prompt now-exhausted? index)
           (define (iterate new-index)
             (continue (=> selected-index new-index)
                       (=> exhausted? (or exhausted? now-exhausted?))))
           (let*-values (((solution) (xvector-ref solutions index))
-                        ((risky? message) (assess-solution solution
-                                                           initial-choices
-                                                           package-table)))
+                        ((risky? assess-message)
+                         (assess-solution solution
+                                          initial-choices
+                                          package-table)))
             (cond
               (risky?
                (case (prompt
                       (if now-exhausted?
                           (cat "No more solutions. Proceed with previous solution?")
-                          (cat message "Accept this solution?"))
+                          (cat assess-message "Accept this solution?"))
                       (prompt-choices index (or exhausted? now-exhausted?)))
                  ((#\y)       (solution->actions (xvector-ref solutions index)))
                  ((#\n)       (iterate #f))
                  ((#\q)       #f)
                  ((#\.)       (iterate (+ index 1)))
                  ((#\,)       (iterate (- index 1)))
+                 ((#\o)
+                  (let ((now-show-story? (not show-story?)))
+                    (message (if now-show-story?
+                                 (dsp-solution solution)
+                                 assess-message))
+                    (continue (=> show-story? now-show-story?))))
                  (else
                   (assert #f))))
-              ((y-or-n #t (cat message "Do you want to continue?"))
+              ((y-or-n #t (cat assess-message "Do you want to continue?"))
                (solution->actions solution))
               (else
                #f))))
@@ -211,6 +223,9 @@
     (disobedient (lambda (name) (cat name "{!}")))
     (already (lambda (name) (cat name "{=}")))))
 
+;; Calculate details on the action implied by changing (or not)
+;; `current-version' to `version', where the version chosen by the
+;; user is `chosen-version'.
 (define (compute-action current-version chosen-version version)
   (let ((to-install (and chosen-version
                          (universe-version-tag chosen-version)))
@@ -247,8 +262,15 @@
                               (action-compliance ordered)
                               (action-compliance disobedient))))
                     (else
-                     (action-compliance auto)))))))))
+                     (action-compliance auto))))))
+          (else
+           (make-package-action (action-type keep)
+                                (if chosen-version
+                                    (action-compliance disobedient)
+                                    (action-compliance ordered)))))))
 
+;; Returns two values: wether a solution is "risky" (when any action
+;; taken has compliance `disobedient') 
 (define (assess-solution solution initial-choices package-table)
   (define (package-name.action<? p1 p2)
     (symbol<? (car p1) (car p2)))
@@ -324,6 +346,8 @@
                              "unable to find requested package"
                              package-name desired-version))))
 
+;; Calculate the options for the solver, based on the the `to-install'
+;; (list of `package') and `to-remove' (list of package names).
 (define (solver-options package-table to-install to-remove)
   (define (accumulate choices version-scores items find-version)
     (loop ((for item (in-list items))
@@ -469,14 +493,6 @@
   (cat (if (database-item-installed? item) "i" "u")
        " " (dsp-db-item-identifier item)))
 
-(define (dsp-package-version version)
-  (cond ((null? version)
-         (dsp "()"))
-        (else
-         (fmt-join (lambda (part)
-                     (fmt-join dsp part "."))
-                   version
-                   "-"))))
 )
 
 ;; Local Variables:

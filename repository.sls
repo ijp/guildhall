@@ -44,7 +44,8 @@
           (ocelotl net uri)
           (ocelotl net http)
           (ocelotl net http-client)
-          (dorodango private utils))
+          (dorodango private utils)
+          (dorodango ui))
 
 (define-record-type repository
   (fields name ops))
@@ -103,10 +104,11 @@
        ((repository/fetch-bundle repo location cache-directory)
         (http-download (pathname-join cache-directory
                                       (location->pathname location))
-                            (merge-uris (make-uri #f #f location #f #f)
-                                        base-uri)))))))
+                       (merge-uris (make-uri #f #f location #f #f)
+                                   base-uri)))))))
 
 (define (http-download destination uri)
+  (message "Fetching " (uri->string uri))
   (call-with-http-response 'GET uri '() ""
     (lambda (response response-port)
       (case (http-response/status-type response)

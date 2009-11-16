@@ -19,6 +19,19 @@
 
 ;;; Commentary:
 
+;; A `package' object records all metadata about a package, which
+;; consists of:
+;;
+;; - The name and version
+;; - The properties, of which the dependencies receive special attention
+;; - The inventories (these are often not present, i.e. the empty (a)list)
+;;
+;; The `depends' property is available in parsed form via
+;; `package-dependencies'; this returns a list of lists of
+;; `dependency-choice's; of each group (list) of dependency choices in
+;; the outer list there must be at least one that is satisified
+;; for the package to be in good state.
+
 ;;; Code:
 #!r6rs
 

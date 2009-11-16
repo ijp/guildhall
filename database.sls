@@ -52,7 +52,9 @@
           database-file-conflict?
           database-file-conflict-package
           database-file-conflict-offender
-          database-file-conflict-pathname)
+          database-file-conflict-pathname
+
+          logger:dorodango.db)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map lset-adjoin)
           (srfi :2 and-let*)

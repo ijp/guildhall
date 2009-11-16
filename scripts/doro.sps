@@ -33,6 +33,7 @@
               string-prefix?
               string-suffix?
               string-trim-both)
+        (srfi :39 parameters)
         (srfi :67 compare-procedures)
         (spells alist)
         (spells match)
@@ -55,6 +56,7 @@
         (dorodango bundle)
         (only (dorodango solver) logger:dorodango.solver)
         (dorodango config)
+        (dorodango ui)
         (dorodango ui cmdline)
         (dorodango actions))
 
@@ -575,22 +577,30 @@
                 main-handler))
 
 (define (make-message-log-handler name-drop)
+  (define (titlecase s)
+    (if (= 0 (string-length s))
+        s
+        (string-append (string (char-titlecase (string-ref s 0)))
+                       (substring s 1 (string-length s)))))
   (lambda (entry)
-    (let ((port (current-output-port))
-          (obj (log-entry-object entry))
+    (let ((obj (log-entry-object entry))
           (level-name (log-entry-level-name entry))
-          (name (drop (log-entry-logger-name entry) name-drop)))
-      (fmt port
-           (if (memq level-name '(info))
-                    fmt-null
-                    (cat "doro: " level-name ": "))
-           (if (null? name)
-                    fmt-null
-                    (cat "[" (fmt-join dsp name ".") "] ")))
-      (if (procedure? obj)
-          (obj port)
-          (display obj port))
-      (fmt port "\n"))))
+          (name (drop (log-entry-logger-name entry) name-drop))
+          (default-level? (eq? (log-entry-level-name entry) 'info)))
+      (let ((prefix (cat (if default-level?
+                             fmt-null
+                             (cat "doro: " level-name ": "))
+                         (if (null? name)
+                             fmt-null
+                             (cat "[" (fmt-join dsp name ".") "] "))))
+            (output (call-with-string-output-port
+                      (lambda (port)
+                        (if (procedure? obj)
+                            (obj port)
+                            (display obj port))))))
+        (message prefix (if (and default-level? (null? name))
+                            (titlecase output)
+                            output))))))
 
 (define (main argv)
   (for-each
@@ -601,12 +611,16 @@
       properties)))
    `((,logger:dorodango
       (handlers (info ,(make-message-log-handler 1))))
+     (,logger:dorodango.db
+      (propagate? #f)
+      (handlers (info ,(make-message-log-handler 2))))
      (,logger:dorodango.solver
       (propagate? #f)
       (handlers (warning ,(make-message-log-handler 1))))))
-  (process-command-line main-command
-                        (cdr argv)
-                        `((operands))))
+  (parameterize ((current-ui (make-cmdline-ui)))
+    (process-command-line main-command
+                          (cdr argv)
+                          `((operands)))))
 
 (main (command-line))
 

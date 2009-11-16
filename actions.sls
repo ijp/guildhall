@@ -40,7 +40,7 @@
           (spells process)
           (only (spells sysutils) find-exec-path)
           (dorodango package)
-          (dorodango ui cmdline)
+          (dorodango ui)
           (dorodango private utils))
 
 (define (create-bundle bundle-filename

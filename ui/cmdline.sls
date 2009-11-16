@@ -25,8 +25,7 @@
 (library (dorodango ui cmdline)
   (export apply-actions
 
-          message
-          prompt
+          make-cmdline-ui
           
           dsp-package-version
           dsp-bundle
@@ -43,6 +42,7 @@
           (spells foof-loop)
           (spells xvector)
           (spells finite-types)
+          (spells operations)
           (spells tracing)
           (only (spells record-types) define-record-type*)
           (dorodango private utils)
@@ -55,7 +55,8 @@
           (dorodango solver choice)
           (prefix (dorodango solver universe)
                   universe-)
-          (dorodango ui dsp-universe))
+          (dorodango ui dsp-universe)
+          (dorodango ui))
 
 
 ;;; Dependency management
@@ -390,10 +391,10 @@
   (fmt #t (apply-cat formats))
   (flush-output-port (current-output-port)))
 
-(define (message . formats)
+(define (cmdline/message . formats)
   (fmt/stdout (cat (apply-cat formats) nl)))
 
-(define (y-or-n default message)
+(define (cmdline/y-or-n default message)
   (loop prompt-again ()
     (fmt/stdout (cat message " [" (if (eqv? default #t) "Y/n" "y/N") "] "))
     (let ((input (string-downcase (string-trim-both
@@ -407,7 +408,7 @@
              (fmt/stdout (cat "Please answer 'y' or 'n'.\n"))
              (prompt-again)))))))
 
-(define (prompt message choices)
+(define (cmdline/prompt message choices)
   (define (lookup-key keys input)
     (find (lambda (key)
             (cond ((char? key)
@@ -443,6 +444,15 @@
                    (cat "Invalid response. Please enter a valid choice"
                         " or '?' for help.\n"))
                   (prompt-again)))))))
+
+(define (make-cmdline-ui)
+  (object #f
+    ((ui/message ui . formats)
+     (apply cmdline/message formats))
+    ((ui/y-or-n ui default message)
+     (cmdline/y-or-n default message))
+    ((ui/prompt ui message choices)
+     (cmdline/prompt message choices))))
 
 
 ;;; Formatting combinators
@@ -496,5 +506,5 @@
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop)
+;; scheme-indent-styles: (foof-loop (object 1))
 ;; End:

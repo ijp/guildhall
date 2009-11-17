@@ -60,13 +60,7 @@
           inventory->tree
           tree->inventory
           
-          merge-inventories
-          
-          make-inventory-mapper
-          inventory-mapper?
-          inventory-mapper-map-leaf
-          inventory-mapper-map-container
-          apply-inventory-mapper)
+          merge-inventories)
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :8 receive)
@@ -332,64 +326,6 @@
                      (else
                       (inventory-leave
                        (inventory-insert (inventory-open to) from))))))))))
-
-
-(define-record-type inventory-mapper
-  (fields map-leaf map-container))
-
-(define (map-leaf mapper reverse-path)
-  ((inventory-mapper-map-leaf mapper) reverse-path))
-
-(define (map-container mapper reverse-path)
-  ((inventory-mapper-map-container mapper) reverse-path))
-
-(define (apply-inventory-mapper dest source mapper)
-  (loop continue
-      ((for from (in-inventory source (result source-result)))
-       (with to dest))
-    => (values to source-result)
-    (let ((name (inventory-name from)))
-      (define (move+iterate path)
-        #;
-        (log/categorizer 'debug (cat "moving item " (dsp-path/reverse r-path)
-                                     " to " (dsp-path path)))
-        (let ((dest (inventory-leave-n
-                     (inventory-update to path from)
-                     (length path))))
-          (receive (empty? cursor) (inventory-delete from)
-            (if empty?
-                (values dest (inventory-leave cursor))
-                (continue (=> from cursor)
-                          (=> to dest))))))
-      (define (handle-container path sub-mapper)
-        (if sub-mapper
-            (let ((to-descendant
-                   (if (null? path)
-                       to
-                       (inventory-update to
-                                         path
-                                         #t
-                                         (inventory-data from)))))
-              (receive (dest source)
-                       (apply-inventory-mapper to-descendant from sub-mapper)
-                (let ((dest (if (inventory-empty? dest)
-                                to
-                                (inventory-leave-n dest (length path))))
-                      (next (inventory-next source)))
-                  (if next
-                      (continue (=> from next)
-                                (=> to dest))
-                      (values dest (inventory-leave source))))))
-            (move+iterate path)))
-      (if (inventory-leaf? from)
-          (cond ((map-leaf mapper name)  => move+iterate)
-                (else
-                 (continue)))
-          (receive (path sub-mapper)
-                   (map-container mapper name)
-            (if path
-                (handle-container path sub-mapper)
-                (continue)))))))
 )
 
 ;; Local Variables:

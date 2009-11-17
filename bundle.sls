@@ -56,7 +56,8 @@
           (prefix (weinholt compression zip) zip:)
           (dorodango private utils)
           (dorodango package)
-          (dorodango inventory))
+          (dorodango inventory)
+          (dorodango inventory mapping))
 
 (define-record-type bundle
   (fields inventory packages ops))
@@ -314,13 +315,6 @@
 
 (define make-mapper make-inventory-mapper)
 
-(define null-mapper
-  (make-mapper (lambda (path)
-                 #f)
-               (lambda (path)
-                 (values #f #f))))
-
-
 ;; Predefined mappers
 
 (define (make-library-mapper pkgs-path)
@@ -354,118 +348,12 @@
                (lambda (filename)
                  (values (list filename) default-documentation-mapper))))
 
-(define star-mapper
-  (make-mapper (lambda (filename)
-                 (list filename))
-               (lambda (filename)
-                 (values (list filename) #f))))
-
-(define (mapper-with-destination mapper destination)
-  (let ((map-leaf (inventory-mapper-map-leaf mapper))
-        (map-container (inventory-mapper-map-container mapper)))
-    (make-mapper (lambda (filename)
-                   (and=> (map-leaf filename)
-                          (lambda (path)
-                            (append destination path))))
-                 (lambda (filename)
-                   (receive (path submapper) (map-container filename)
-                     (if path
-                         (values (append destination path) submapper)
-                         (values #f #f)))))))
-
-;; Mapping rule evaluation
-
-(define-record-type mapper-rule
-  (fields path submapper destination))
-
-(define-functional-fields mapper-rule path submapper destination)
-
-(define (evaluate-mapping-rules rules)
-  (mapper-rules->mapper (map evaluate-mapping-rule rules)))
-
-(define (mapper-rules->mapper rules)
-  (let ((catch-all (and=> (memp (lambda (rule)
-                                (null? (mapper-rule-path rule)))
-                                rules)
-                          car)))
-    (if catch-all
-        (mapper-with-destination (or (mapper-rule-submapper catch-all)
-                                     star-mapper)
-                                 (mapper-rule-destination catch-all))
-        (make-mapper
-         (lambda (filename)
-           (let ((rule
-                  (find (lambda (rule)
-                          (let ((path (mapper-rule-path rule)))
-                            (and (not (null? path))
-                                 (null? (cdr path))
-                                 (string=? filename (car path)))))
-                        rules)))
-             (and rule (mapper-rule-destination rule))))
-         (lambda (filename)
-           (let ((mapper
-                  (exists
-                   (lambda (rule)
-                     (let ((path (mapper-rule-path rule)))
-                       (cond ((null? path)
-                              (mapper-with-destination
-                               (or (mapper-rule-submapper rule) star-mapper)
-                               (mapper-rule-destination rule)))
-                             ((string=? filename (car path))
-                              (mapper-rules->mapper
-                               (list
-                                (mapper-rule-with-path rule (cdr path)))))
-                             (else
-                              #f))))
-                   rules)))
-             (if mapper
-                 (values '() mapper)
-                 (values #f #f))))))))
-
 (define lookup-mapper
   (let ((mapper-alist `((* . ,identity-inventory-mapper)
                         (sls . ,default-library-mapper))))
     (lambda (name)
       (or (assq-ref mapper-alist name)
           (error 'lookup-mapper "unknown mapper" name)))))
-
-;; Returns a path and a mapper
-(define (parse-mapping-expr expr)
-  (cond ((string? expr)
-         (values (list expr) #f))
-        ((symbol? expr)
-         (values '() (lookup-mapper expr)))
-        ((null? expr)
-         (values '() #f))
-        ((pair? expr)
-         (let next ((lst expr)
-                    (path '()))
-           (cond ((pair? lst)
-                  (next (cdr lst) (cons (car lst) path)))
-                 ((null? lst)
-                  (values (reverse path) #f))
-                 (else
-                  (values (reverse path) (lookup-mapper lst))))))
-        (else
-         (error 'parse-mapping-expr "invalid expression" expr))))
-
-(define (parse-path path)
-  (match path
-    (((? string? components) ___) components)
-    ((? string? path)             (list path))
-    (else                         (error 'parse-path "invalid path" path))))
-
-(define (evaluate-mapping-rule rule)
-  (define who 'evaluate-mapping-rule)
-  (match rule
-    ((source '-> dest)
-     (receive (path submapper)
-              (parse-mapping-expr source)
-       (make-mapper-rule path submapper (parse-path dest))))
-    (source
-     (receive (path submapper)
-              (parse-mapping-expr source)
-       (make-mapper-rule path submapper path)))))
 
 
 ;;; Categorization
@@ -476,7 +364,7 @@
 (define categories
   (list
    (make-category 'libraries default-library-mapper)
-   (make-category 'programs null-mapper) ; no sensible default here
+   (make-category 'programs null-inventory-mapper) ; no sensible default here
    (make-category 'documentation default-documentation-mapper)))
 
 (define (categorize-inventory properties inventory)
@@ -486,7 +374,10 @@
                   (with result '()))
     => (reverse (cons uncategorized result))
     (let ((mapper (cond ((assq-ref properties (category-name category))
-                         => evaluate-mapping-rules)
+                         => (lambda (rules)
+                              (evaluate-inventory-mapping-rules
+                               rules
+                               lookup-mapper)))
                         (else
                          (category-default-mapper category)))))
       (receive (category-inventory remainder)

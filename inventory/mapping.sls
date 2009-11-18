@@ -36,11 +36,15 @@
           identity-inventory-mapper
           null-inventory-mapper)
   (import (rnrs)
+          (only (srfi :1) filter-map)
+          (srfi :2 and-let*)
           (srfi :8 receive)
-          (only (spells misc) and=>)
+          (only (spells misc) and=> or-map)
           (spells record-types)
           (spells match)
           (spells foof-loop)
+          (spells irregex)
+          (spells tracing) ;debug
           (dorodango inventory))
 
 
@@ -60,9 +64,6 @@
     => (values to source-result)
     (let ((name (inventory-name from)))
       (define (move+iterate path)
-        #;
-        (log/categorizer 'debug (cat "moving item " (dsp-path/reverse r-path)
-                                     " to " (dsp-path path)))
         (let ((dest (inventory-leave-n
                      (inventory-update to path from)
                      (length path))))
@@ -105,19 +106,6 @@
 
 (define make-mapper make-inventory-mapper)
 
-(define (mapper-with-destination mapper destination)
-  (let ((map-leaf (inventory-mapper-map-leaf mapper))
-        (map-container (inventory-mapper-map-container mapper)))
-    (make-mapper (lambda (filename)
-                   (and=> (map-leaf filename)
-                          (lambda (path)
-                            (append destination path))))
-                 (lambda (filename)
-                   (receive (path submapper) (map-container filename)
-                     (if path
-                         (values (append destination path) submapper)
-                         (values #f #f)))))))
-
 (define null-inventory-mapper
   (make-mapper (lambda (path)
                  #f)
@@ -144,64 +132,91 @@
         rules)))
 
 (define (mapper-rules->mapper rules)
-  (let ((catch-all (and=> (memp (lambda (rule)
-                                (null? (mapper-rule-path rule)))
-                                rules)
-                          car)))
-    (if catch-all
-        (mapper-with-destination (or (mapper-rule-submapper catch-all)
-                                     identity-inventory-mapper)
-                                 (mapper-rule-destination catch-all))
-        (make-mapper
-         (lambda (filename)
-           (let ((rule
-                  (find (lambda (rule)
-                          (let ((path (mapper-rule-path rule)))
-                            (and (not (null? path))
-                                 (null? (cdr path))
-                                 (string=? filename (car path)))))
-                        rules)))
-             (and rule (mapper-rule-destination rule))))
-         (lambda (filename)
-           (let ((mapper
-                  (exists
-                   (lambda (rule)
-                     (let ((path (mapper-rule-path rule)))
-                       (cond ((null? path)
-                              (mapper-with-destination
-                               (or (mapper-rule-submapper rule)
-                                   identity-inventory-mapper)
-                               (mapper-rule-destination rule)))
-                             ((string=? filename (car path))
-                              (mapper-rules->mapper
-                               (list
-                                (mapper-rule-with-path rule (cdr path)))))
-                             (else
-                              #f))))
-                   rules)))
-             (if mapper
-                 (values '() mapper)
-                 (values #f #f))))))))
+  (make-mapper
+   (lambda (filename)
+     (loop continue ((for rule (in-list rules)))
+       => #f
+       (let ((path (mapper-rule-path rule)))
+         (cond ((null? path)
+                (let ((submapper (or (mapper-rule-submapper rule)
+                                     identity-inventory-mapper)))
+                  (cond ((map-leaf submapper filename)
+                         => (lambda (path)
+                              (append (mapper-rule-destination rule) path)))
+                        (else
+                         (continue)))))
+               ((and (null? (cdr path))
+                     (string=? filename (car path)))
+                (mapper-rule-destination rule))
+               (else
+                (continue))))))
+   (lambda (filename)
+     (loop continue ((for rule (in-list rules))
+                     (with matching-rules '()))
+       => (if (null? matching-rules)
+              (values #f #f)
+              (values '() (mapper-rules->mapper (reverse matching-rules))))
+       (let ((path (mapper-rule-path rule)))
+         (cond ((null? path)
+                (receive (new-path new-mapper)
+                         (map-container (or (mapper-rule-submapper rule)
+                                            identity-inventory-mapper)
+                                        filename)
+                  (if new-path
+                      (values (append (mapper-rule-destination rule) new-path)
+                              new-mapper)
+                      (continue))))
+               ((string=? filename (car path))
+                (if (and (null? (cdr path))
+                         (not (mapper-rule-submapper rule)))
+                    (values (mapper-rule-destination rule) #f)
+                    (continue
+                     (=> matching-rules
+                         (cons (mapper-rule-modify-path rule cdr) matching-rules)))))
+               (else
+                (continue))))))))
 
 ;; Returns a path and a mapper
 (define (parse-mapping-expr expr lookup-mapper)
-  (cond ((string? expr)
+  ;;++ use a dedicated condition type
+  (define (lose message . irritants)
+    (apply error 'parse-mapping-expr message irritants))
+  (define (lookup/lose symbol)
+    (or (lookup-mapper symbol)
+        (lose "unknown mapper" symbol)))
+  (define (maybe-parse-tail thing)
+    (cond ((symbol? thing)
+           (lookup/lose thing))
+          ((and (pair? thing)
+                 (eq? ': (car thing)))
+            (make-irregex-mapper (irregex thing)))
+          (else
+           #f)))
+  (cond ((string? expr) ;convinience case
          (values (list expr) #f))
-        ((symbol? expr)
-         (values '() (lookup-mapper expr)))
-        ((null? expr)
-         (values '() #f))
-        ((pair? expr)
+        (else
          (let next ((lst expr)
                     (path '()))
-           (cond ((pair? lst)
-                  (next (cdr lst) (cons (car lst) path)))
-                 ((null? lst)
+           (cond ((null? lst)
                   (values (reverse path) #f))
+                 ((maybe-parse-tail lst)
+                  => (lambda (mapper)
+                       (values (reverse path) mapper)))
+                 ((and (pair? lst)
+                       (string? (car lst)))
+                  (next (cdr lst) (cons (car lst) path)))
                  (else
-                  (values (reverse path) (lookup-mapper lst))))))
-        (else
-         (error 'parse-mapping-expr "invalid expression" expr))))
+                  (lose "invalid mapping expression" expr)))))))
+
+(define (make-irregex-mapper irx)
+  (make-mapper (lambda (filename)
+                 (and (irregex-match irx filename)
+                      (list filename)))
+               (lambda (filename)
+                 (values (if (irregex-match irx filename)
+                             (list filename)
+                             #f)
+                         #f))))
 
 (define (parse-path path)
   (match path
@@ -210,7 +225,6 @@
     (else                         (error 'parse-path "invalid path" path))))
 
 (define (evaluate-mapping-rule rule lookup-mapper)
-  (define who 'evaluate-mapping-rule)
   (match rule
     ((source '-> dest)
      (receive (path submapper)
@@ -221,3 +235,7 @@
               (parse-mapping-expr source lookup-mapper)
        (make-mapper-rule path submapper path)))))
 )
+
+;; Local Variables:
+;; scheme-indent-styles: (foof-loop (match 1))
+;; End:

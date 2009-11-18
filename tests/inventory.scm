@@ -23,10 +23,12 @@
 #!r6rs
 
 (import (rnrs)
+        (srfi :8 receive)
         (spells misc)
         (spells foof-loop)
         (spells testing)
-        (dorodango inventory))
+        (dorodango inventory)
+        (dorodango inventory mapping))
 
 ;;; Utilities
 
@@ -150,9 +152,103 @@
                          (->inventory '(b ("foo" "x" "y")))
                          raise-conflict))))
 
-(set-test-debug-errors?! #t)
+
+;;; Mapping
+
+(define-syntax test-mapper
+  (syntax-rules ()
+    ((_ expected-dest expected-src mapper dest-tree src-tree)
+     (receive (dest source)
+              (apply-inventory-mapper mapper
+                                      (->inventory dest-tree)
+                                      (->inventory src-tree))
+       (test-equal (list expected-dest expected-src)
+         (list (->tree dest) (->tree source)))))))
+
+(define-test-suite (inventory-tests.map inventory-tests)
+  "Mapping between inventories")
+
+(define-test-case inventory-tests.map null ()
+  (test-mapper '(a) '(b "foo" ("bar" "x" "y") "baz")
+    null-inventory-mapper '(a) '(b "foo" ("bar" "x" "y") "baz")))
+
+(define-test-case inventory-tests.map identity ()
+  (test-mapper
+      '(a "baz" ("bar" "x" "y") "foo")
+      '(b)
+    identity-inventory-mapper
+    '(a)
+    '(b "foo" ("bar" "x" "y") "baz")))
+
+(define-test-case inventory-tests.map rule-1 ()
+  (test-mapper
+      '(a ("new-bar" "x" "y") "new-foo")
+      '(b ("bar") "baz")
+    (evaluate-inventory-mapping-rules
+     '(("foo" -> "new-foo")
+       (("bar" "x") -> ("new-bar" "x"))
+       (("bar" "y") -> ("new-bar" "y")))
+     (lambda (name) #f))
+    '(a)
+    '(b "foo" ("bar" "y" "x") "baz")))
+
+(define-test-case inventory-tests.map rule-2 ()
+  (test-mapper
+      '(a "texinfo.sls"
+          ("texinfo" "x.sls"))
+      '(b ("scheme" "y.sls") "other")
+    (evaluate-inventory-mapping-rules
+     '((("scheme" "texinfo.sls") -> "texinfo.sls")
+       (("scheme" "texinfo") -> "texinfo"))
+     (lambda (name) #f))
+    '(a)
+    '(b ("scheme"
+         ("texinfo" "x.sls")
+         "texinfo.sls"
+         "y.sls")
+        "other")))
+
+(define-test-case inventory-tests.map rule-3 ()
+  (test-mapper
+      '(a ("bar" "x" "y"))
+      '(b)
+    (evaluate-inventory-mapping-rules
+     '(("foo" -> "bar"))
+     (lambda (name) #f))
+    '(a)
+    '(b ("foo" "x" "y"))))
+
+(define-test-case inventory-tests.map rule-star ()
+  (test-mapper
+      '(a ("star" ("foo" "y.sls" "z.sls") "x.sls") "top.sls")
+      '(b)
+    (evaluate-inventory-mapping-rules
+     '((* -> "star"))
+     (lambda (name)
+       (and (eq? name '*)
+            identity-inventory-mapper)))
+    '(a "top.sls")
+    '(b "x.sls" ("foo" "y.sls" "z.sls"))))
+
+(define-test-case inventory-tests.map regex-rule-1 ()
+  (test-mapper
+      '(a ("srfi"
+           "%3a1.sls"
+           ("private" "include.sls")
+           ("%3a1" "lists.sls" "srfi-1.scm")))
+      '(b "pkg-list.scm")
+    (evaluate-inventory-mapping-rules
+     '(((: "%3a" (+ digit) (* any)) -> "srfi")
+       ("private" -> ("srfi" "private")))
+     (lambda (name) #f))
+    '(a)
+    '(b "pkg-list.scm"
+        ("%3a1" "lists.sls" "srfi-1.scm")
+        ("private" "include.sls")
+        "%3a1.sls")))
+
 (run-test-suite inventory-tests)
 
 ;; Local Variables:
-;; scheme-indent-styles: (trc-testing foof-loop)
+;; scheme-indent-styles: (trc-testing foof-loop (test-mapper 2))
 ;; End:

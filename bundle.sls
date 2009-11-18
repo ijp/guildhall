@@ -387,9 +387,9 @@
 
 (define (apply-categorization inventory category mapper)
   (log/categorizer 'debug (cat "categorizing " (category-name category)))
-  (apply-inventory-mapper (make-inventory (category-name category) 'category)
-                          inventory
-                          mapper))
+  (apply-inventory-mapper mapper
+                          (make-inventory (category-name category) 'category)
+                          inventory))
 
 
 ;;; Utilities

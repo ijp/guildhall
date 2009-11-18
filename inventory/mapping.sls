@@ -53,7 +53,7 @@
 (define (map-container mapper reverse-path)
   ((inventory-mapper-map-container mapper) reverse-path))
 
-(define (apply-inventory-mapper dest source mapper)
+(define (apply-inventory-mapper mapper dest source)
   (loop continue
       ((for from (in-inventory source (result source-result)))
        (with to dest))
@@ -81,7 +81,7 @@
                                          #t
                                          (inventory-data from)))))
               (receive (dest source)
-                       (apply-inventory-mapper to-descendant from sub-mapper)
+                       (apply-inventory-mapper sub-mapper to-descendant from)
                 (let ((dest (if (inventory-empty? dest)
                                 to
                                 (inventory-leave-n dest (length path))))

@@ -330,7 +330,7 @@
                           (not (string=? filename (car pkgs-path))))
                       (or-map (lambda (suffix)
                                 (string-suffix? suffix filename))
-                              '(".sls" ".ss" ".scm"))
+                              '(".sls"))
                       (list filename)))
                (lambda (filename)
                  (values (list filename)
@@ -423,8 +423,8 @@
                  (values #f #f))))))))
 
 (define lookup-mapper
-  (let ((mapper-alist `((* . ,star-mapper)
-                        (libs . ,default-library-mapper))))
+  (let ((mapper-alist `((* . ,identity-inventory-mapper)
+                        (sls . ,default-library-mapper))))
     (lambda (name)
       (or (assq-ref mapper-alist name)
           (error 'lookup-mapper "unknown mapper" name)))))

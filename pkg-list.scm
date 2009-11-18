@@ -4,7 +4,7 @@
            (spells)
            (industria)
            (ocelotl))
-  (libraries (libs -> "dorodango"))
+  (libraries (sls -> "dorodango"))
   (programs (("scripts" "doro.sps") -> "doro")))
 
 ;; Local Variables:

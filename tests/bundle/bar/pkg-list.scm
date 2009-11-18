@@ -1,5 +1,5 @@
 (package (bar (0))
-  (libraries (libs -> "bar")))
+  (libraries (sls -> "bar")))
 
 ;; Local Variables:
 ;; scheme-indent-styles: ((package 1))

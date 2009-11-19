@@ -345,8 +345,11 @@
 
 (define default-documentation-mapper
   (make-mapper (lambda (filename)
-                 (and (member filename
-                              '("README" "COPYING" "AUTHORS" "ChangeLog"))
+                 (and (member filename '("README"
+                                         "COPYING"
+                                         "AUTHORS"
+                                         "NEWS"
+                                         "ChangeLog"))
                    (list filename)))
                (lambda (filename)
                  (values (list filename) default-documentation-mapper))))

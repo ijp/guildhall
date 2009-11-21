@@ -128,13 +128,18 @@
                         ((risky? assess-message)
                          (assess-solution solution
                                           initial-choices
-                                          package-table)))
+                                          package-table))
+                        ((solution-message)
+                         (if show-story?
+                             (dsp-solution solution)
+                             assess-message)))
             (cond
               (risky?
                (case (prompt
                       (if now-exhausted?
                           (cat "No more solutions. Proceed with previous solution?")
-                          (cat assess-message "Accept this solution?"))
+                          (cat solution-message
+                               "Accept this solution?"))
                       (prompt-choices index (or exhausted? now-exhausted?)))
                  ((#\y)       (solution->actions (xvector-ref solutions index)))
                  ((#\n)       (iterate #f))
@@ -142,14 +147,11 @@
                  ((#\.)       (iterate (+ index 1)))
                  ((#\,)       (iterate (- index 1)))
                  ((#\o)
-                  (let ((now-show-story? (not show-story?)))
-                    (message (if now-show-story?
-                                 (dsp-solution solution)
-                                 assess-message))
-                    (continue (=> show-story? now-show-story?))))
+                  (continue (=> selected-index index)
+                            (=> show-story? (not show-story?))))
                  (else
                   (assert #f))))
-              ((y-or-n #t (cat assess-message "Do you want to continue?"))
+              ((y-or-n #t (cat solution-message "Do you want to continue?"))
                (solution->actions solution))
               (else
                #f))))

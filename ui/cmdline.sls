@@ -25,14 +25,7 @@
 (library (dorodango ui cmdline)
   (export apply-actions
 
-          make-cmdline-ui
-          
-          dsp-package-version
-          dsp-bundle
-          
-          dsp-db-item
-          dsp-db-item/short
-          dsp-db-item-identifier)
+          make-cmdline-ui)
   (import (rnrs)
           (srfi :8 receive)
           (only (srfi :13) string-null? string-trim-both)
@@ -55,7 +48,7 @@
           (dorodango solver choice)
           (prefix (dorodango solver universe)
                   universe-)
-          (dorodango ui dsp-universe)
+          (dorodango ui formatters)
           (dorodango ui))
 
 
@@ -78,7 +71,11 @@
                            "The following packages have unsatisfiable dependencies"
                            " and must be removed before proceeding:")
                           (wrap-lines
-                           (fmt-join dsp-package-name irreparable " ")) "\n"
+                           (fmt-join (lambda (package)
+                                       (dsp (package-name package)))
+                                     irreparable
+                                     " "))
+                          "\n"
                           "Remove these packages and proceed?"))
              (for-each (lambda (package)
                          (database-remove! db package)))
@@ -455,55 +452,6 @@
      (cmdline/y-or-n default message))
     ((ui/prompt ui message choices)
      (cmdline/prompt message choices))))
-
-
-;;; Formatting combinators
-
-(define (dsp-package pkg)
-  (cat "Package: " (package-name pkg) "\n"
-       (cat "Version: " (dsp-package-version (package-version pkg)) "\n")
-       (cat "Depends: "
-            (fmt-join wrt (package-property pkg 'depends '()) ", ") "\n")
-       (fmt-join (lambda (category)
-                   (let ((inventory (package-category-inventory pkg category)))
-                     (if (inventory-empty? inventory)
-                         fmt-null
-                         (cat "Inventory: " category "\n"
-                              (dsp-inventory inventory)))))
-                 (package-categories pkg))))
-
-(define (dsp-db-item item)
-  (dsp-package (database-item-package item)))
-
-(define (dsp-inventory inventory)
-  (define (dsp-node node path)
-    (lambda (state)
-      (loop next ((for cursor (in-inventory node))
-                  (with st state))
-        => st
-        (let ((path (cons (inventory-name cursor) path)))
-          (if (inventory-leaf? cursor)
-              (next (=> st ((cat " " (fmt-join dsp (reverse path) "/") "\n")
-                            st)))
-              (next (=> st ((dsp-node cursor path) st))))))))
-  (dsp-node inventory '()))
-
-(define (dsp-bundle bundle)
-  (fmt-join dsp-package (bundle-packages bundle) "\n"))
-
-(define (dsp-db-item-identifier item)
-  (dsp-package-identifier (database-item-package item)))
-
-(define (dsp-package-identifier package)
-  (cat (dsp-package-name package)
-       " " (dsp-package-version (package-version package))))
-
-(define (dsp-package-name package)
-  (dsp (package-name package)))
-
-(define (dsp-db-item/short item)
-  (cat (if (database-item-installed? item) "i" "u")
-       " " (dsp-db-item-identifier item)))
 
 )
 

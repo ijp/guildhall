@@ -120,7 +120,7 @@
 (define open-database
   (case-lambda
     ((directory destination repositories cache-dir)
-     (log/db 'debug "opening database in " (dsp-pathname directory))
+     (log/db 'debug "opening database in " (dsp-pathname directory) " ...")
      (let* ((directory (pathname-as-directory directory))
             (status-directory (status-subdirectory directory destination)))
        (unless (file-exists? status-directory)
@@ -454,7 +454,7 @@
     (let* ((bundle (or (open-bundle! db desired-item)
                        (lose "could not obtain bundle for package" package)))
            (package (bundle-package-ref bundle package)))
-      (log/db 'info (cat "installing " (package-identifier package)))
+      (log/db 'info (cat "installing " (dsp-package-identifier package) " ..."))
       (update-file-table! (database-file-table db)
                           (database-destination db)
                           package)
@@ -534,7 +534,7 @@
   (and-let* ((item (find item-installed?
                          (hashtable-ref (database-pkg-table db) package-name '()))))
     (let ((package (item-package item)))
-      (log/db 'info (cat "removing " (package-identifier package)))
+      (log/db 'info (cat "removing " (dsp-package-identifier package) " ..."))
       (remove-package-files! db package)
       (delete-file (database-package-info-pathname db package))
       (database-update-item! db
@@ -599,8 +599,15 @@
     (loop ((for directory (in-vector (hashtable-keys maybe-remove))))
       (maybe-remove-directory directory #t))))
 
+
+;;; Logging
+
 (define logger:dorodango.db (make-logger logger:dorodango 'db))
 (define log/db (make-fmt-log logger:dorodango.db))
+
+(define (dsp-package-identifier package)
+  (cat (package-name package)
+       " (" (package-version->string (package-version package)) ")"))
 
 )
 

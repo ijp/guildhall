@@ -50,9 +50,9 @@
                                          (symbol->string (package-name package))
                                          name-suffix))
                         (package-version package)))
+         (renamed-filename (package->string renamed-package "_"))
          (tmp-dir (create-temp-directory '(())))
-         (dist-dir (pathname-join tmp-dir
-                                  `((,(package-identifier renamed-package))))))
+         (dist-dir (pathname-join tmp-dir `((,renamed-filename)))))
     ;; Create hardlink tree
     (loop ((for directory-basename
                 (in-list (cons (package-name package)
@@ -69,9 +69,8 @@
     (run-process #f
                  (force %tar-path)
                  "-C" tmp-dir
-                 "-cjf" (string-append (package-identifier renamed-package)
-                                       ".tar.bz2")
-                 (package-identifier renamed-package))
+                 "-cjf" (string-append renamed-filename ".tar.bz2")
+                 renamed-filename)
     (rm-rf tmp-dir)))
 
 (define %tar-path

@@ -50,13 +50,15 @@
           package-with-property
           package-properties
           
-          package-identifier
+          package->string
+          string->package
+          maybe-string->package
+          
           package-dependencies
           package-categories
           package-category-inventory
           package-inventories
           package-with-inventories
-          package-identifier->package
           
           package->form
           parse-package-form
@@ -88,12 +90,16 @@
           version-constraint->form)
   (import (rnrs)
           (only (srfi :1) every)
-          (only (srfi :13) string-join)
+          (srfi :2 and-let*)
+          (only (srfi :13)
+                string-contains
+                string-join
+                string-skip)
+          (srfi :14 char-sets)
           (srfi :67 compare-procedures)
           (only (spells string-utils) string-split)
           (spells record-types)
           (spells foof-loop)
-          (spells irregex)
           (spells alist)
           (spells misc)
           (spells match)
@@ -147,28 +153,33 @@
                       (package-properties package))
                 (package-inventories package)))
 
-(define (package-identifier package)
+(define (package->string package separator)
   (let ((version (package-version package))
         (name-string (symbol->string (package-name package))))
-    (if (null? version)
-        name-string
-        (string-append name-string "-" (package-version->string version)))))
+    (string-append name-string separator (package-version->string version))))
 
-(define package-identifier->package
-  (let* ((sub-version-sre '(: (* (+ numeric) ".") (+ numeric)))
-         (identifier-irx (irregex `(: (=> name  (*? any)) "-"
-                                      (=> version (* (: ,sub-version-sre "-"))
-                                          ,sub-version-sre)
-                                      eos))))
-    (lambda (identifier)
-      (cond ((irregex-search identifier-irx identifier)
-             => (lambda (match)
-                  (construct-package (string->symbol
-                                      (irregex-match-substring match 'name))
-                                     (string->package-version
-                                      (irregex-match-substring match 'version)))))
-            (else
-             #f)))))
+(define (string->package string separator)
+  (or (maybe-string->package string separator)
+      (assertion-violation 'string->package
+                           "cannot parse string"
+                           string separator)))
+
+(define (maybe-string->package string separator)
+  (define (maybe-substring->name s start end)
+    (if (string-skip s char-set:package-name start end)
+        #f
+        (string->symbol (substring s start end))))
+  (and-let* ((index (string-contains string separator))
+             (name (maybe-substring->name string 0 index))
+             (version (maybe-string->package-version
+                       (substring string
+                                  (+ index (string-length separator))
+                                  (string-length string)))))
+    (construct-package name version)))
+
+(define char-set:package-name
+  (char-set-union char-set:letter+digit
+                  (string->char-set "-")))
 
 (define (package-version-string package)
   (package-version->string (package-version package)))
@@ -240,16 +251,25 @@
                     version)
                "-"))
 
-(define (string->package-version s)
-  (map (lambda (part)
-         (map (lambda (item)
-                (let ((n (string->number item)))
-                  (unless (and n (integer? n))
-                    (assertion-violation 'string->package-version
-                                         "invalid version string" s))
-                  n))
-              (string-split part ".")))
-       (string-split s "-")))
+(define (string->package-version string)
+  (or (maybe-string->package-version string)
+      (assertion-violation 'string->package-version
+                           "invalid version string" string)))
+
+(define (map/and proc list)
+  (loop continue ((for item (in-list list))
+                  (let result-item (proc item))
+                  (for result (listing result-item)))
+      => result
+      (and result-item (continue))))
+
+(define (maybe-string->package-version string)
+  (map/and (lambda (part)
+             (map/and (lambda (item)
+                        (and (not (string-skip item char-set:digit))
+                             (string->number item)))
+                      (string-split part ".")))
+           (string-split string "-")))
 
 (define (package-version? thing)
   (list-of sub-version? thing))

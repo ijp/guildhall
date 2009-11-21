@@ -90,7 +90,7 @@
            (let-values (zip-directory toplevel-pathname)
              (match packages
                ((package)
-                (values directory (package-identifier package)))
+                (values directory (package->string package "_")))
                (_
                 (let ((directory-part (pathname-directory directory)))
                   (cond ((null? directory-part)

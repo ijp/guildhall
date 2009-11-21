@@ -58,6 +58,7 @@
         (dorodango config)
         (dorodango ui)
         (dorodango ui cmdline)
+        (dorodango ui formatters)
         (dorodango actions))
 
 
@@ -193,9 +194,10 @@
   (value-setter 'no-depends? #t))
 
 (define (parse-package-string s)
-  (cond ((package-identifier->package s)
+  (cond ((maybe-string->package s "=")
          => (lambda (package)
-              (values (package-name package) (package-version package))))
+              (values (package-name package)
+                      (package-version package))))
         (else
          (values (string->symbol s) #f))))
 
@@ -249,6 +251,15 @@
      (loop ((for bundle-location (in-list (opt-ref/list vals 'operands))))
        (let ((bundle (open-input-bundle bundle-location)))
          (fmt #t (dsp-bundle bundle)))))))
+
+(define (dsp-db-item item)
+  (dsp-package (database-item-package item)))
+
+(define (dsp-db-item/short item)
+  (let ((package  (database-item-package item)))
+    (cat (if (database-item-installed? item) "i" "u")
+         " " (package-name package)
+         " " (dsp-package-version (package-version package)))))
 
 
 ;;; Package installation and removal
@@ -350,7 +361,7 @@
              (die "`config destination' requires 2 or 3 arguments"))
            (let ((destination (config-item-destination
                                (config-default-item config)))
-                 (package (package-identifier->package (list-ref operands 1)))
+                 (package (string->package (list-ref operands 1) "="))
                  (category (string->symbol (list-ref operands 2)))
                  (pathname (if (> n-operands 3)
                                (->pathname (list-ref operands 3))
@@ -390,7 +401,7 @@
       (()
        (die "all package lists have been empty."))
       ((package)
-       (package-identifier package))
+       (package->string package "_"))
       (_
        (die "multiple packages found and no bundle name specified."))))
   (let ((directories (match (opt-ref/list vals 'operands)

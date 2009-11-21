@@ -160,7 +160,7 @@
                                package
                                (make-pathname #f '() #f))))
     (cat "#!/bin/sh\n"
-         "# Shell wrapper for package " (package-identifier package) "\n"
+         "# Shell wrapper for package " (package->string package " ") "\n"
          "\n"
          "export R6RS_LIBRARY_PATH=\"" (->namestring library-path) ;++quote
          "${R6RS_LIBRARY_PATH:+:$R6RS_LIBRARY_PATH}\"\n"

@@ -45,7 +45,7 @@
                             (choice-set->list (solution-choices solution)))))
     (fmt-join/suffix (lambda (choice)
                        (cat (dsp-dependency (choice-dep choice))
-                            " -> " (dsp-choice choice)))
+                            "\n -> " (dsp-choice choice)))
                      choices
                      "\n")))
 

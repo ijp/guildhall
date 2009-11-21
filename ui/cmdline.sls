@@ -279,9 +279,10 @@
       (loop ((for type (in-vector action-types))
              (for action-heading (in-vector action-type-headings))
              (let action-list (vector-ref action-lists (action-type-index type)))
-             (for message-parts (listing (cat action-heading "\n"
-                                              (dsp-action-list action-list))
-                                         (if (not (null? action-list))))))
+             (for message-parts
+                  (listing (cat action-heading "\n"
+                                (fmt-indented "  " (dsp-action-list action-list)))
+                           (if (not (null? action-list))))))
         => (fmt-join dsp message-parts "\n")))
     (loop continue
         ((for choice (in-choice-set (choice-set-union

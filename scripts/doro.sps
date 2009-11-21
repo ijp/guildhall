@@ -256,10 +256,13 @@
   (dsp-package (database-item-package item)))
 
 (define (dsp-db-item/short item)
-  (let ((package  (database-item-package item)))
-    (cat (if (database-item-installed? item) "i" "u")
-         " " (package-name package)
-         " " (dsp-package-version (package-version package)))))
+  (lambda (st)
+    (let ((package  (database-item-package item))
+          (width (fmt-width st)))
+      ((cat (if (database-item-installed? item) "i" "u")
+            " " (pad (min 32 (div width 3)) (package-name package))
+            " " (dsp-package-version (package-version package)))
+       st))))
 
 
 ;;; Package installation and removal

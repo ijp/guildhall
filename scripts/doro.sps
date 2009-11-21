@@ -536,6 +536,10 @@
        " (default: `" (dsp-pathname (default-config-location)) "')")
   (arg-setter 'config))
 
+(define-option no-config-option ("no-config") #f
+  "Do not read a configuration file"
+  (value-setter 'config #f))
+
 (define-option prefix-option ("prefix") prefix
   "Set installation prefix and database location"
   (arg-setter 'prefix))
@@ -547,21 +551,28 @@
                       (die (cat "specified config file `"
                                 (dsp-pathname pathname) "' does not exist.")))
                      (else (default-config)))))
-      (call-with-input-file (->namestring (or pathname (default-config-location)))
+      (call-with-input-file (->namestring pathname)
         read-config)))
+  (define (config-with-prefix config prefix)
+    (if prefix
+        (make-prefix-config prefix (config-item-repositories
+                                    (config-default-item config)))
+        config))
   (let ((operands (opt-ref/list vals 'operands))
         (prefix (assq-ref vals 'prefix)))
     (cond ((null? operands)
            (fmt #t (dsp-help (find-command 'main))))
           ((find-command (string->symbol (car operands)))
            => (lambda (command)
-                (let ((config (if prefix
-                                  (make-prefix-config prefix '())
-                                  (read-config/default (assq-ref vals 'config)))))
-                  (process-command-line command
-                                        (cdr operands)
-                                        `((operands . ())
-                                          (config . ,config))))))
+                (let ((config (cond ((assq-ref vals 'config)
+                                     => read-config/default)
+                                    (else
+                                     (default-config)))))
+                  (process-command-line
+                   command
+                   (cdr operands)
+                   `((operands . ())
+                     (config . ,(config-with-prefix config prefix)))))))
           (else
            (error 'main "unknown command" (car operands))))))
 
@@ -581,7 +592,7 @@
   (footer "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
           (pad/both 72 "This doro has Super Ball Powers.")
           "\n")
-  (options config-option prefix-option)
+  (options no-config-option config-option prefix-option)
   (handler main-handler))
 
 (define (make-message-log-handler name-drop)
@@ -628,7 +639,8 @@
   (parameterize ((current-ui (make-cmdline-ui)))
     (process-command-line (find-command 'main)
                           (cdr argv)
-                          `((operands)))))
+                          `((operands)
+                            (config . ,(default-config-location))))))
 
 (main (command-line))
 

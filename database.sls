@@ -170,7 +170,11 @@
     (hashtable-clear! pkg-table)))
 
 (define (load-available-files! db repositories)
-  (loop ((for repository (in-list repositories)))
+  ;; The repositories are loaded in reverse order, as later-added
+  ;; sources will be preferred over earlier-added ones, and we want
+  ;; the resulting source order correspond to the order of the
+  ;; repositories.
+  (loop ((for repository (in-list (reverse repositories))))
     (let ((pathname (repository-available-pathname
                      repository
                      (database-cache-directory db repository))))
@@ -282,23 +286,23 @@
   (loop ((for pathname (in-list pathnames)))
     (database-add-bundle! db pathname)))
 
+;; Later-added sources override earlier ones
 (define (add-package-source! db package source)
   (define (update-items items)
     (loop continue ((for item (in-list items))
                     (with result '() (cons item result))
                     (with found? #f))
-      => (reverse
-          (if found?
-              result
-              (cons (make-item package 'available (list source) #f)
-                    result)))
+      => (if found?
+             (reverse result)
+             (cons (make-item package 'available (list source) #f)
+                   (reverse result)))
       (if (package=? package (item-package item))
           (continue
            (=> found? #t)
            (=> result
                (cons (item-modify-sources
                       item
-                      (lambda (sources) (append sources (list source))))
+                      (lambda (sources) (append (list source) sources)))
                      result)))
           (continue))))
   (hashtable-update! (database-pkg-table db)
@@ -307,7 +311,7 @@
                      '()))
 
 (define (database-update! db)
-  (loop ((for repository (in-list (database-repositories db))))
+  (loop ((for repository (in-list (reverse (database-repositories db)))))
     (cond ((repository-fetch-available
             repository
             (database-cache-directory db repository))

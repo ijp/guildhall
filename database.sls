@@ -22,6 +22,11 @@
 ;; The package database keeps track of installed and available
 ;; packages, and allows to install and remove individual packages. It
 ;; does *not* deal with package dependencies.
+;;
+;; The main data structure is the package table, which maps package
+;; names (symbols) to lists of database items. Those lists are always
+;; kept sorted such that the newest item (according to the package
+;; version) comes first.
 
 ;;; Code:
 #!r6rs
@@ -60,6 +65,7 @@
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
+          (srfi :67 compare-procedures)
           (spells foof-loop)
           (spells nested-foof-loop)
           (spells pathname)
@@ -291,20 +297,28 @@
   (define (update-items items)
     (loop continue ((for item (in-list items))
                     (with result '() (cons item result))
-                    (with found? #f))
-      => (if found?
+                    (with inserted? #f))
+      => (if inserted?
              (reverse result)
              (cons (make-item package 'available (list source) #f)
                    (reverse result)))
-      (if (package=? package (item-package item))
-          (continue
-           (=> found? #t)
-           (=> result
-               (cons (item-modify-sources
-                      item
-                      (lambda (sources) (append (list source) sources)))
-                     result)))
-          (continue))))
+      (if3 (package-version-compare (package-version package)
+                                    (package-version (item-package item)))
+           (continue)
+           (continue (=> inserted? #t)
+                     (=> result
+                         (cons (item-modify-sources
+                                item
+                                (lambda (sources)
+                                  (append (list source) sources)))
+                               result)))
+           (continue (=> inserted? #t)
+                     (=> result
+                         (if inserted?
+                             (cons item result)
+                             (cons* item
+                                    (make-item package 'available (list source) #f)
+                                    result)))))))
   (hashtable-update! (database-pkg-table db)
                      (package-name package)
                      update-items
@@ -355,7 +369,7 @@
           ((symbol? version)
            (case version
              ((installed) (find item-installed? items))
-             ((newest)    (find-newest-item items))
+             ((newest)    (and (pair? items) (car items)))
              (else        (lose "invalid version" version))))
           (else
            (find-item-by-version items version)))))
@@ -368,17 +382,6 @@
           (package-version=? version (package-version
                                       (item-package item))))
         items))
-
-(define (find-newest-item items)
-  (loop ((for item (in-list items))
-         (with newest
-               #f
-               (if (or (not newest)
-                       (package-version>? (package-version (item-package item))
-                                          (package-version (item-package newest))))
-                   item
-                   newest)))
-    => newest))
 
 (define-syntax in-database
   (syntax-rules (sorted-by)

@@ -68,12 +68,13 @@ case "$1" in
         ;;
     *)
         echo "* Installing dorodango"
-        $runner scripts/doro.sps "$@" install --bundle ..  dorodango
+        $runner scripts/doro.sps "$@" --no-config install --bundle ..  dorodango
 
         # Use awk instead of "tail -n 1" here to avoid causing a "broken pipe" error
-        bindir=`$runner scripts/doro.sps "$@" config destination none-0.0 programs | awk 'NR == 1 { print }'`
-        echo "* Installing launcher for $IMPL as \`$bindir/r6rs-script'"
-        cp "scripts/r6rs-script.$IMPL" "$bindir/r6rs-script"
+
+        bindir=`$runner scripts/doro.sps "$@" --no-config config destination none=0.0 programs | awk 'NR == 1 { print }'`
+        echo "* Installing launcher for $IMPL as \`${bindir}r6rs-script'"
+        cp "scripts/r6rs-script.$IMPL" "${bindir}r6rs-script"
         chmod +x "$bindir/r6rs-script"
         ;;
 esac

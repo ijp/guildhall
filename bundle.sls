@@ -33,6 +33,7 @@
           bundle-packages
           bundle-package-ref
 
+          bundle-inventory
           in-bundle-inventory)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map last)

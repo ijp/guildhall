@@ -132,49 +132,67 @@
         rules)))
 
 (define (mapper-rules->mapper rules)
-  (make-mapper
-   (lambda (filename)
-     (loop continue ((for rule (in-list rules)))
-       => #f
-       (let ((path (mapper-rule-path rule)))
-         (cond ((null? path)
-                (let ((submapper (or (mapper-rule-submapper rule)
-                                     identity-inventory-mapper)))
-                  (cond ((map-leaf submapper filename)
-                         => (lambda (path)
-                              (append (mapper-rule-destination rule) path)))
-                        (else
-                         (continue)))))
-               ((and (null? (cdr path))
-                     (string=? filename (car path)))
-                (mapper-rule-destination rule))
-               (else
-                (continue))))))
-   (lambda (filename)
-     (loop continue ((for rule (in-list rules))
-                     (with matching-rules '()))
-       => (if (null? matching-rules)
-              (values #f #f)
-              (values '() (mapper-rules->mapper (reverse matching-rules))))
-       (let ((path (mapper-rule-path rule)))
-         (cond ((null? path)
-                (receive (new-path new-mapper)
-                         (map-container (or (mapper-rule-submapper rule)
-                                            identity-inventory-mapper)
-                                        filename)
-                  (if new-path
-                      (values (append (mapper-rule-destination rule) new-path)
-                              new-mapper)
-                      (continue))))
-               ((string=? filename (car path))
-                (if (and (null? (cdr path))
-                         (not (mapper-rule-submapper rule)))
-                    (values (mapper-rule-destination rule) #f)
-                    (continue
-                     (=> matching-rules
-                         (cons (mapper-rule-modify-path rule cdr) matching-rules)))))
-               (else
-                (continue))))))))
+  (make-mapper (mapper-rules->map-leaf rules)
+               (mapper-rules->map-container rules)))
+
+
+(define (mapper-rules->map-leaf rules)
+  (lambda (filename)
+    (loop continue ((for rule (in-list rules)))
+      => #f
+      (let ((path (mapper-rule-path rule)))
+        (cond ((null? path)
+               (let ((submapper (or (mapper-rule-submapper rule)
+                                    identity-inventory-mapper)))
+                 (cond ((map-leaf submapper filename)
+                        => (lambda (path)
+                             (append (mapper-rule-destination rule) path)))
+                       (else
+                        (continue)))))
+              ((and (null? (cdr path))
+                    (string=? filename (car path)))
+               (mapper-rule-destination rule))
+              (else
+               (continue)))))))
+
+(define (mapper-rules->map-container rules)
+  (lambda (filename)
+    (loop continue ((for rule (in-list rules))
+                    (with matching-rules '()))
+      => (if (null? matching-rules)
+             (values #f #f)
+             (values '() (mapper-rules->mapper (reverse matching-rules))))
+      (let ((path (mapper-rule-path rule)))
+        (cond ((null? path)
+               (receive (new-path new-mapper)
+                        (map-container (or (mapper-rule-submapper rule)
+                                           identity-inventory-mapper)
+                                       filename)
+                 (cond ((not new-path)
+                        (continue))
+                       ((not new-mapper)
+                        (values (append (mapper-rule-destination rule)
+                                        new-path)
+                                #f))
+                       (else
+                        (continue
+                         (=> matching-rules
+                             (cons (make-mapper-rule
+                                    '()
+                                    new-mapper
+                                    (append (mapper-rule-destination rule)
+                                            new-path))
+                                   matching-rules)))))))
+              ((string=? filename (car path))
+               (if (and (null? (cdr path))
+                        (not (mapper-rule-submapper rule)))
+                   (values (mapper-rule-destination rule) #f)
+                   (continue
+                    (=> matching-rules
+                        (cons (mapper-rule-modify-path rule cdr)
+                              matching-rules)))))
+              (else
+               (continue)))))))
 
 ;; Returns a path and a mapper
 (define (parse-mapping-expr expr lookup-mapper)

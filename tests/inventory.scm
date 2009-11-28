@@ -220,15 +220,49 @@
 
 (define-test-case inventory-tests.map rule-star ()
   (test-mapper
-      '(a ("star" ("foo" "y.sls" "z.sls") "x.sls") "top.sls")
-      '(b)
+      '(a ("star"
+           ("foo" "z.sls" "y.sls")
+           ("net" ("private" "foo.sls"))
+           "x.sls")
+          "top.sls")
+      '(b ("private") ("foo"))
     (evaluate-inventory-mapping-rules
-     '((* -> "star"))
-     (lambda (name)
-       (and (eq? name '*)
-            identity-inventory-mapper)))
+     '((* -> "star")
+       (("private" "net") -> ("star" "net" "private")))
+     (letrec ((star-mapper (make-inventory-mapper
+                            (lambda (filename)
+                              (list filename))
+                            (lambda (filename)
+                              (values (list filename) star-mapper)))))
+       (lambda (name)
+         (and (eq? name '*) star-mapper))))
     '(a "top.sls")
-    '(b "x.sls" ("foo" "y.sls" "z.sls"))))
+    '(b "x.sls"
+        ("private" ("net" "foo.sls"))
+        ("foo" "y.sls" "z.sls"))))
+
+(define-test-case inventory-tests.map rule-foo ()
+  (test-mapper
+      '(a ("bar" "foo.sls")
+          ("the-x" "a.sls"))
+      '(b ("bar" ("c" "d")) "other" ("baz" "y"))
+    (evaluate-inventory-mapping-rules
+     '((foo -> ())
+       ("x" -> "the-x"))
+     (letrec ((foo-mapper
+               (make-inventory-mapper
+                (lambda (filename)
+                  (and (string=? filename "bar.sls")
+                       '("foo.sls")))
+                (lambda (filename)
+                  (values (list filename) foo-mapper)))))
+       (lambda (name)
+         (and (eq? name 'foo) foo-mapper))))
+    '(a)
+    '(b ("x" "a.sls")
+        ("bar" "bar.sls" ("c" "d"))
+        "other"
+        ("baz" "y"))))
 
 (define-test-case inventory-tests.map regex-rule-1 ()
   (test-mapper

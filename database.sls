@@ -474,7 +474,8 @@
                           (not (eq? item desired-item))))
                    items)
            => (lambda (item)
-                (lose "another version of package already installed" item)))
+                (database-remove! db (package-name package))
+                (do-install! desired-item)))
           ((not (item-installed? desired-item))
            (do-install! desired-item)))))
 

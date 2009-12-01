@@ -70,15 +70,17 @@
                      (cat (wrap-lines
                            "The following packages have unsatisfiable dependencies"
                            " and must be removed before proceeding:")
-                          (wrap-lines
-                           (fmt-join (lambda (package)
-                                       (dsp (package-name package)))
-                                     irreparable
-                                     " "))
-                          "\n"
+                          (fmt-indented
+                           "  "
+                           (wrap-lines
+                            (fmt-join (lambda (package)
+                                        (dsp (package-name package)))
+                                      irreparable
+                                      " ")))
                           "Remove these packages and proceed?"))
              (for-each (lambda (package)
-                         (database-remove! db package)))
+                         (database-remove! db (package-name package)))
+                       irreparable)
              (apply-actions db to-install to-remove))
             (else
              #f)))))

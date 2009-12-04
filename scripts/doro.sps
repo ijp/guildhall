@@ -102,7 +102,7 @@
                                  (command-options command))
                             '("--help"))
                       "  " (append (map option-description (command-options command))
-                                   '("Show this help and exit")))
+                                   '("show this help and exit")))
          "\n"
          (apply-cat (command-footer command)))))
 
@@ -188,15 +188,15 @@
                processor)))))
 
 (define-option bundle-option ("bundle" #\b) bundle
-  "Additionally consider packages from BUNDLE"
+  "additionally consider packages from BUNDLE"
   (arg-pusher 'bundles))
 
 (define-option no-depends-option ("no-depends") #f
-  "Ignore dependencies"
+  "ignore dependencies"
   (value-setter 'no-depends? #t))
 
 (define-option force-option ("force") #f
-  "Force operation"
+  "force operation"
   (value-setter 'force? #t))
 
 (define (parse-package-string s)
@@ -220,9 +220,9 @@
 
 (define-command list
   (synopsis "list")
-  (description "List packages")
+  (description "List packages.")
   (options (option '("all") #f #f #f
-                   "Also show available packages"
+                   "also show available packages"
                    (value-setter 'all? #t))
            bundle-option)
   (handler
@@ -238,7 +238,7 @@
                      (fmt #t (dsp-db-item/short installed) "\n")))))))))
 
 (define-command show
-  (description "Show package information")
+  (description "Show package information.")
   (options bundle-option)
   (synopsis "show [--bundle BUNDLE]... PACKAGE...")
   (handler
@@ -251,7 +251,7 @@
 
 (define-command show-bundle
   (synopsis "show-bundle BUNDLE...")
-  (description "Show bundle contents")
+  (description "Show bundle contents.")
   (handler
    (lambda (vals)
      (loop ((for bundle-location (in-list (opt-ref/list vals 'operands))))
@@ -313,7 +313,7 @@
 
 (define-command install
   (synopsis "install [--bundle BUNDLE]... PACKAGE...")
-  (description "Install new packages")
+  (description "Install new packages.")
   (options bundle-option no-depends-option)
   (handler install-command))
 
@@ -331,7 +331,7 @@
              => (apply-actions db '() to-remove))))))
 
 (define-command remove
-  (description "Remove packages")
+  (description "Remove packages.")
   (synopsis "remove PACKAGE...")
   (options no-depends-option)
   (handler remove-command))
@@ -350,7 +350,7 @@
       => (apply-actions db to-upgrade '()))))
 
 (define-command upgrade
-  (description "Upgrade packages")
+  (description "Upgrade packages.")
   (synopsis "upgrade [PACKAGE...]")
   (options)
   (handler upgrade-command))
@@ -384,7 +384,7 @@
   (dsp "Sorry, not yet implemented."))
 
 (define-command config
-  (description "Show configuration")
+  (description "Show configuration.")
   (synopsis "config destination PACKAGE CATEGORY [FILENAME]")
   (options)
   (handler config-command))
@@ -451,16 +451,16 @@
           (read port)))
 
 (define-command create-bundle
-  (description "Create a bundle")
+  (description "Create a bundle.")
   (synopsis "create-bundle [DIRECTORY...]")
   (options (option '("output" #\o) 'filename #f #f
-                   "Bundle filename"
+                   "bundle filename"
                    (arg-setter 'output-filename))
            (option '("directory" #\d) 'directory #f #f
-                   "Output directory when using implicit filename"
+                   "output directory when using implicit filename"
                    (arg-setter 'output-directory))
            (option '("append-version") 'version #f #f
-                   "Append VERSION to each package's version"
+                   "append VERSION to each package's version"
                    (arg-setter 'append-version)))
   (handler create-bundle-command))
 
@@ -477,7 +477,7 @@
                              (list (pathname->location bundle-pathname))))))))))
 
 (define-command scan-bundles
-  (description "Scan one or more directories for bundles")
+  (description "Scan one or more directories for bundles.")
   (synopsis "scan-bundles DIRECTORY...")
   (options)
   (handler scan-bundles-command))
@@ -512,7 +512,7 @@
        (die "`symlink' expects two arguments")))))
 
 (define-command symlink-bundle
-  (description "Create symbolink links for a bundle")
+  (description "Create symbolink links for a bundle.")
   (synopsis "symlink-bundle BUNDLE-DIRECTORY TARGET-DIRECTORY")
   (options force-option
            (option '("deep") #f #f #f
@@ -561,16 +561,16 @@
                    (config-item-cache-directory default))))
 
 (define-option config-option ("config" #\c) config
-  (cat "Use configuration file CONFIG"
+  (cat "use configuration file CONFIG"
        " (default: `" (dsp-pathname (default-config-location)) "')")
   (arg-setter 'config))
 
 (define-option no-config-option ("no-config") #f
-  "Do not read a configuration file"
+  "do not read a configuration file"
   (value-setter 'config #f))
 
 (define-option prefix-option ("prefix") prefix
-  "Set installation prefix and database location"
+  "set installation prefix and database location"
   (arg-setter 'prefix))
 
 (define (main-handler vals)
@@ -674,5 +674,5 @@
 (main (command-line))
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop (match 1) (make-finite-type-vector 3))
+;; scheme-indent-styles: (foof-loop (match 1))
 ;; End:

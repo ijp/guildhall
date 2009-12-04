@@ -32,7 +32,9 @@
               string-null?
               string-prefix?
               string-suffix?
+              string-tokenize
               string-trim-both)
+        (srfi :14)
         (srfi :39 parameters)
         (srfi :67 compare-procedures)
         (spells alist)
@@ -519,15 +521,38 @@
 
 
 (define (symlink-command vals)
+  (define (string->package-list string)
+    (map string->symbol (string-tokenize
+                         string
+                         (char-set-complement (string->char-set " ,")))))
   (let ((force? (assq-ref vals 'force?))
-        (deep? (assq-ref vals 'deep?)))
+        (deep? (assq-ref vals 'deep?))
+        (include (and=> (assq-ref vals 'include) string->package-list))
+        (exclude (and=> (assq-ref vals 'exclude) string->package-list)))
     (match (opt-ref/list vals 'operands)
       ((bundle-directory target-directory)
-       (symlink-bundle bundle-directory target-directory force? deep?))
+       (symlink-bundle bundle-directory
+                       target-directory
+                       force?
+                       deep?
+                       (lambda (package)
+                         (cond ((and include exclude)
+                                (and (memq (package-name package) include)
+                                     (not (memq (package-name package) exclude))))
+                               (include
+                                (memq (package-name package) include))
+                               (exclude
+                                (not (memq (package-name package) exclude)))
+                               (else
+                                #t)))))
       (_
        (die "`symlink' expects two arguments")))))
 
-(define (symlink-bundle bundle-directory target-directory force? deep?)
+(define (symlink-bundle bundle-directory
+                        target-directory
+                        force?
+                        deep?
+                        consider-package?)
   (define (assert-directory pathname)
     (unless (file-directory? pathname)
       (die (cat "not a directory: " (->namestring pathname)))))
@@ -551,12 +576,14 @@
                                       bundle-directory
                                       target-directory
                                       deep?)
-        (let ((libraries (package-category-inventory package 'libraries)))
-          (receive (target source)
-                   (apply-inventory-mapper identity-inventory-mapper
-                                           target-inventory
-                                           libraries)
-            (continue (=> target-inventory target))))))))
+        (if (consider-package? package)
+            (let ((libraries (package-category-inventory package 'libraries)))
+              (receive (target source)
+                       (apply-inventory-mapper identity-inventory-mapper
+                                               target-inventory
+                                               libraries)
+                (continue (=> target-inventory target))))
+            (continue))))))
 
 (define (create-inventory-symlinks inventory
                                    original
@@ -564,7 +591,7 @@
                                    target-directory
                                    deep?)
   (define (symlink inventory-pathname real-pathname)
-    (let ((inventory-pathname (merge-pathnames inventory-pathname                            
+    (let ((inventory-pathname (merge-pathnames inventory-pathname
                                                target-directory))
           (real-pathname (merge-pathnames real-pathname
                                           base-directory)))
@@ -655,7 +682,13 @@
   (options force-option
            (option '("deep") #f #f #f
                    "symlink only files"
-                   (value-setter 'deep? #t)))
+                   (value-setter 'deep? #t))
+           (option '("include") 'packages #f #f
+                   "only consider PACKAGES (space or comma separated list)"
+                   (arg-setter 'include))
+           (option '("exclude") 'packages #f #f
+                   "don't consider PACKAGES (space or comma separated list)"
+                   (arg-setter 'exclude)))
   (handler symlink-command))
 
 

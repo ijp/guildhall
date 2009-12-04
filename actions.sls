@@ -1,4 +1,4 @@
-;;; commands.sls --- Dorodango commands
+;;; actions.sls --- Dorodango actions
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -19,27 +19,39 @@
 
 ;;; Commentary:
 
+;; This library provides some of the primitives upon which the
+;; command-line UI is built.
+
 ;;; Code:
 #!r6rs
 
 (library (dorodango actions)
   (export create-bundle
           list-files
-          zip-files)
+          zip-files
+          find-pkg-list-files
+          scan-bundles-in-directory
+          symlink-bundle)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) last)
+          (srfi :2 and-let*)
+          (srfi :8 receive)
           (only (srfi :13) string-suffix?)
           (only (spells misc) unspecific)
           (spells lazy)
           (spells alist)
           (spells match)
           (spells foof-loop)
+          (spells nested-foof-loop)
           (spells fmt)
           (spells pathname)
           (spells filesys)
           (spells process)
           (only (spells sysutils) find-exec-path)
+          (dorodango inventory)
+          (dorodango inventory mapping)
           (dorodango package)
+          (dorodango bundle)
           (dorodango ui)
           (dorodango private utils))
 
@@ -180,6 +192,171 @@
                    (else
                     (builtin-lister)))
              (continue)))))))
+
+(define (find-pkg-list-files directories)
+  (define (subdirectory-pkg-list-files directory)
+    (loop ((for filename (in-directory directory))
+           (let pathname
+               (pathname-join directory
+                              (make-pathname #f (list filename) "pkg-list.scm")))
+           (for result (listing pathname (if (file-exists? pathname)))))
+      => result))
+  (loop ((for directory (in-list directories))
+         (for result
+              (appending-reverse
+               (let ((pathname (pathname-with-file directory "pkg-list.scm")))
+                 (if (file-exists? pathname)
+                     (list pathname)
+                     (subdirectory-pkg-list-files directory))))))
+    => (reverse result)))
+
+(define (scan-bundles-in-directory directory base)
+  (let ((directory (pathname-as-directory directory))
+        (base (pathname-as-directory base)))
+    (define (scan-entry filename)
+      (let ((pathname (pathname-with-file directory filename)))
+        (cond ((file-directory? pathname)
+               (scan-bundles-in-directory pathname
+                                          (pathname-with-file base filename)))
+              ((and (file-regular? pathname)
+                    (string-suffix? ".zip" (file-namestring pathname)))
+               (call-with-input-bundle pathname (bundle-options no-inventory)
+                 (lambda (bundle)
+                   (collect-list ((for package (in-list (bundle-packages bundle))))
+                     (cons package (pathname-with-file base filename)))))))))
+    (loop ((for filename (in-directory directory))
+           (for result (appending-reverse (scan-entry filename))))
+      => result)))
+
+
+;;; Bundle symlinking
+
+(define (symlink-bundle bundle-directory
+                        target-directory
+                        force?
+                        deep?
+                        consider-package?)
+  (define (assert-directory pathname)
+    (unless (file-directory? pathname)
+      (die (cat "not a directory: " (->namestring pathname)))))
+  (let ((target-directory (merge-pathnames (pathname-as-directory target-directory)
+                                           (working-directory)))
+        (bundle-directory (merge-pathnames (pathname-as-directory bundle-directory)
+                                           (working-directory))))
+    (assert-directory bundle-directory)
+    (when (file-exists? target-directory)
+      (if force?
+          (assert-directory target-directory)
+          (die (cat "target directory `" (->namestring target-directory)
+                    "' must not exist."))))
+    (let ((bundle (open-input-bundle bundle-directory)))
+      (loop continue ((for package (in-list (bundle-packages bundle)))
+                      (with target-inventory (make-inventory 'target #f)))
+        => (create-inventory-symlinks target-inventory
+                                      (bundle-inventory bundle)
+                                      bundle-directory
+                                      target-directory
+                                      deep?)
+        (if (consider-package? package)
+            (let ((libraries (package-category-inventory package 'libraries)))
+              (receive (target source)
+                       (apply-inventory-mapper identity-inventory-mapper
+                                               target-inventory
+                                               libraries)
+                (continue (=> target-inventory target))))
+            (continue))))))
+
+(define (create-inventory-symlinks inventory
+                                   original
+                                   base-directory
+                                   target-directory
+                                   deep?)
+  (define (symlink inventory-pathname real-pathname)
+    (let ((inventory-pathname (merge-pathnames inventory-pathname
+                                               target-directory))
+          (real-pathname (merge-pathnames real-pathname
+                                          base-directory)))
+      (create-directory* (pathname-with-file inventory-pathname #f))
+      (create-symbolic-link (enough-pathname real-pathname
+                                             inventory-pathname)
+                            inventory-pathname)))
+  (define (symlink-tree-shallowly inventory directory)
+    (loop ((for cursor (in-inventory inventory)))
+      (if (inventory-leaf? cursor)
+          (symlink (pathname-with-file directory (inventory-name cursor))
+                   (inventory-data cursor))
+          (let* ((prefix (inventory-prefix cursor))
+                 (original-cursor (and prefix (inventory-ref original prefix)))
+                 (pathname (pathname-with-file directory
+                                               (inventory-name cursor))))
+            (if (and original-cursor
+                     (inventory-container? original-cursor)
+                     (isomorphic-inventories? cursor original-cursor))
+                (symlink pathname (make-pathname #f prefix #f))
+                (symlink-tree-shallowly cursor
+                                        (pathname-as-directory pathname)))))))
+  (define (inventory-prefix inventory)
+    (loop continue ((for cursor (in-inventory inventory))
+                    (with result #f))
+      => result
+      (define (iterate prefix)
+        (and-let* ((prefix (if result
+                               (common-prefix string=? prefix result)
+                               prefix)))
+          (continue (=> result prefix))))
+      (cond ((inventory-data cursor)
+             => (lambda (pathname)
+                  (iterate (pathname-directory pathname))))
+            (else
+             (and-let* ((prefix (inventory-prefix cursor)))
+               (iterate prefix))))))
+  (cond (deep?
+         (loop ((with cursor
+                      (inventory-cursor inventory)
+                      (inventory-cursor-next cursor))
+                (while cursor))
+           (symlink (make-pathname
+                     #f
+                     (reverse (inventory-cursor-path cursor))
+                     (inventory-cursor-name cursor))
+                    (inventory-cursor-data cursor))))
+        (else
+         (symlink-tree-shallowly inventory (make-pathname #f '() #f)))))
+
+(define (common-prefix =? xs ys)
+  (let loop ((xs xs) (ys ys) (prefix '()))
+    (cond ((or (null? xs) (null? ys))
+           (reverse prefix))
+          ((=? (car xs) (car ys))
+           (loop (cdr xs) (cdr ys) (cons (car xs) prefix)))
+          (else
+           (reverse prefix)))))
+
+(define (inventory->sorted-alist inventory)
+  (list-sort (lambda (item-1 item-2)
+               (string<? (car item-1) (car item-2)))
+             (collect-list-reverse (for cursor (in-inventory inventory))
+               (cons (inventory-name cursor)
+                     (if (inventory-leaf? cursor)
+                         (inventory-data cursor)
+                         cursor)))))
+
+(define (isomorphic-inventories? inventory-1 inventory-2)
+  (loop continue
+      ((for name.data-1 lst-1 (in-list (inventory->sorted-alist inventory-1)))
+       (for name.data-2 lst-2 (in-list (inventory->sorted-alist inventory-2))))
+    => (and (null? lst-1) (null? lst-2))
+    (let ((data-1 (cdr name.data-1))
+          (data-2 (cdr name.data-2)))
+      (and (string=? (car name.data-1) (car name.data-2))
+           (cond ((and (pathname? data-1) (pathname? data-2))
+                  (pathname=? data-1 data-2))
+                 ((and (inventory? data-1) (inventory? data-2))
+                  (isomorphic-inventories? data-1 data-2))
+                 (else
+                  #f))
+           (continue)))))
+
 
 )
 

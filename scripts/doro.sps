@@ -34,7 +34,7 @@
               string-suffix?
               string-tokenize
               string-trim-both)
-        (srfi :14)
+        (srfi :14 char-sets)
         (srfi :39 parameters)
         (srfi :67 compare-procedures)
         (spells alist)
@@ -52,8 +52,6 @@
         (spells tracing)
         (only (spells record-types) define-record-type*)
         (dorodango private utils)
-        (dorodango inventory)
-        (dorodango inventory mapping)
         (dorodango package)
         (dorodango database)
         (dorodango destination)
@@ -452,23 +450,6 @@
           (lambda (seed) (read port))
           (read port)))
 
-(define (find-pkg-list-files directories)
-  (define (subdirectory-pkg-list-files directory)
-    (loop ((for filename (in-directory directory))
-           (let pathname
-               (pathname-join directory
-                              (make-pathname #f (list filename) "pkg-list.scm")))
-           (for result (listing pathname (if (file-exists? pathname)))))
-      => result))
-  (loop ((for directory (in-list directories))
-         (for result
-              (appending-reverse
-               (let ((pathname (pathname-with-file directory "pkg-list.scm")))
-                 (if (file-exists? pathname)
-                     (list pathname)
-                     (subdirectory-pkg-list-files directory))))))
-    => (reverse result)))
-
 (define-command create-bundle
   (description "Create a bundle")
   (synopsis "create-bundle [DIRECTORY...]")
@@ -482,24 +463,6 @@
                    "Append VERSION to each package's version"
                    (arg-setter 'append-version)))
   (handler create-bundle-command))
-
-(define (scan-bundles-in-directory directory base)
-  (let ((directory (pathname-as-directory directory))
-        (base (pathname-as-directory base)))
-    (define (scan-entry filename)
-      (let ((pathname (pathname-with-file directory filename)))
-        (cond ((file-directory? pathname)
-               (scan-bundles-in-directory pathname
-                                          (pathname-with-file base filename)))
-              ((and (file-regular? pathname)
-                    (string-suffix? ".zip" (file-namestring pathname)))
-               (call-with-input-bundle pathname (bundle-options no-inventory)
-                 (lambda (bundle)
-                   (collect-list ((for package (in-list (bundle-packages bundle))))
-                     (cons package (pathname-with-file base filename)))))))))
-    (loop ((for filename (in-directory directory))
-           (for result (appending-reverse (scan-entry filename))))
-      => result)))
 
 (define (scan-bundles-command vals)
   (iterate! (for directory (in-list (opt-ref/list vals 'operands)))
@@ -547,134 +510,6 @@
                                 #t)))))
       (_
        (die "`symlink' expects two arguments")))))
-
-(define (symlink-bundle bundle-directory
-                        target-directory
-                        force?
-                        deep?
-                        consider-package?)
-  (define (assert-directory pathname)
-    (unless (file-directory? pathname)
-      (die (cat "not a directory: " (->namestring pathname)))))
-  (define (merge-conflict cursor from)
-    (assertion-violation 'symlink-bundle "cannot merge inventories"))
-  (let ((target-directory (merge-pathnames (pathname-as-directory target-directory)
-                                           (working-directory)))
-        (bundle-directory (merge-pathnames (pathname-as-directory bundle-directory)
-                                           (working-directory))))
-    (assert-directory bundle-directory)
-    (when (file-exists? target-directory)
-      (if force?
-          (assert-directory target-directory)
-          (die (cat "target directory `" (->namestring target-directory)
-                    "' must not exist."))))
-    (let ((bundle (open-input-bundle bundle-directory)))
-      (loop continue ((for package (in-list (bundle-packages bundle)))
-                      (with target-inventory (make-inventory 'target #f)))
-        => (create-inventory-symlinks target-inventory
-                                      (bundle-inventory bundle)
-                                      bundle-directory
-                                      target-directory
-                                      deep?)
-        (if (consider-package? package)
-            (let ((libraries (package-category-inventory package 'libraries)))
-              (receive (target source)
-                       (apply-inventory-mapper identity-inventory-mapper
-                                               target-inventory
-                                               libraries)
-                (continue (=> target-inventory target))))
-            (continue))))))
-
-(define (create-inventory-symlinks inventory
-                                   original
-                                   base-directory
-                                   target-directory
-                                   deep?)
-  (define (symlink inventory-pathname real-pathname)
-    (let ((inventory-pathname (merge-pathnames inventory-pathname
-                                               target-directory))
-          (real-pathname (merge-pathnames real-pathname
-                                          base-directory)))
-      (create-directory* (pathname-with-file inventory-pathname #f))
-      (create-symbolic-link (enough-pathname real-pathname
-                                             inventory-pathname)
-                            inventory-pathname)))
-  (define (symlink-tree-shallowly inventory directory)
-    (loop ((for cursor (in-inventory inventory)))
-      (if (inventory-leaf? cursor)
-          (symlink (pathname-with-file directory (inventory-name cursor))
-                   (inventory-data cursor))
-          (let* ((prefix (inventory-prefix cursor))
-                 (original-cursor (and prefix (inventory-ref original prefix)))
-                 (pathname (pathname-with-file directory
-                                               (inventory-name cursor))))
-            (if (and original-cursor
-                     (inventory-container? original-cursor)
-                     (isomorphic-inventories? cursor original-cursor))
-                (symlink pathname (make-pathname #f prefix #f))
-                (symlink-tree-shallowly cursor
-                                        (pathname-as-directory pathname)))))))
-  (define (inventory-prefix inventory)
-    (loop continue ((for cursor (in-inventory inventory))
-                    (with result #f))
-      => result
-      (define (iterate prefix)
-        (and-let* ((prefix (if result
-                               (common-prefix string=? prefix result)
-                               prefix)))
-          (continue (=> result prefix))))
-      (cond ((inventory-data cursor)
-             => (lambda (pathname)
-                  (iterate (pathname-directory pathname))))
-            (else
-             (and-let* ((prefix (inventory-prefix cursor)))
-               (iterate prefix))))))
-  (cond (deep?
-         (loop ((with cursor
-                      (inventory-cursor inventory)
-                      (inventory-cursor-next cursor))
-                (while cursor))
-           (symlink (make-pathname
-                     #f
-                     (reverse (inventory-cursor-path cursor))
-                     (inventory-cursor-name cursor))
-                    (inventory-cursor-data cursor))))
-        (else
-         (symlink-tree-shallowly inventory (make-pathname #f '() #f)))))
-
-(define (common-prefix =? xs ys)
-  (let loop ((xs xs) (ys ys) (prefix '()))
-    (cond ((or (null? xs) (null? ys))
-           (reverse prefix))
-          ((=? (car xs) (car ys))
-           (loop (cdr xs) (cdr ys) (cons (car xs) prefix)))
-          (else
-           (reverse prefix)))))
-
-(define (inventory->sorted-alist inventory)
-  (list-sort (lambda (item-1 item-2)
-               (string<? (car item-1) (car item-2)))
-             (collect-list-reverse (for cursor (in-inventory inventory))
-               (cons (inventory-name cursor)
-                     (if (inventory-leaf? cursor)
-                         (inventory-data cursor)
-                         cursor)))))
-
-(define (isomorphic-inventories? inventory-1 inventory-2)
-  (loop continue
-      ((for name.data-1 lst-1 (in-list (inventory->sorted-alist inventory-1)))
-       (for name.data-2 lst-2 (in-list (inventory->sorted-alist inventory-2))))
-    => (and (null? lst-1) (null? lst-2))
-    (let ((data-1 (cdr name.data-1))
-          (data-2 (cdr name.data-2)))
-      (and (string=? (car name.data-1) (car name.data-2))
-           (cond ((and (pathname? data-1) (pathname? data-2))
-                  (pathname=? data-1 data-2))
-                 ((and (inventory? data-1) (inventory? data-2))
-                  (isomorphic-inventories? data-1 data-2))
-                 (else
-                  #f))
-           (continue)))))
 
 (define-command symlink-bundle
   (description "Create symbolink links for a bundle")

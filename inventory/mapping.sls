@@ -36,7 +36,7 @@
           identity-inventory-mapper
           null-inventory-mapper)
   (import (rnrs)
-          (only (srfi :1) filter-map)
+          (only (srfi :1) append-map filter-map)
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (spells misc) and=> or-map)
@@ -127,9 +127,9 @@
 
 (define (evaluate-inventory-mapping-rules rules lookup-mapper)
   (mapper-rules->mapper
-   (map (lambda (rule)
-          (evaluate-mapping-rule rule lookup-mapper))
-        rules)))
+   (append-map (lambda (rule)
+                 (evaluate-mapping-rule rule lookup-mapper))
+               rules)))
 
 (define (mapper-rules->mapper rules)
   (make-mapper (mapper-rules->map-leaf rules)
@@ -247,11 +247,16 @@
     ((source '-> dest)
      (receive (path submapper)
               (parse-mapping-expr source lookup-mapper)
-       (make-mapper-rule path submapper (parse-path dest))))
+       (list (make-mapper-rule path submapper (parse-path dest)))))
+    (('exclude . expressions)
+     (map (lambda (expr)
+            (receive (path submapper) (parse-mapping-expr expr lookup-mapper)
+              (make-mapper-rule path submapper #f)))
+          expressions))
     (source
      (receive (path submapper)
               (parse-mapping-expr source lookup-mapper)
-       (make-mapper-rule path submapper path)))))
+       (list (make-mapper-rule path submapper path))))))
 )
 
 ;; Local Variables:

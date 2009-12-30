@@ -281,6 +281,23 @@
         ("private" "include.sls")
         "%3a1.sls")))
 
+(define-test-case inventory-tests.map exclude ()
+  (test-mapper
+    '(a "awk.sls")
+    '(b ("spells"
+         ("foreign" "compat.ypsilon.sls")
+         "foreign.sls"))
+    (evaluate-inventory-mapping-rules
+     '((exclude ("spells" "foreign")
+                ("spells" "foreign.sls"))
+       (("spells" "awk.sls") -> "awk.sls"))
+     (lambda (name) #f))
+    '(a)
+    '(b ("spells"
+         "awk.sls"
+         ("foreign" "compat.ypsilon.sls")
+         "foreign.sls"))))
+
 (run-test-suite inventory-tests)
 
 ;; Local Variables:

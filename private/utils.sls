@@ -1,6 +1,6 @@
 ;;; utils.sls --- Utilities for dorodango
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -155,16 +155,6 @@
   (pathname-join (pathname-as-directory
                   (get-environment-variable "HOME"))
                  pathname))
-
-;;; wt-tree utilities
-
-(define not-found (list 'not-found))
-
-(define (wt-tree/update tree key updater default)
-  (let ((datum (wt-tree/lookup tree key not-found)))
-    (wt-tree/add tree key (updater (if (eq? datum not-found)
-                                       default
-                                       datum)))))
 
 
 ;;; xvector utilities

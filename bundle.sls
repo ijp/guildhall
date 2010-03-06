@@ -1,6 +1,6 @@
 ;;; bundles.sls --- Dealing with bundle files
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -284,7 +284,7 @@
                     (bundle-entry->packages ops entry path pkg-inventory)))))))
     => (reverse result)))
 
-(define (bundle-entry->packages ops entry path pkg-inventory)
+(define (bundle-entry->packages ops entry path inventory)
   (define who 'bundle-entry->packages)
   (let ((entry-port
          (open-string-input-port
@@ -293,16 +293,23 @@
              (lambda (port)
                (bundle/extract-entry ops entry port)))))))
     (loop continue ((for form (in-port entry-port read))
-                    (with result '()))
+                    (with result '())
+                    (with inventory inventory))
       => (reverse result)
-      (cond ((parse-package-form
-              form
-              (lambda (properties)
-                (if pkg-inventory
-                    (categorize-inventory properties pkg-inventory)
-                    '())))
+      (cond ((parse-package-form form)             
              => (lambda (package)
-                  (continue (=> result (cons package result)))))
+                  (receive (inventories uncategorized)
+                           (if inventory
+                               (categorize-inventory
+                                (package-properties package)
+                                inventory)
+                               (values #f (make-inventory 'uncategorized #f)))
+                    (continue
+                     (=> result (cons (package-with-inventories
+                                       package
+                                       inventories)
+                                      result))
+                     (=> inventory uncategorized)))))
             (else
              (warn who
                    "unrecognized form in package description file"
@@ -370,10 +377,9 @@
 
 (define (categorize-inventory properties inventory)
   (loop continue ((for category (in-list categories))
-                  (with uncategorized
-                        (inventory-relabel inventory 'uncategorized 'category))
+                  (with uncategorized inventory)
                   (with result '()))
-    => (reverse (cons uncategorized result))
+    => (values (reverse result) uncategorized)
     (let ((mapper (cond ((assq-ref properties (category-name category))
                          => (lambda (rules)
                               (evaluate-inventory-mapping-rules

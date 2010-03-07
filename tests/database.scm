@@ -1,6 +1,6 @@
 ;;; database.scm --- Tests for the package database
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -45,7 +45,8 @@
 (define (open-test-database)
   (let ((db (open-database (pathname-join test-dir "db")
                            (make-fhs-destination 'test dest-dir)
-                           '())))
+                           '()
+                           'test-scheme)))
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 
@@ -81,6 +82,8 @@
 (define package:foo (make-package 'foo '((0))))
 (define package:bar (make-package 'bar '((0))))
 (define package:file-conflict-foo (make-package 'file-conflict-foo '((0))))
+(define r6rs-script-wrappers
+  '("r6rs-script" "r6rs-script.ikarus" "r6rs-script.ypsilon"))
 
 (define-test-case db-tests install+remove
   ((setup
@@ -104,7 +107,7 @@
         (inventory->tree
          (package-category-inventory (database-item-package item)
                                      'libraries)))
-      (test-equal '(("bin" "foo")
+      (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
                     ("share"
                      ("libr6rs-foo" ("programs" "foo"))
                      ("r6rs-libs" ("foo" "a.sls"))))
@@ -112,7 +115,7 @@
 
       ;; Test removal
       (database-remove! db 'foo)
-      (test-equal '()
+      (test-equal `(("bin" ,@r6rs-script-wrappers))
         (directory->tree dest-dir))
       (close-database db))
     (let* ((db (open-test-database))
@@ -157,7 +160,7 @@
       (database-install! db package:foo)
       (database-install! db package:bar)
       (close-database db))
-    (test-equal '(("bin" "foo")
+    (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
                   ("share"
                    ("libr6rs-foo" ("programs" "foo"))
                    ("r6rs-libs"
@@ -167,7 +170,7 @@
     (let ((db (open-test-database)))
       (database-remove! db 'bar)
       (close-database db))
-    (test-equal '(("bin" "foo")
+    (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
                   ("share"
                    ("libr6rs-foo" ("programs" "foo"))
                    ("r6rs-libs" ("foo" "a.sls"))))

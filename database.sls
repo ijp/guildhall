@@ -1,6 +1,6 @@
 ;;; database.sls --- Dorodango package database
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -125,11 +125,12 @@
 
 (define open-database
   (case-lambda
-    ((directory destination repositories cache-dir)
+    ((directory destination repositories implementation cache-dir)
      (log/db 'debug "opening database in " (dsp-pathname directory) " ...")
      (let* ((directory (pathname-as-directory directory))
             (status-directory (status-subdirectory directory destination)))
        (unless (file-exists? status-directory)
+         (setup-destination destination `((implementation . ,implementation)))
          (create-directory* status-directory))
        (receive (pkg-table file-table)
                 (load-installed-packages status-directory destination)
@@ -143,11 +144,12 @@
              (create-directory* (database-cache-directory db repository)))
            (load-available-files! db repositories)
            db))))
-    ((directory destination repositories)
+    ((directory destination repositories implementation)
      (let ((directory (pathname-as-directory directory)))
        (open-database directory
                       destination
                       repositories
+                      implementation
                       (pathname-join directory '(("cache"))))))))
 
 (define (database-cache-directory db repo)

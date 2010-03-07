@@ -1,6 +1,6 @@
 ;;; destination.sls --- 
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -35,6 +35,7 @@
           destination-name
           destination-prefix
           destination-pathnames
+          setup-destination
           destination-install
           destination-without-categories
           
@@ -47,24 +48,30 @@
           (only (spells misc) and=>)
           (spells lazy)
           (spells fmt)
+          (spells record-types)
           (spells pathname)
           (spells filesys)
           (spells logging)
+          (spells foof-loop)
           (spells process) ;just needed for `chmod'
           (spells sysutils) ;ditto
           (dorodango private utils)
           (dorodango package))
 
-(define-record-type destination
-  (fields name prefix categories))
+(define-record-type* destination
+  (make-destination name prefix setup categories)
+  ())
+
+(define-functional-fields destination
+  name prefix setup categories)
 
 (define (destination-without-categories destination categories)
-  (make-destination
-   (destination-name destination)
-   (destination-prefix destination)
-   (remp (lambda (entry)
-           (memq (car entry) categories))
-         (destination-categories destination))))
+  (destination-modify-categories
+   destination
+   (lambda (categories)
+     (remp (lambda (entry)
+             (memq (car entry) categories))
+           categories))))
 
 (define (destination-pathnames destination package category pathname)
   (cond ((assq-ref (destination-categories destination) category)
@@ -72,6 +79,9 @@
               (handler-map handler package pathname)))
         (else
          '())))
+
+(define (setup-destination destination options)
+  ((destination-setup destination) destination options))
 
 (define (destination-install destination package category pathname extractor)
   (and=> (assq-ref (destination-categories destination) category)
@@ -95,6 +105,7 @@
     (make-destination
      name
      prefix
+     fhs-destination-setup
      `((libraries
         . ,(make-simple-handler prefix fhs-libraries-template))
        (documentation
@@ -104,6 +115,47 @@
             prefix
             '("share" ("libr6rs-" name) "programs")
             '("bin")))))))
+
+(define script-interpreter-pathname '(("bin") "r6rs-script"))
+
+(define fhs-script-interpreters
+  '((ikarus
+     "#!/bin/sh"
+     "export IKARUS_LIBRARY_PATH=\"$R6RS_LIBRARY_PATH\""
+     "exec ikarus --r6rs-script \"$@\"")
+    (ypsilon
+     "#!/bin/sh"
+     "export YPSILON_SITELIB=\"$R6RS_LIBRARY_PATH\""
+     "dir=`echo \"$R6RS_LIBRARY_PATH\" | sed -e 's/^\\([^:]*\\)/\\1/'`"
+     "export YPSILON_ACC=\"$HOME/.cache/ypsilon/$dir\""
+     "mkdir -p \"$YPSILON_ACC\""
+     "exec ypsilon --r6rs -- \"$@\"")))
+
+(define (fhs-destination-setup destination options)
+  (define (implementation-pathname pathname implementation)
+    (pathname-add-type pathname (symbol->string implementation)))
+  (let ((implementation (assq-ref options 'implementation))
+        (interpreter-pathname (pathname-join (destination-prefix destination)
+                                             script-interpreter-pathname)))
+    (log/fhs 'info
+             (cat "initializing destination `" (destination-name destination)
+                  "' in " (dsp-pathname (destination-prefix destination))
+                  " for " implementation))
+    (create-directory* (pathname-with-file interpreter-pathname #f))
+    ;; Put the scripts into their place
+    (loop ((for name.lines (in-list fhs-script-interpreters)))
+      (let ((pathname (implementation-pathname interpreter-pathname (car name.lines))))
+        (call-with-output-file/atomic pathname
+          (lambda (port)
+            (fmt port (fmt-join/suffix dsp (cdr name.lines) "\n"))))
+        (chmod "+x" pathname)))
+    ;; Create implementation-choosing symlink
+    (delete-file interpreter-pathname) ;++ make the link creation atomic
+    (create-symbolic-link
+     (implementation-pathname
+      (make-pathname #f '() (pathname-file interpreter-pathname))
+      implementation)
+     interpreter-pathname)))
 
 (define fhs-libraries-template '("share" "r6rs-libs"))
 
@@ -134,9 +186,7 @@
            (sh-wrapper-pathname (destination-pathname prefix
                                                       sh-wrapper-template
                                                       package
-                                                      pathname))
-           (chmod-path (or (force %chmod-path)
-                           (log/fhs 'warn "`chmod' not found in PATH"))))
+                                                      pathname)))
        (create-directory* (pathname-with-file program-pathname #f))
        (let ((filename (->namestring program-pathname)))
          (log/fhs 'debug "installing " filename)
@@ -148,10 +198,16 @@
          (call-with-output-file filename
            (lambda (port)
              (fmt port (dsp-sh-wrapper prefix package program-pathname))))
-         (when chmod-path
-           (run-process #f chmod-path "+x" filename)))))))
+         (chmod "+x" filename))))))
 
 (define %chmod-path (delay (find-exec-path "chmod")))
+
+(define (chmod mode pathname)
+  (cond ((force %chmod-path)
+         => (lambda (chmod-path)
+              (run-process #f chmod-path "+x" pathname)))
+        (else
+         (log/fhs 'warn "`chmod' not found in PATH"))))
 
 (define (dsp-sh-wrapper prefix package program-pathname)
   (let ((library-path
@@ -164,7 +220,8 @@
          "\n"
          "export R6RS_LIBRARY_PATH=\"" (->namestring library-path) ;++quote
          "${R6RS_LIBRARY_PATH:+:$R6RS_LIBRARY_PATH}\"\n"
-         "exec r6rs-script " (->namestring program-pathname) " \"$@\"\n")))
+         "exec " (->namestring (pathname-join prefix script-interpreter-pathname))
+         " " (->namestring program-pathname) " \"$@\"\n")))
 
 (define (destination-pathname prefix template package pathname)
   (pathname-join
@@ -197,3 +254,7 @@
 (define log/fhs (make-fmt-log logger:dorodango.fhs-destination))
 
 )
+
+;; Local Variables:
+;; scheme-indent-styles: (foof-loop)
+;; End:

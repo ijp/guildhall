@@ -35,6 +35,7 @@
 
           opt-ref/list
           dsp-pathname
+          pathname-add-type
           pathname->location
           location->pathname
           uri-with-directory-path
@@ -109,6 +110,12 @@
 (define (dsp-pathname pathname)
   (lambda (st)
     ((dsp (->namestring pathname)) st)))
+
+(define (pathname-add-type pathname type)
+  (let ((file (pathname-file pathname)))
+    (pathname-with-file pathname
+                        (make-file (file-name file)
+                                   (append (file-types file) (list type))))))
 
 (define (pathname->location pathname)
   (append (pathname-directory pathname) (list (file-namestring pathname))))

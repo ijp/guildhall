@@ -20,12 +20,14 @@
 ;;; Commentary:
 
 ;; Currently, FHS destinations install a wrapper shell script for each
-;; R6RS program. This wrapper sets the environment variable
-;; R6RS_LIBRARY_PATH and executes `r6rs-script', which in turn sets
-;; the implementation-specific library search path based on that
-;; setting. Once SRFI 103 (and hence R6RS_LIBRARY_PATH) is widely
-;; implemented, r6rs-script may be changed to a symlink or dropped in
-;; favor of `scheme-script', as recommended by R6RS D.2.
+;; R6RS program. This wrapper executes a destination-specific
+;; `r6rs-script', which in turn sets the implementation-specific
+;; library search path based on the destination. Once SRFI 103 (and
+;; hence R6RS_LIBRARY_PATH) is widely implemented, r6rs-script may be
+;; changed to a symlink or dropped in favor of `scheme-script', as
+;; recommended by R6RS Appendix D.2. One level of indirection seems
+;; inevitable to facilitate setting the library search path
+;; environment variable appropriatly for the destination.
 
 ;;; Code:
 #!r6rs
@@ -41,9 +43,12 @@
           
           make-fhs-destination)
   (import (except (rnrs) file-exists? delete-file)
-          (only (srfi :1) split-at)
+          (only (srfi :1) split-at append-reverse)
           (srfi :8 receive)
-          (only (srfi :13) string-concatenate)
+          (only (srfi :13)
+                string-concatenate
+                string-concatenate-reverse
+                string-contains) 
           (spells alist)
           (only (spells misc) and=>)
           (spells lazy)
@@ -118,18 +123,48 @@
 
 (define script-interpreter-pathname '(("bin") "r6rs-script"))
 
-(define fhs-script-interpreters
-  '((ikarus
-     "#!/bin/sh"
-     "export IKARUS_LIBRARY_PATH=\"$R6RS_LIBRARY_PATH\""
-     "exec ikarus --r6rs-script \"$@\"")
-    (ypsilon
-     "#!/bin/sh"
-     "export YPSILON_SITELIB=\"$R6RS_LIBRARY_PATH\""
-     "dir=`echo \"$R6RS_LIBRARY_PATH\" | sed -e 's/^\\([^:]*\\)/\\1/'`"
-     "export YPSILON_ACC=\"$HOME/.cache/ypsilon/$dir\""
-     "mkdir -p \"$YPSILON_ACC\""
-     "exec ypsilon --r6rs -- \"$@\"")))
+(define (string-replace s replacements)
+  (loop next-replacement ((for replacement (in-list replacements))
+                          (with s s))
+    => s
+    (let ((key (car replacement))
+          (value (cdr replacement)))
+      (loop continue ((with i 0)
+                      (with result '()))
+        (cond ((string-contains s key i)
+               => (lambda (pos)
+                    (continue (=> result (append-reverse (list (substring s i pos)
+                                                               value)
+                                                         result))
+                              (=> i (+ pos (string-length key))))))
+              (else
+               (next-replacement
+                (=> s (string-concatenate-reverse
+                       (cons (substring s i (string-length s))
+                             result))))))))))
+
+(define (get-lines/replace port substitutions)
+  (loop ((for line (in-port port get-line))
+         (for result (listing (string-replace line substitutions))))
+    => result))
+
+(define (fhs-script-interpreter destination implementation)
+  (let ((filename (find-file (make-pathname
+                              #f
+                              (list "dorodango" "private" "data")
+                              (string-append "r6rs-script."
+                                             (symbol->string implementation)))
+                             (library-search-paths)))
+        (substitutions
+         `(("@R6RS_LIBRARY_PATH@"
+            . ,(->namestring
+                (pathname-join (destination-prefix destination)
+                               (make-pathname #f fhs-libraries-template #f)))))))
+    (call-with-input-file (->namestring filename)
+      (lambda (port)
+        (fmt-join/suffix dsp (get-lines/replace port substitutions) "\n")))))
+
+(define supported-implementations '(ikarus ypsilon))
 
 (define (fhs-destination-setup destination options)
   (define (implementation-pathname pathname implementation)
@@ -143,11 +178,11 @@
                   " for " implementation))
     (create-directory* (pathname-with-file interpreter-pathname #f))
     ;; Put the scripts into their place
-    (loop ((for name.lines (in-list fhs-script-interpreters)))
-      (let ((pathname (implementation-pathname interpreter-pathname (car name.lines))))
+    (loop ((for implementation (in-list supported-implementations)))
+      (let ((pathname (implementation-pathname interpreter-pathname implementation)))
         (call-with-output-file/atomic pathname
           (lambda (port)
-            (fmt port (fmt-join/suffix dsp (cdr name.lines) "\n"))))
+            (fmt port (fhs-script-interpreter destination implementation))))
         (chmod "+x" pathname)))
     ;; Create implementation-choosing symlink
     (delete-file interpreter-pathname) ;++ make the link creation atomic
@@ -218,8 +253,6 @@
     (cat "#!/bin/sh\n"
          "# Shell wrapper for package " (package->string package " ") "\n"
          "\n"
-         "export R6RS_LIBRARY_PATH=\"" (->namestring library-path) ;++quote
-         "${R6RS_LIBRARY_PATH:+:$R6RS_LIBRARY_PATH}\"\n"
          "exec " (->namestring (pathname-join prefix script-interpreter-pathname))
          " " (->namestring program-pathname) " \"$@\"\n")))
 

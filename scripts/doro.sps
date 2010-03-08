@@ -1,6 +1,6 @@
 ;;; doro.sps --- Dorodango package manager
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -39,6 +39,7 @@
         (srfi :67 compare-procedures)
         (spells alist)
         (spells match)
+        (spells opt-args)
         (spells fmt)
         (spells foof-loop)
         (spells nested-foof-loop)
@@ -356,7 +357,7 @@
   (handler upgrade-command))
 
 
-;;; Querying
+;;; Configuration
 
 (define (config-command vals)
   (let* ((config (assq-ref vals 'config))
@@ -388,6 +389,31 @@
   (synopsis "config destination PACKAGE CATEGORY [FILENAME]")
   (options)
   (handler config-command))
+
+(define (init-command vals)
+  (let* ((config (assq-ref vals 'config))
+         (operands (opt-ref/list vals 'operands))
+         (n-operands (length operands))
+         (implementation (or (assq-ref vals 'implementation)
+                             (config-default-implementation config)))
+         (destination
+          (case n-operands
+            ((0)  #f)
+            ((1)  (string->symbol (car operands)))
+            (else (die "`setup-destination' takes zero or one arguments")))))
+    (config->database config `((destination . ,destination)
+                               (implementation . ,implementation)))))
+
+(define-option implementation-option ("implementation" #\i) implementation
+  "use IMPLEMENTATION in destination"
+  (lambda (option name arg vals)
+    (acons 'implementation (string->symbol arg) vals)))
+
+(define-command init
+  (description "Initialize a destination.")
+  (synopsis "init [OPTIONS] [DESTINATION]")
+  (options implementation-option)
+  (handler init-command))
 
 
 ;;; Packaging
@@ -531,7 +557,7 @@
 
 (define (process-command-line command cmd-line seed-vals)
   (define (unrecognized-option option name arg vals)
-    (error 'process-command-line "unrecognized option" name))
+    (die (cat "unrecognized option: " name)))
   (define (process-operand operand vals)
     (apush 'operands operand vals))
   (let ((vals (args-fold* cmd-line
@@ -553,12 +579,21 @@
 (define (default-config-location)
   (home-pathname '((".config" "dorodango") "config.scm")))
 
-(define (config->database config)
-  (let ((default (config-default-item config)))
-    (open-database (config-item-database-location default)
-                   (config-item-destination default)
-                   (config-item-repositories default)
-                   (config-item-cache-directory default))))
+(define (config->database config . args)
+  (let* ((options (:optional args '()))
+         (destination (or (assq-ref options 'destination)
+                          (config-default-name config)))
+         (implementation (or (assq-ref options 'implementation)
+                             (config-default-implementation config)))
+         (item (if destination
+                   (or (config-ref config destination)
+                       (die (cat "no such destination configured: " destination)))
+                   (config-default-item config))))
+    (open-database (config-item-database-location item)
+                   (config-item-destination item)
+                   (config-item-repositories item)
+                   implementation
+                   (config-item-cache-directory item))))
 
 (define-option config-option ("config" #\c) config
   (cat "use configuration file CONFIG"
@@ -584,8 +619,10 @@
         read-config)))
   (define (config-with-prefix config prefix)
     (if prefix
-        (make-prefix-config prefix (config-item-repositories
-                                    (config-default-item config)))
+        (make-prefix-config prefix
+                            (config-item-repositories
+                             (config-default-item config))
+                            (config-default-implementation config))
         config))
   (let ((operands (opt-ref/list vals 'operands))
         (prefix (assq-ref vals 'prefix)))

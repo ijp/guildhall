@@ -1,6 +1,6 @@
-;;; config.sls --- 
+;;; config.sls --- Representation of configuration file data
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -31,13 +31,15 @@
           default-config
           
           config-ref
+          config-default-name
           config-default-item
 
           config-item?
           config-item-destination
           config-item-database-location
           config-item-repositories
-          config-item-cache-directory)
+          config-item-cache-directory
+          config-default-implementation)
   (import (rnrs)
           (only (srfi :1) append-reverse)
           (srfi :8 receive)
@@ -55,7 +57,7 @@
           (dorodango repository))
 
 (define-record-type (config %make-config config?)
-  (fields items))
+  (fields items default-implementation))
 
 (define-record-type config-item
   (fields destination database-location repositories cache-directory))
@@ -63,14 +65,19 @@
 (define-functional-fields config-item
   destination database-location repositories cache-directory)
 
-(define (make-config default destinations database-locations repositories)
+(define (make-config default
+                     destinations
+                     database-locations
+                     repositories
+                     implementation)
   (define who 'make-config)
   (loop continue ((for destination (in-list destinations))
                   (with items '()))
     => (%make-config/validate who
                               default
                               items
-                              repositories)
+                              repositories
+                              implementation)
     (let ((name (destination-name destination)))
       (cond ((assq-ref database-locations name)
              => (lambda (location)
@@ -81,7 +88,11 @@
             (else
              (lose who "no database location for destination" name))))))
 
-(define (%make-config/validate who default items repositories)
+(define (%make-config/validate who
+                               default
+                               items
+                               repositories
+                               implementation)
   (define (complete-items items)
     (map (lambda (name.item)
            (let ((new-item
@@ -108,16 +119,20 @@
                (%make-config (complete-items
                               (cons name.item
                                     (append-reverse (reverse processed)
-                                                    (cdr remaining)))))
+                                                    (cdr remaining))))
+                             implementation)
                (continue))))
         (else
-         (%make-config (complete-items items)))))
+         (%make-config (complete-items items) implementation))))
 
 (define (config-ref config name)
   (assq-ref (config-items config) name))
 
 (define (config-default-item config)
   (cdar (config-items config)))
+
+(define (config-default-name config)
+  (caar (config-items config)))
 
 (define supported-repository-types
   (list
@@ -131,33 +146,41 @@
           (make-http-repository name uri-string)))))
 
 (define (default-config)
-  (make-prefix-config (home-pathname ".local") (list)))
+  (make-prefix-config (home-pathname ".local") (list) (default-implementation)))
+
+(define (default-implementation)
+  'ikarus)
 
 (define (default-cache-dir)
   (home-pathname '((".cache" "dorodango"))))
 
-(define (make-prefix-config prefix repositories)
+(define (make-prefix-config prefix repositories implementation)
   (make-config 'default
                (list (make-fhs-destination 'default prefix))
                `((default  . ,(pathname-join (pathname-as-directory prefix)
                                              '(("var" "lib" "dorodango")))))
-               repositories))
+               repositories
+               implementation))
 
 (define (read-config port)
   (define who 'read-config)
   (loop continue ((for form (in-port port read))
                   (with default #f)
                   (with items '())
-                  (with repositories '()))
+                  (with repositories '())
+                  (with implementation #f))
     => (%make-config/validate who
                               default
                               (if (null? items)
                                   (config-items (default-config))
                                   (reverse items))
-                              (reverse repositories))
+                              (reverse repositories)
+                              (or implementation (default-implementation)))
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))
+      (('default-implementation (? symbol? name))
+       (continue (=> implementation name)))
       (('destination (? symbol? name) dest-spec ('database location))
        (continue
         (=> items

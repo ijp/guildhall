@@ -107,6 +107,15 @@
          "\n"
          (apply-cat (command-footer command)))))
 
+(define (dsp-version)
+  (cat "doro 0.0.0\n"
+       "Copyright (C) Andreas Rottmann\n"
+       (wrap-lines
+        "This is free software; see the source for copying conditions."
+        "There is NO warranty; not even for MERCHANTABILITY or FITNESS "
+        "FOR A PARTICULAR PURPOSE.")
+       "\n"))
+
 ;; This could use a better name
 (define (dsp-listing indent left-items separator right-items)
   (lambda (st)
@@ -595,8 +604,8 @@
                    implementation
                    (config-item-cache-directory item))))
 
-(define-option config-option ("config" #\c) config
-  (cat "use configuration file CONFIG"
+(define-option config-option ("config" #\c) file
+  (cat "use configuration in FILE"
        " (default: `" (dsp-pathname (default-config-location)) "')")
   (arg-setter 'config))
 
@@ -607,6 +616,11 @@
 (define-option prefix-option ("prefix") prefix
   "set installation prefix and database location"
   (arg-setter 'prefix))
+
+(define-option version-option ("version" #\V) #f
+  "show version information and exit"
+  (lambda (option name arg vals)
+    (acons 'run (lambda (vals) (fmt #t (dsp-version)) '()) vals)))
 
 (define (main-handler vals)
   (define (read-config/default pathname)
@@ -646,8 +660,8 @@
   (synopsis "[OPTIONS] COMMAND [COMMAND-OPTIONS] [ARGS]\n")
   (description
    (wrap-lines
-    "doro is a command-line interface for downloading, "
-    "installing and inspecting packages containing R6RS libraries.")
+    "doro is a command-line interface for downloading, installing "
+    "and inspecting packages containing R6RS libraries and programs.")
    ""
    "Commands:"
    ""
@@ -658,7 +672,7 @@
   (footer "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
           (pad/both 72 "This doro has Super Ball Powers.")
           "\n")
-  (options no-config-option config-option prefix-option)
+  (options no-config-option config-option prefix-option version-option)
   (handler main-handler))
 
 (define (make-message-log-handler name-drop)
@@ -675,7 +689,7 @@
       (let ((prefix (cat (if default-level?
                              fmt-null
                              (cat "doro: " level-name ": "))
-                         (if (null? name)
+                         (if (or default-level? (null? name))
                              fmt-null
                              (cat "[" (fmt-join dsp name ".") "] "))))
             (output (call-with-string-output-port
@@ -683,7 +697,7 @@
                         (if (procedure? obj)
                             (obj port)
                             (display obj port))))))
-        (message prefix (if (and default-level? (null? name))
+        (message prefix (if default-level?
                             (titlecase output)
                             output))))))
 

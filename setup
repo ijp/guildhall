@@ -2,7 +2,7 @@
 
 set -e
 
-SUPPORTED_IMPLS="ypsilon ikarus"
+SUPPORTED_IMPLS="ikarus ypsilon"
 REQUIRED_LIBS="srfi spells/spells parscheme/parscheme industria/weinholt ocelotl dorodango"
 LIBS_DIR="`pwd`/../_libs"
 

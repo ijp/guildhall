@@ -150,7 +150,10 @@
           (make-http-repository name uri-string)))))
 
 (define (default-config)
-  (make-prefix-config (home-pathname ".local") (list) (default-implementation)))
+  (make-prefix-config (default-prefix) (list) (default-implementation)))
+
+(define (default-prefix)
+  (home-pathname ".local"))
 
 (define (default-implementation)
   'ikarus)
@@ -161,10 +164,14 @@
 (define (make-prefix-config prefix repositories implementation)
   (make-config 'default
                (list (make-fhs-destination 'default prefix))
-               `((default  . ,(pathname-join (pathname-as-directory prefix)
-                                             '(("var" "lib" "dorodango")))))
+               `((default  . ,(default-db-location prefix 'default)))
                repositories
                implementation))
+
+(define (default-db-location prefix destination-name)
+  (pathname-join
+   (pathname-as-directory prefix)
+   `(("var" "lib" "dorodango" ,(symbol->string destination-name)))))
 
 (define (read-config port)
   (define who 'read-config)
@@ -180,20 +187,27 @@
                                   (reverse items))
                               (reverse repositories)
                               (or implementation (default-implementation)))
+    (define (handle-destination+iterate name spec db-location)
+      (continue
+       (=> items
+           (cons (cons name (make-config-item
+                             (dest-spec->destination who name spec)
+                             db-location
+                             '()
+                             #f))
+                 items))))
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))
       (('default-implementation (? symbol? name))
        (continue (=> implementation name)))
       (('destination (? symbol? name) dest-spec ('database location))
-       (continue
-        (=> items
-            (cons (cons name (make-config-item
-                              (dest-spec->destination who name dest-spec)
-                              location
-                              '()
-                              #f))
-                  items))))
+       (handle-destination+iterate name dest-spec location))
+      (('destination (? symbol? name) dest-spec)
+       (handle-destination+iterate name
+                                   dest-spec
+                                   (default-db-location (default-prefix)
+                                                        name)))
       (('repository (? symbol? name) (? string? uri))
        (loop next-type ((for constructor (in-list supported-repository-types)))
          => (lose who "unsupported repository URI" uri)

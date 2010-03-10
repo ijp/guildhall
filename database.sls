@@ -128,7 +128,7 @@
     ((directory destination repositories implementation cache-dir)
      (log/db 'debug "opening database in " (dsp-pathname directory) " ...")
      (let* ((directory (pathname-as-directory directory))
-            (status-directory (status-subdirectory directory destination)))
+            (status-directory (status-subdirectory directory)))
        (unless (file-exists? status-directory)
          (setup-destination destination `((implementation . ,implementation)))
          (create-directory* status-directory))
@@ -156,11 +156,11 @@
   (and-let* ((repo-name (repository-name repo)))
     (pathname-join (database-cache-dir db) `((,repo-name)))))
 
-(define (status-subdirectory directory destination)
-  (pathname-join directory `(("status" ,(destination-name destination)))))
+(define (status-subdirectory directory)
+  (pathname-join directory `(("status"))))
 
 (define (database-status-directory db)
-  (status-subdirectory (database-directory db) (database-destination db)))
+  (status-subdirectory (database-directory db)))
 
 (define (close-database db)
   ;; TODO: mark the database as closed, so that future operations will

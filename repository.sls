@@ -1,6 +1,6 @@
 ;;; repository.sls --- Dorodango repositories
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -25,6 +25,7 @@
 (library (dorodango repository)
   (export repository?
           repository-name
+          repository-location
           repository-available-pathname
           repository-fetch-available
           repository-fetch-bundle
@@ -50,9 +51,13 @@
 (define-record-type repository
   (fields name ops))
 
+(define-operation (repository/location repo))
 (define-operation (repository/available-pathname repo cache-directory))
 (define-operation (repository/fetch-available repo cache-directory))
 (define-operation (repository/fetch-bundle repo location cache-directory))
+
+(define (repository-location repo)
+  (repository/location (repository-ops repo)))
 
 (define (repository-available-pathname repo cache-directory)
   (repository/available-pathname (repository-ops repo) cache-directory))
@@ -76,6 +81,8 @@
     (make-repository
      name
      (object #f
+       ((repository/location repo)
+        (->namestring directory))
        ((repository/available-pathname repo cache-directory)
         cache-directory                 ;ignored
         available-pathname)
@@ -96,6 +103,8 @@
     (make-repository
      name
      (object #f
+       ((repository/location repo)
+        (uri->string base-uri))
        ((repository/available-pathname repo cache-directory)
         (pathname-with-file cache-directory available-filename))
        ((repository/fetch-available repo cache-directory)

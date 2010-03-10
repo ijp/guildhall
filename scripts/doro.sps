@@ -243,7 +243,7 @@
   (handler
    (lambda (vals)
      (let ((all? (assq-ref vals 'all?))
-           (db (config->database (assq-ref vals 'config))))
+           (db (config->database vals)))
        (database-add-bundles! db (opt-ref/list vals 'bundles))
        (loop ((for package items (in-database db (sorted-by symbol<?))))
          (cond (all?
@@ -259,7 +259,7 @@
   (handler
    (lambda (vals)
      (let ((packages (opt-ref/list vals 'operands))
-           (db (config->database (assq-ref vals 'config))))
+           (db (config->database vals)))
        (database-add-bundles! db (opt-ref/list vals 'bundles))
        (loop ((for item (in-list (find-db-items db packages))))
          (fmt #t (dsp-db-item item)))))))
@@ -293,7 +293,7 @@
   (description "Update repository information")
   (handler
    (lambda (vals)
-     (let ((db (config->database (assq-ref vals 'config))))
+     (let ((db (config->database vals)))
        (database-update! db)
        (close-database db)))))
 
@@ -316,7 +316,7 @@
   (let ((bundle-locations (opt-ref/list vals 'bundles))
         (packages (opt-ref/list vals 'operands))
         (no-depends? (assq-ref vals 'no-depends?))
-        (db (config->database (assq-ref vals 'config))))
+        (db (config->database vals)))
     (database-add-bundles! db bundle-locations)
     (loop ((for package (in-list packages))
            (for to-install (listing (select-package/string db package))))
@@ -335,7 +335,7 @@
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
         (no-depends? (assq-ref vals 'no-depends?))
-        (db (config->database (assq-ref vals 'config))))
+        (db (config->database vals)))
     (cond (no-depends?
            (loop ((for package-name (in-list packages)))
              (unless (database-remove! db (string->symbol package-name))
@@ -353,7 +353,7 @@
 
 (define (upgrade-command vals)
   (let ((packages (opt-ref/list vals 'operands))
-        (db (config->database (assq-ref vals 'config))))
+        (db (config->database vals)))
     (define (select-upgrade package-name)
       (and-let* ((installed (database-lookup db package-name 'installed))
                  (item (database-lookup db package-name 'newest)))
@@ -425,20 +425,19 @@
   (let* ((config (assq-ref vals 'config))
          (operands (opt-ref/list vals 'operands))
          (n-operands (length operands))
-         (implementation (or (assq-ref vals 'implementation)
-                             (config-default-implementation config)))
          (destination
           (case n-operands
             ((0)  #f)
             ((1)  (string->symbol (car operands)))
             (else (die "`setup-destination' takes zero or one arguments")))))
-    (config->database config `((destination . ,destination)
-                               (implementation . ,implementation)))))
+    (config->database config (append (if destination
+                                         '((destination . ,destination))
+                                         '())
+                                     vals))))
 
 (define-option implementation-option ("implementation" #\i) implementation
   "use IMPLEMENTATION in destination"
-  (lambda (option name arg vals)
-    (acons 'implementation (string->symbol arg) vals)))
+  (arg-setter 'implementation string->symbol))
 
 (define-command init
   (description "Initialize a destination.")
@@ -611,8 +610,8 @@
 (define (default-config-location)
   (home-pathname '((".config" "dorodango") "config.scm")))
 
-(define (config->database config . args)
-  (let* ((options (:optional args '()))
+(define (config->database options)
+  (let* ((config (assq-ref options 'config))
          (destination (or (assq-ref options 'destination)
                           (config-default-name config)))
          (implementation (or (assq-ref options 'implementation)
@@ -639,6 +638,10 @@
 (define-option prefix-option ("prefix") prefix
   "set installation prefix and database location"
   (arg-setter 'prefix))
+
+(define-option destination-option ("dest" #\d) destination
+  "select configured destination"
+  (arg-setter 'destination string->symbol))
 
 (define-option version-option ("version" #\V) #f
   "show version information and exit"
@@ -695,7 +698,10 @@
   (footer "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
           (pad/both 72 "This doro has Super Ball Powers.")
           "\n")
-  (options no-config-option config-option prefix-option version-option)
+  (options no-config-option config-option
+           prefix-option
+           destination-option
+           version-option)
   (handler main-handler))
 
 (define (make-message-log-handler name-drop)

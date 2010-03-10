@@ -56,6 +56,7 @@
         (dorodango package)
         (dorodango database)
         (dorodango destination)
+        (dorodango repository)
         (dorodango bundle)
         (only (dorodango solver) logger:dorodango.solver)
         (dorodango config)
@@ -178,9 +179,13 @@
   (lambda (option option-name arg vals)
     (apush name arg vals)))
 
-(define (arg-setter name)
-  (lambda (option option-name arg vals)
-    (acons name arg vals)))
+(define arg-setter
+  (case-lambda
+    ((name convert)
+     (lambda (option option-name arg vals)
+       (acons name (convert arg) vals)))
+    ((name)
+     (arg-setter name values))))
 
 (define (value-setter name value)
   (lambda (option option-name arg vals)
@@ -373,7 +378,7 @@
          (operands (opt-ref/list vals 'operands))
          (n-operands (length operands)))
     (if (null? operands)
-        (dsp-config config)
+        (fmt #t (dsp-config config))
         (case (string->symbol (car operands))
           ((destination)
            (unless (<= 3 n-operands 4)
@@ -391,7 +396,24 @@
               (destination-pathnames destination package category pathname))))))))
 
 (define (dsp-config config)
-  (dsp "Sorry, not yet implemented."))
+  (define (dsp-config-item item)
+    (let ((dest (config-item-destination item)))
+      (cat (if (eq? (destination-name dest) (config-default-name config))
+               "*"
+               "-")
+           " name: " (destination-name dest) "\n"
+           "  database: "
+           (->namestring (config-item-database-location item)) "\n"
+           "  cache-directory: "
+           (->namestring (config-item-cache-directory item)) "\n"
+           "  repositories:\n"
+           (fmt-indented "    " (fmt-join dsp-repository
+                                          (config-item-repositories item))))))
+  (define (dsp-repository repo)
+    (cat "- " (repository-name repo) ": " (repository-location repo) "\n"))
+  (cat "default-implementation: " (config-default-implementation config) "\n"
+       "destinations:\n"
+       (fmt-indented "  " (fmt-join dsp-config-item (config-items config)))))
 
 (define-command config
   (description "Show configuration.")

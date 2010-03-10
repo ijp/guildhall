@@ -31,6 +31,7 @@
           default-config
           
           config-ref
+          (rename (public:config-items config-items))
           config-default-name
           config-default-item
 
@@ -124,6 +125,9 @@
                (continue))))
         (else
          (%make-config (complete-items items) implementation))))
+
+(define (public:config-items config)
+  (map cdr (config-items config)))
 
 (define (config-ref config name)
   (assq-ref (config-items config) name))

@@ -149,12 +149,16 @@
     => result))
 
 (define (fhs-script-interpreter destination implementation)
-  (let ((filename (find-file (make-pathname
-                              #f
-                              (list "dorodango" "private" "data")
-                              (string-append "r6rs-script."
-                                             (symbol->string implementation)))
-                             (library-search-paths)))
+  (let ((filename
+         (or (find-file (make-pathname
+                         #f
+                         (list "dorodango" "private" "data")
+                         (string-append "r6rs-script."
+                                        (symbol->string implementation)))
+                        (library-search-paths))
+             (error 'fhs-script-interpreter
+                    "unable to find FHS script interpreter for implementation"
+                    implementation)))
         (substitutions
          `(("@R6RS_LIBRARY_PATH@"
             . ,(->namestring

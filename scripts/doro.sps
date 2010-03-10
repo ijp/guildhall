@@ -46,7 +46,7 @@
         (spells pathname)
         (spells filesys)
         (spells define-values)
-        (only (spells misc) and=>)
+        (only (spells misc) and=> unspecific)
         (only (spells sysutils) lookup-environment-variable)
         (spells args-fold)
         (spells logging)
@@ -509,7 +509,8 @@
              (package->form (package-with-property
                              package
                              'location
-                             (list (pathname->location bundle-pathname))))))))))
+                             (list (pathname->location bundle-pathname)))))))))
+  (unspecific))
 
 (define-command scan-bundles
   (description "Scan one or more directories for bundles.")

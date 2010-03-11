@@ -430,10 +430,10 @@
             ((0)  #f)
             ((1)  (string->symbol (car operands)))
             (else (die "`setup-destination' takes zero or one arguments")))))
-    (config->database config (append (if destination
-                                         '((destination . ,destination))
-                                         '())
-                                     vals))))
+    (config->database (append (if destination
+                                  '((destination . ,destination))
+                                  '())
+                              vals))))
 
 (define-option implementation-option ("implementation" #\i) implementation
   "use IMPLEMENTATION in destination"

@@ -50,6 +50,7 @@
           (spells alist)
           (spells match)
           (spells foof-loop)
+          (spells nested-foof-loop)
           (spells record-types)
           (spells pathname)
           (spells tracing)
@@ -77,14 +78,17 @@
     => (%make-config/validate who
                               default
                               items
-                              repositories
                               implementation)
     (let ((name (destination-name destination)))
       (cond ((assq-ref database-locations name)
              => (lambda (location)
                   (continue
                    (=> items
-                       (cons (cons name (make-config-item destination location '() #f))
+                       (cons (cons name (make-config-item
+                                         destination
+                                         location
+                                         repositories
+                                         (default-cache-directory)))
                              items)))))
             (else
              (lose who "no database location for destination" name))))))
@@ -92,24 +96,7 @@
 (define (%make-config/validate who
                                default
                                items
-                               repositories
                                implementation)
-  (define (complete-items items)
-    (map (lambda (name.item)
-           (let ((new-item
-                  (receive (destination
-                            database-location
-                            old-repositories
-                            old-cache-dir)
-                           (config-item-components (cdr name.item))
-                    (make-config-item destination
-                                      database-location
-                                      (if (null? old-repositories)
-                                          repositories
-                                          old-repositories)
-                                      (or old-cache-dir (default-cache-dir))))))
-             (cons (car name.item) new-item)))
-         items))
   (cond ((null? items)
          (lose who "no destinations defined"))
         (default
@@ -117,14 +104,13 @@
                          (for processed (listing-reverse name.item)))
            => (lose who "default destination undefined" default)
            (if (eq? default (car name.item))
-               (%make-config (complete-items
-                              (cons name.item
-                                    (append-reverse (reverse processed)
-                                                    (cdr remaining))))
+               (%make-config (cons name.item
+                                   (append-reverse (reverse processed)
+                                                   (cdr remaining)))
                              implementation)
                (continue))))
         (else
-         (%make-config (complete-items items) implementation))))
+         (%make-config items implementation))))
 
 (define (public:config-items config)
   (map cdr (config-items config)))
@@ -158,7 +144,7 @@
 (define (default-implementation)
   'ikarus)
 
-(define (default-cache-dir)
+(define (default-cache-directory)
   (home-pathname '((".cache" "dorodango"))))
 
 (define (make-prefix-config prefix repositories implementation)
@@ -185,29 +171,48 @@
                               (if (null? items)
                                   (config-items (default-config))
                                   (reverse items))
-                              (reverse repositories)
                               (or implementation (default-implementation)))
-    (define (handle-destination+iterate name spec db-location)
-      (continue
-       (=> items
-           (cons (cons name (make-config-item
-                             (dest-spec->destination who name spec)
-                             db-location
-                             '()
-                             #f))
-                 items))))
+    (define (parse-destination-options options)
+      (loop continue ((for option (in-list options))
+                      (with db-location #f)
+                      (with configured-repos #f))
+        => (values db-location
+                   (and=> configured-repos reverse))
+        (match option
+          (('database (? string? location))
+           (when db-location
+             (lose who "multiple database locations configured" option))
+           (continue (=> db-location location)))
+          (('repositories names ___)
+           (unless (for-all symbol? names)
+             (lose who "repository identifiers must be symbols" option))
+           (let ((repos (collect-list (for name (in-list names))
+                          (or (find (lambda (repo)
+                                      (eq? name (repository-name repo)))
+                                    repositories)
+                              (lose who "undefined repository" name)))))
+             (continue (=> configured-repos
+                           (append-reverse repos (or configured-repos '()))))))
+          (_
+           (lose who "malformed destination option" option)))))
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))
       (('default-implementation (? symbol? name))
        (continue (=> implementation name)))
-      (('destination (? symbol? name) dest-spec ('database location))
-       (handle-destination+iterate name dest-spec location))
-      (('destination (? symbol? name) dest-spec)
-       (handle-destination+iterate name
-                                   dest-spec
-                                   (default-db-location (default-prefix)
-                                                        name)))
+      (('destination (? symbol? name) dest-spec . options)
+       (receive (db-location configured-repos)
+                (parse-destination-options options)
+         (continue
+          (=> items
+              (cons (cons name
+                          (make-config-item
+                           (dest-spec->destination who name dest-spec)
+                           (or db-location
+                               (default-db-location (default-prefix) name))
+                           (or configured-repos (reverse repositories))
+                           (default-cache-directory)))
+                    items)))))
       (('repository (? symbol? name) (? string? uri))
        (loop next-type ((for constructor (in-list supported-repository-types)))
          => (lose who "unsupported repository URI" uri)

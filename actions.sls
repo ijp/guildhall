@@ -1,6 +1,6 @@
 ;;; actions.sls --- Dorodango actions
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -95,25 +95,27 @@
                (for files (listing (rewriter tmp-dir))))
           => (zip-files filename tmp-dir files))
         (rm-rf tmp-dir)))
+    (define (compute-pathnames directory packages)
+      (match packages
+        ((package)
+         (values directory (package->string package "_")))
+        (_
+         (let ((directory-part (pathname-directory directory)))
+           (cond ((null? directory-part)
+                  (when (> n-directories 1)
+                    (die (cat "unable to compute top-level directory for"
+                              " bundle component `"
+                              (dsp-pathname directory) "'.")))
+                  (values (make-pathname #f '() #f) (make-pathname #f '() #f)))
+                 (else
+                  (values (pathname-container directory)
+                          (make-pathname #f '() (last directory-part)))))))))
     (delete-file filename)
     (message "Creating " filename)
     (loop ((for directory (in-list directories))
            (for packages (in-list packages-list))
            (let-values (zip-directory toplevel-pathname)
-             (match packages
-               ((package)
-                (values directory (package->string package "_")))
-               (_
-                (let ((directory-part (pathname-directory directory)))
-                  (cond ((null? directory-part)
-                         (when (> n-directories 1)
-                           (die (cat "unable to compute top-level directory for"
-                                     " bundle component `"
-                                     (dsp-pathname directory) "'.")))
-                         (values (make-pathname #f '() #f) (make-pathname #f '() #f)))
-                        (else
-                         (values (pathname-container directory)
-                                 (->pathname `((,(last directory-part)))))))))))
+             (compute-pathnames directory packages))
            (for rewrite-list (listing (make-rewriter toplevel-pathname packages)
                                       (if rewrite-pkg-list-files?))))
       => (run-rewriters rewrite-list)

@@ -1,6 +1,6 @@
 ;;; cmdline.sls --- Command-line UI library
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -24,7 +24,7 @@
 
 (library (dorodango ui cmdline)
   (export run-cmdline-ui)
-  (import (rnrs)
+  (import (except (rnrs) delete-file file-exists?)
           (only (srfi :1) drop concatenate unfold)
           (srfi :2 and-let*)
           (srfi :8 receive)
@@ -48,6 +48,7 @@
           (spells finite-types)
           (spells operations)
           (spells pathname)
+          (spells filesys)
           (spells args-fold)
           (spells logging)
           (spells tracing)
@@ -930,22 +931,29 @@
   (handler create-bundle-command))
 
 (define (scan-bundles-command vals)
-  (iterate! (for directory (in-list (opt-ref/list vals 'operands)))
-      (for entry (in-list (scan-bundles-in-directory directory directory)))
-    (match entry
-      ((package . bundle-pathname)
-       (fmt #t
-            (pretty/unshared
-             (package->form (package-with-property
-                             package
-                             'location
-                             (list (pathname->location bundle-pathname)))))))))
-  (unspecific))
+  (define (do-scan port)
+    (iterate! (for directory (in-list (opt-ref/list vals 'operands)))
+        (for entry (in-list (scan-bundles-in-directory directory directory)))
+      (match entry
+        ((package . bundle-pathname)
+         (fmt port
+              (pretty/unshared
+               (package->form (package-with-property
+                               package
+                               'location
+                               (list (pathname->location bundle-pathname))))))))))
+  (let-assq vals (output-filename)
+    (if output-filename
+        (call-with-output-file/atomic output-filename do-scan)
+        (do-scan (current-output-port)))
+    (unspecific)))
 
 (define-command scan-bundles
   (description "Scan one or more directories for bundles.")
   (synopsis "scan-bundles DIRECTORY...")
-  (options)
+  (options (option '("output" #\o) 'filename #f #f
+                   "output scan results to FILENAME"
+                   (arg-setter 'output-filename)))
   (handler scan-bundles-command))
 
 

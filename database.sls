@@ -27,6 +27,10 @@
 ;; names (symbols) to lists of database items. Those lists are always
 ;; kept sorted such that the newest item (according to the package
 ;; version) comes first.
+;;
+;; The database also keeps a cache of downloaded bundles, storing them
+;; in subdirectories named after the locations of the respective
+;; repositories.
 
 ;;; Code:
 #!r6rs
@@ -64,7 +68,7 @@
           (only (srfi :1) filter-map lset-adjoin)
           (srfi :2 and-let*)
           (srfi :8 receive)
-          (only (srfi :13) string-suffix?)
+          (only (srfi :13) string-map string-suffix?)
           (srfi :67 compare-procedures)
           (spells foof-loop)
           (spells nested-foof-loop)
@@ -153,8 +157,18 @@
                       (pathname-join directory '(("cache"))))))))
 
 (define (database-cache-directory db repo)
-  (and-let* ((repo-name (repository-name repo)))
-    (pathname-join (database-cache-dir db) `((,repo-name)))))
+  (pathname-join (database-cache-dir db)
+                 (make-pathname #f
+                                (list (encoded-repository-location repo))
+                                #f)))
+
+(define (encoded-repository-location repo)
+  (string-map (lambda (c)
+                (if (or (char-alphabetic? c)
+                        (char-numeric? c))
+                    c
+                    #\_))
+              (repository-location repo)))
 
 (define (status-subdirectory directory)
   (pathname-join directory `(("status"))))

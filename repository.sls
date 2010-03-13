@@ -75,6 +75,8 @@
   (make-repository
    #f
    (object #f
+     ((repository/location repo)
+      "null:")
      ((repository/fetch-bundle repo location cache-directory)
       location))))
 
@@ -85,7 +87,7 @@
      name
      (object #f
        ((repository/location repo)
-        (->namestring directory))
+        (string-append "file://" (->namestring directory)))
        ((repository/available-pathname repo cache-directory)
         cache-directory                 ;ignored
         available-pathname)

@@ -466,14 +466,22 @@
                         " or '?' for help.\n"))
                   (prompt-again)))))))
 
-(define (make-cmdline-ui)
-  (object #f
-    ((ui/message ui . formats)
-     (apply cmdline/message formats))
-    ((ui/y-or-n ui default message)
-     (cmdline/y-or-n default message))
-    ((ui/prompt ui message choices)
-     (cmdline/prompt message choices))))
+(define (make-cmdline-ui options)
+  (let-assq options (assume-yes?)
+    (object #f
+      ((ui/message ui . formats)
+       (apply cmdline/message formats))
+      ((ui/y-or-n ui default message)
+       (if assume-yes?
+           #t
+           (cmdline/y-or-n default message)))
+      ((ui/prompt ui message choices)
+       (if assume-yes?
+           (or (and=> (assv #\y choices) car)
+               (assertion-violation 'ui/prompt
+                                    "cannot assume `yes' for these choices"
+                                    choices))
+           (cmdline/prompt message choices))))))
 
 
 ;;; Command-line processing
@@ -1015,13 +1023,9 @@
                           unrecognized-option
                           process-operand
                           seed-vals)))
-    (cond (((or (assq-ref vals 'run)
-                (command-handler command))
-            vals)
-           (exit))
-          (else
-           (fmt #t "Aborted.\n")
-           (exit #f)))))
+    ((or (assq-ref vals 'run)
+         (command-handler command))
+     vals)))
 
 ;; This should be different on non-POSIX systems, I guess
 (define (default-config-location)
@@ -1033,13 +1037,14 @@
                           (config-default-name config)))
          (implementation (or (assq-ref options 'implementation)
                              (config-default-implementation config)))
+         (repos (opt-ref/list options 'repositories))
          (item (if destination
                    (or (config-ref config destination)
                        (die (cat "no such destination configured: " destination)))
                    (config-default-item config))))
     (open-database (config-item-database-location item)
                    (config-item-destination item)
-                   (config-item-repositories item)
+                   (append repos (config-item-repositories item))
                    implementation
                    (config-item-cache-directory item))))
 
@@ -1065,6 +1070,18 @@
   (lambda (option name arg vals)
     (acons 'run (lambda (vals) (fmt #t (dsp-version)) '()) vals)))
 
+(define-option repository-option ("repo" #\r) uri
+  "add URI to the list of repositories to use"
+  (lambda (option name arg vals)
+    (apush 'repositories
+           (or (uri-string->repository arg)
+               (die (cat "unsupported repository URI: " arg)))
+           vals)))
+
+(define-option yes-option ("yes" #\y) #f
+  "assume yes on prompts"
+  (value-setter 'assume-yes? #t))
+
 (define (main-handler vals)
   (define (read-config/default pathname)
     (guard (c ((i/o-file-does-not-exist-error? c)
@@ -1074,30 +1091,34 @@
                      (else (default-config)))))
       (call-with-input-file (->namestring pathname)
         read-config)))
-  (define (config-with-prefix config prefix)
-    (if prefix
-        (make-prefix-config prefix
-                            (config-item-repositories
-                             (config-default-item config))
-                            (config-default-implementation config))
-        config))
   (let ((operands (opt-ref/list vals 'operands))
-        (prefix (assq-ref vals 'prefix)))
-    (cond ((null? operands)
-           (fmt #t (dsp-help (find-command 'main))))
-          ((find-command (string->symbol (car operands)))
-           => (lambda (command)
-                (let ((config (cond ((assq-ref vals 'config)
-                                     => read-config/default)
-                                    (else
-                                     (default-config)))))
-                  (process-command-line
-                   command
-                   (cdr operands)
-                   `((operands . ())
-                     (config . ,(config-with-prefix config prefix)))))))
-          (else
-           (error 'main "unknown command" (car operands))))))
+        (prefix (assq-ref vals 'prefix))
+        (assume-yes? (assq-ref vals 'assume-yes?)))
+  (define (config-with-prefix config)
+    (if prefix
+        (make-prefix-config
+         prefix
+         (config-item-repositories (config-default-item config))
+         (config-default-implementation config))
+        config))
+    (parameterize ((current-ui (make-cmdline-ui `((assume-yes? . ,assume-yes?)))))
+      (cond ((null? operands)
+             (fmt #t (dsp-help (find-command 'main))))
+            ((find-command (string->symbol (car operands)))
+             => (lambda (command)
+                  (let ((config (cond ((assq-ref vals 'config)
+                                       => read-config/default)
+                                      (else
+                                       (default-config)))))
+                    (process-command-line
+                     command
+                     (cdr operands)
+                     `((operands . ())
+                       (repositories . ,(assq-ref vals 'repositories))
+                       (destination . ,(assq-ref vals 'destination))
+                       (config . ,(config-with-prefix config)))))))
+            (else
+             (die "unknown command" (car operands)))))))
 
 (define-command main
   (synopsis "[OPTIONS] COMMAND [COMMAND-OPTIONS] [ARGS]\n")
@@ -1118,6 +1139,8 @@
   (options no-config-option config-option
            prefix-option
            destination-option
+           repository-option
+           yes-option
            version-option)
   (handler main-handler))
 
@@ -1162,14 +1185,14 @@
      (,logger:dorodango.solver
       (propagate? #f)
       (handlers (warning ,(make-message-log-handler 1))))))
-  (parameterize ((current-ui (make-cmdline-ui)))
-    (process-command-line (find-command 'main)
-                          (cdr argv)
-                          `((operands)
-                            (config . ,(default-config-location))))))
+  (process-command-line (find-command 'main)
+                        (cdr argv)
+                        `((operands)
+                          (repositories . ())
+                          (config . ,(default-config-location)))))
 
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop (object 1))
+;; scheme-indent-styles: (foof-loop (object 1) (let-assq 2) as-match)
 ;; End:

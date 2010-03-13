@@ -32,10 +32,13 @@
 
           null-repository
           make-file-repository
-          make-http-repository)
+          make-http-repository
+          uri-string->repository)
   (import (except (rnrs) delete-file file-exists?)
-          (only (srfi :13) string-map)
+          (only (srfi :13) string-map string-prefix?)
           (srfi :14 char-sets)
+          (only (spells misc) or-map)
+          (only (spells opt-args) :optional)
           (spells operations)
           (spells ports)
           (spells pathname)
@@ -135,6 +138,25 @@
          #f)))))
 
 
+;;; Repository-creating dispatcher
+
+(define supported-repository-types
+  (list
+   (lambda (name uri-string)
+     (and (string-prefix? "file://" uri-string)
+          (make-file-repository
+           name
+           (substring uri-string 7 (string-length uri-string)))))
+   (lambda (name uri-string)
+     (and (string-prefix? "http://" uri-string)
+          (make-http-repository name uri-string)))))
+
+(define (uri-string->repository uri-string . name)
+  (or-map (lambda (constructor)
+            (constructor (:optional name #f) uri-string))
+          supported-repository-types))
+
+
 ;;; Utilities
 
 (define (check-existence pathname)
@@ -151,5 +173,5 @@
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: ((object 1))
+;; scheme-indent-styles: ((object 1) foof-loop)
 ;; End:

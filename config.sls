@@ -44,7 +44,6 @@
   (import (rnrs)
           (only (srfi :1) append-reverse)
           (srfi :8 receive)
-          (only (srfi :13) string-prefix?)
           (srfi :98 os-environment-variables)
           (only (spells misc) and=>)
           (spells alist)
@@ -124,17 +123,7 @@
 (define (config-default-name config)
   (caar (config-items config)))
 
-(define supported-repository-types
-  (list
-   (lambda (name uri-string)
-     (and (string-prefix? "file://" uri-string)
-          (make-file-repository
-           name
-           (substring uri-string 7 (string-length uri-string)))))
-   (lambda (name uri-string)
-     (and (string-prefix? "http://" uri-string)
-          (make-http-repository name uri-string)))))
-
+
 (define (default-config)
   (make-prefix-config (default-prefix) (list) (default-implementation)))
 
@@ -214,13 +203,10 @@
                            (default-cache-directory)))
                     items)))))
       (('repository (? symbol? name) (? string? uri))
-       (loop next-type ((for constructor (in-list supported-repository-types)))
-         => (lose who "unsupported repository URI" uri)
-         (cond ((constructor name uri)
-                => (lambda (repo)
-                     (continue (=> repositories (cons repo repositories)))))
-               (else
-                (next-type)))))
+       (continue (=> repositories
+                     (cons (or (uri-string->repository uri name)
+                               (lose who "unsupported repository URI" uri))
+                           repositories))))
       (else
        (lose who "invalid configuration form" form)))))
 

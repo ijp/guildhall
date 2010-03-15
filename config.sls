@@ -139,14 +139,12 @@
 (define (make-prefix-config prefix repositories implementation)
   (make-config 'default
                (list (make-fhs-destination 'default prefix))
-               `((default  . ,(default-db-location prefix 'default)))
+               `((default  . ,(default-db-location prefix)))
                repositories
                implementation))
 
-(define (default-db-location prefix destination-name)
-  (pathname-join
-   (pathname-as-directory prefix)
-   `(("var" "lib" "dorodango" ,(symbol->string destination-name)))))
+(define (default-db-location prefix)
+  (pathname-join (pathname-as-directory prefix) '(("var" "lib" "dorodango"))))
 
 (define (read-config port)
   (define who 'read-config)
@@ -190,18 +188,20 @@
       (('default-implementation (? symbol? name))
        (continue (=> implementation name)))
       (('destination (? symbol? name) dest-spec . options)
-       (receive (db-location configured-repos)
-                (parse-destination-options options)
+       (let-values (((db-location configured-repos)
+                     (parse-destination-options options))
+                    ((destination) (dest-spec->destination who name dest-spec)))
          (continue
           (=> items
-              (cons (cons name
-                          (make-config-item
-                           (dest-spec->destination who name dest-spec)
-                           (or db-location
-                               (default-db-location (default-prefix) name))
-                           (or configured-repos (reverse repositories))
-                           (default-cache-directory)))
-                    items)))))
+              (cons
+               (cons name
+                     (make-config-item
+                      destination
+                      (or db-location
+                          (default-db-location (destination-prefix destination)))
+                      (or configured-repos (reverse repositories))
+                      (default-cache-directory)))
+               items)))))
       (('repository (? symbol? name) (? string? uri))
        (continue (=> repositories
                      (cons (or (uri-string->repository uri name)

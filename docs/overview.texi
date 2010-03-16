@@ -1,0 +1,95 @@
+@node Overview
+@chapter Overview
+@cindex packages
+@cindex bundles
+
+Dorodango is used via the @command{doro} command-line program, which
+allows you to automatically download, install, remove and upgrade R6RS
+library collections and programs that might be included with them.
+
+A library collection, possibly including programs and documentation,
+together with some metadata, which, for example, describes the
+dependencies on other software, is called a package. Packages are
+distributed in ZIP files called ; each bundle may contain one or more
+packages.
+
+If you already are familiar with other package managers, such as
+Debian's APT, having more than one package bundled in the same file
+might seem unusual to you, but don't worry: bundles are mostly
+transparent to the user. Most of the time, you will deal with
+packages, and bundles are of concern mostly when using dorodango to
+package your or other people's software.
+
+@menu
+* Packages:: Anatomy of a Package
+* Destinations:: Where a the Files of a Package go
+* Repositories:: Where packages come from
+@end menu
+
+@node Packages
+@section Anatomy of a Package
+@cindex packages, anatomy
+@cindex category
+@cindex file, category
+
+A package is the "unit of software" dorodango works with. It has a
+name, and a version, which may be used to form dependency
+relationships among packages. It also may have other attributes, like
+a description and a homepage URL. Besides the metadata, a package also
+contains files, which are grouped into categories. Each category of a
+package conceptionally contains a set of files, along with their
+desired installation locations. The categories currently handled by
+dorodango are:
+
+@table @samp
+@item libraries
+R6RS libraries, and files required by them (either at runtime or at
+expand-time).
+
+@item programs
+R6RS programs.
+
+@item documentation
+README files, HTML documentation, etc.
+@end table
+
+@node Destinations
+@section Destinations
+@cindex destinations
+@cindex installation locations 
+
+Now the files contained in these categories must be installed
+somewhere, and usually into different locations. The rules that
+describe where software is installed into are provided by a
+@emph{destination}. You can select the destination by invoking the
+@command{doro} command line tool with the @samp{--prefix} option,
+@pxref{Global Options}. For each destination, dorodango maintains a
+database of installed and available packages.
+
+Currently, all destinations have the same rules which should be
+suitable for POSIXish platforms, and especially for
+@uref{http://www.pathname.com/fhs/,FHS} platforms:
+
+@table @samp
+@item libraries 
+Installed into @file{@var{PREFIX}/share/r6rs-libs}.
+
+@item programs
+Installed into
+@file{@var{PREFIX}/share/libr6rs-@var{PACKAGE-NAME}/programs}, and a
+shell wrapper in @file{@var{PREFIX}/bin} is created which starts the
+Scheme program via @file{r6rs-script}, which is created automatically
+when dorodango initializes a destination.
+
+@item documentation
+Installed into @var{PREFIX}@file{/share/doc/libr6rs-PACKAGE-NAME}.
+@end table
+
+@node Repositories
+@section Repositories
+@cindex repositories
+
+The bundles in which the packages are installed from are fetched from
+repositories. A repository is accessed via HTTP and is essentially a
+directory that contains bundles along with a file listing their
+locations and the packages within them.

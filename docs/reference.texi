@@ -1,0 +1,153 @@
+@node Reference
+@chapter Reference
+
+@command{doro} is a command-line interface for downloading, installing and
+inspecting packages containing R6RS libraries and programs.
+
+@command{doro} accepts, besides global options, a command and
+command-specific options. Each command is geared to a particuliar
+task, for example installing, removing or upgrading packages.
+
+The following subsections document the available commands, grouped by
+related tasks.
+
+@menu
+* Global Options:: These must go directly after @command{doro}
+* Command Reference:: All of the commands
+* Configuration File:: Configuration file syntax
+@end menu
+
+@node Global Options
+@section Global Options
+
+@table @option
+@item --no-config
+
+Do not read any configuration file. This option can be used to ensure
+that @command{doro} will just use built-in defaults.
+
+@item --config=@var{file}
+@itemx -c
+
+Use configuration file @var{file}, instead of the default
+one. @xref{Configuration File}, for configuration file syntax.
+
+@item --prefix=@var{prefix}
+
+Use an FHS destination located below the directory @var{prefix}. This
+option has the same effect as adding an FHS destination to the
+configuration file and using it for this invocation of @command{doro}.
+@end table
+
+@node Command Reference
+@section Command Reference
+
+@node Configuration File
+@section Configuration File
+
+The configuration file stores permanent settings for dorodango, and
+can be selected with the @option{--config} option, @pxref{Global
+Options}. It's syntax is S-expression-based clauses. In the following,
+we will dissect an example configuration file; note however, that for
+most users, a much simpler configuration will suffice
+(@pxref{Quickstart}). Also the @option{--prefix} global option can be
+used to work with multiple destinations without explicitly setting
+them up in the configuration file. Anyway, without further ado, here's
+a configuration that uses all possible clauses:
+
+@lisp
+(repository experimental "http://rotty.yi.org/doro/experimental")
+(repository unstable "http://rotty.yi.org/doro/unstable")
+(destination unstable
+  (fhs "/home/alice/scheme")
+  (repositories unstable))
+(destination experimental
+  (fhs "/home/alice/scheme-experiments")
+  (database "/home/alice/scheme-experiments/db"))
+(default-destination experimental)
+(default-implementation ypsilon)
+@end lisp
+
+@subsection Repositories
+
+A repository clause defines a repository, which may be located on an
+HTTP server or a local file system. The repository's is given a name,
+and a location is specified as an URI:
+
+@lisp
+(repository @var{<name>} @var{<location-uri>})
+@end lisp
+
+In the running example, @var{<name>} is @code{experimental}, and
+@var{<location-uri>} name is the string
+@code{"http://rotty.yi.org/doro/experimental"}, denoting an HTTP
+repository at the apparent location.
+
+@subsection Destinations
+@cindex destinations, configuring
+@cindex configuring destinations
+
+Destinations are where a package's files are installed to; they have
+an associated package database that keeps track of installed
+packages. In principle, destinations come in ``flavors'', but at the
+time of writing, there's only a single flavor: @code{fhs}, which puts
+the files in subdirectories of the specified prefix directory that are
+(at least roughly) in line with FHS. This means one can use an
+@code{fhs} destination to install to @file{/usr/local}, and have files
+ending up in familiar locations.
+
+In the configuration file, destinations are given a name so they can
+be referred to by @command{doro}'s @option{--destination}
+option. @xref{Global Options}.
+
+Unless specified otherwise via the @code{repositories} sub-clause, all
+repositories listed up to the point of the destination's declaration
+will be used with this destination. A repository mus be declared
+before being referenced in a destination's @code{repositories} clause.
+
+The @code{database} sub-clause allows to define the location of the
+package database on disk; if it is left out, dorodango will use a
+default location, based on the destination's prefix.
+
+@subsection Defaults
+
+The @code{default-implementation} clause specifies the Scheme
+implementation to use by default when setting up new destinations,
+affecting the implementation that R6RS programs installed into the
+location will use. One can initialize a destination using the
+@command{doro init} command, thus overriding the default.
+
+If @code{default-implementation} is not specified, dorodango will use
+a built-in default (@code{ikarus} at the time of writing).
+
+Using the @code{default-destination} one can specify which configured
+destination will be used when none is explicitly specified via the
+@option{--destination} global option. If there is no
+@code{default-implementation} clause, the first destination specified
+is considered the default.
+
+@subsection Formal Grammar
+@cindex configuration file, grammar
+
+A complete BNF-style grammar for the configuration file:
+
+@verbatim
+<configuration> -> <clause>*
+<clause> ->  <repository> | <destination>
+   | <default-destination> | <default-implementation>
+
+<repository> -> (repository <name> <uri>)
+
+<destination> -> (destination <name> <destination-spec> <option>*)
+<option> -> (database <directory>)
+   | (repositories <name>*)
+<destination-spec> -> (fhs <directory>)
+
+<default-destination> -> (default-destination <name>)
+<default-implementation> -> (default-implementation <implementation>)
+<implementation> = ikarus | ypsilon
+
+<directory> -> <string>
+<name> -> <symbol>
+<uri> -> <string>
+@end verbatim

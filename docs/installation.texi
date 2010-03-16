@@ -1,0 +1,64 @@
+@node Installation
+@chapter Installation
+
+Dorodango comes in a tarball, which includes all its dependencies and
+an installation script. The installation script will probe for a
+supported Scheme implementation (currently Ikarus and Ypsilon), and
+uses dorodango to install itself and all dependencies into a selectable
+destination (@pxref{Destinations} for details).
+
+It is recommended to install dorodango outside of the location(s)
+managed by it. There are several ways to achieve this:
+
+@enumerate
+@item
+Install dorodango in @file{/usr/local/}, and use dorodango's default
+configuration, which will install packages into @file{~/.local/}.
+
+@item
+Install dorodango in some other place other than @file{~/.local/},
+and symlink the @command{doro} script to some directory in your
+@env{PATH}.
+
+@item
+Install dorodango into the default location, @file{~/.local/}, and
+configure it to use some other location by default.
+@end enumerate
+
+For option 1, installation works like this:
+
+@verbatim
+tar -xjf dorodango-full-0.0.1.tar.bz2
+cd dorodango-0.0.1/dorodango
+./setup --prefix /usr/local
+@end verbatim
+
+The R6RS implementation is probed for automatically in the above
+example, but you can explicitly choose using the @option{-i} or
+@option{--implementation} option:
+
+@verbatim
+./setup --implementation ikarus --prefix /usr/local
+@end verbatim
+
+Note that @option{--implementation} must go before other arguments.
+
+After running @command{setup} like above, you should now have
+@file{/usr/local/bin/doro}, and as @file{/usr/local/bin} is ordinarily
+in @env{PATH}, running @command{doro --help} should display a help
+message.
+
+Besides the @command{doro} script, the installation process also
+creates a helper program @command{r6rs-script} in the same directory
+(i.e. @file{/usr/local/bin} in the running example). This script is
+specific to the implementation chosen when installing dorodango, and
+is used for running Scheme programs installed by dorodango.
+
+Option 2 works nearly the same, except that you use a different
+argument after @option{--prefix}, and afterwards make @command{doro}
+available in your PATH.
+
+For option 3, you don't need to specify @option{--prefix}, but you
+should configure a different default destination for dorodango to
+use. @xref{Configuration File}, for more information on configuring
+dorodango.

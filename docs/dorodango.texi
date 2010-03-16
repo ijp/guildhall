@@ -1,0 +1,70 @@
+\input texinfo   @c -*-texinfo-*-
+@setfilename dorodango.info
+@settitle Dorodango Manual 0.0.0
+
+@copying
+This manual is for dorodango, version 0.0.1.
+
+Copyright @copyright{} 2010 Andreas Rottmann.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License, Version 3 or any
+later version published by the Free Software Foundation.
+@end quotation
+@end copying
+
+@titlepage
+@title Dorodango Manual
+@author Andreas Rottmann
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Dorodango
+
+This manual is for dorodango, version 0.0.1.
+@end ifnottex
+
+Dorodango is package manager written in and for R6RS Scheme.
+
+From @uref{http://en.wikipedia.org/wiki/Dorodango,Wikipedia}:
+
+@quotation
+Dorodango is a Japanese art form in which earth and water are molded
+to create a delicate shiny sphere, resembling a marble or billiard
+ball.
+@end quotation
+
+Using dorodango, you can easily install and distribute collections of
+R6RS libraries and programs using these libraries. It can handle
+dependencies, so when a program requires several libraries, and each
+of those has further dependencies, dorodango allows you to install all
+the prerequisites for that program in one go.
+
+@menu
+* Installation::
+* Quickstart:: Getting started, quickly
+* Overview:: Dorodango summed up
+* Reference:: All of dorodango's functionality
+* Index:: Concept index
+@end menu
+
+@include installation.texi
+@include quickstart.texi
+@include overview.texi
+@include reference.texi
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye

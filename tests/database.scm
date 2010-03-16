@@ -50,13 +50,6 @@
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 
-(define (delete-recursively pathname)
-  (when (file-directory? pathname)
-    (let ((directory (pathname-as-directory pathname)))
-      (loop ((for filename (in-directory directory)))
-        (delete-recursively (pathname-with-file directory filename)))))
-  (delete-file pathname))
-
 (define (maybe-car thing)
   (if (pair? thing) (car thing) thing))
 
@@ -74,7 +67,7 @@
                     result))))
 
 (define (clear-stage)
-  (delete-recursively test-dir))
+  (rm-rf test-dir))
 
 (define-test-suite db-tests
   "Package database")

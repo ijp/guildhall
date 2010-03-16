@@ -26,14 +26,15 @@
 #!r6rs
 
 (library (dorodango actions)
-  (export create-bundle
+  (export read-package-lists
+          create-bundle
           list-files
           zip-files
           find-pkg-list-files
           scan-bundles-in-directory
           symlink-bundle)
   (import (except (rnrs) file-exists? delete-file)
-          (only (srfi :1) last)
+          (only (srfi :1) make-list last unfold)
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
@@ -55,24 +56,57 @@
           (dorodango ui)
           (dorodango private utils))
 
-(define (create-bundle bundle-filename
+(define (read-package-lists pkg-list-files append-version)
+  (collect-list (for pathname (in-list pkg-list-files))
+    (let ((packages (call-with-input-file (->namestring pathname)
+                      read-pkg-list)))
+      (if (null? append-version)
+          packages
+          (collect-list (for package (in-list packages))
+            (package-modify-version package
+                                    (lambda (version)
+                                      (append version append-version))))))))
+
+(define (read-pkg-list port)
+  (unfold eof-object?
+          parse-package-form
+          (lambda (seed) (read port))
+          (read port)))
+
+(define (create-bundle bundle-pathname
                        directories
                        packages-list
                        rewrite-pkg-list-files?)
-  (let ((filename (cond ((string-suffix? ".zip" bundle-filename)
-                         bundle-filename)
+  (let* ((bundle-pathname (->pathname bundle-pathname))
+         (bundle-directory (make-pathname
+                            #f
+                            (list (file-name (pathname-file bundle-pathname)))
+                            #f))
+         (pathname (cond ((pathname-has-file-type? bundle-pathname "zip")
+                          bundle-pathname)
                         (else
-                         (string-append bundle-filename ".zip"))))
+                         (pathname-add-type bundle-pathname "zip"))))
         (n-directories (length directories)))
-    (define (run-zip directory toplevel-pathname)
+    (define (run-zip directory graft-point)
       (let* ((tmp-dir (create-temp-directory))
-             (symlink (pathname-join tmp-dir toplevel-pathname)))
-        (create-directory* (pathname-container symlink))
+             (graft-dir (pathname-as-directory graft-point))
+             (symlink (pathname-join tmp-dir graft-dir))
+             (symlink-container (pathname-container symlink)))
+        (create-directory* symlink-container)
         (create-symbolic-link (pathname-join (working-directory) directory)
-                              symlink)
-        (zip-files filename
-                   (pathname-container symlink)
-                   (list-files directory toplevel-pathname))
+                              ;; ensure `fileness' of target argument
+                              (pathname-with-file
+                               symlink-container
+                               (last (pathname-directory symlink))))
+        (zip-files pathname
+                   (pathname-join symlink
+                                  (make-pathname
+                                   (make-list (length (pathname-directory
+                                                       graft-dir))
+                                              'back)
+                                   '()
+                                   #f))
+                   (list-files directory graft-point))
         (rm-rf tmp-dir)))
     (define (make-rewriter toplevel-pathname packages)
       (lambda (tmp-dir)
@@ -93,33 +127,28 @@
       (let ((tmp-dir (create-temp-directory)))
         (loop ((for rewriter (in-list rewrite-list))
                (for files (listing (rewriter tmp-dir))))
-          => (zip-files filename tmp-dir files))
+          => (unless (null? files)
+               (zip-files pathname tmp-dir files)))
         (rm-rf tmp-dir)))
-    (define (compute-pathnames directory packages)
-      (match packages
-        ((package)
-         (values directory (package->string package "_")))
-        (_
-         (let ((directory-part (pathname-directory directory)))
-           (cond ((null? directory-part)
-                  (when (> n-directories 1)
-                    (die (cat "unable to compute top-level directory for"
-                              " bundle component `"
-                              (dsp-pathname directory) "'.")))
-                  (values (make-pathname #f '() #f) (make-pathname #f '() #f)))
-                 (else
-                  (values (pathname-container directory)
-                          (make-pathname #f '() (last directory-part)))))))))
-    (delete-file filename)
-    (message "Creating " filename)
+    (define (component-graft-point directory packages)
+      (cond ((> n-directories 1)
+             (let ((directory-part (pathname-directory directory)))
+               (when (null? directory-part)
+                 (die (cat "unable to compute top-level directory for"
+                           " bundle component `"
+                           (dsp-pathname directory) "'.")))
+               (pathname-with-file bundle-directory (last directory-part))))
+            (else
+             bundle-directory)))
+    (delete-file pathname)
+    (message "Creating " (->namestring pathname))
     (loop ((for directory (in-list directories))
            (for packages (in-list packages-list))
-           (let-values (zip-directory toplevel-pathname)
-             (compute-pathnames directory packages))
-           (for rewrite-list (listing (make-rewriter toplevel-pathname packages)
+           (let graft-point (component-graft-point directory packages))
+           (for rewrite-list (listing (make-rewriter graft-point packages)
                                       (if rewrite-pkg-list-files?))))
       => (run-rewriters rewrite-list)
-      (run-zip zip-directory toplevel-pathname))))
+      (run-zip directory graft-point))))
 
 (define (zip-files zip-filename directory pathnames)
   (let ((zip-path (force %zip-path)))

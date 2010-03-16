@@ -28,6 +28,7 @@
           fmt-join/xvector
 
           apush
+          sort-tagged-tree
           
           warn
           die
@@ -35,6 +36,7 @@
 
           opt-ref/list
           dsp-pathname
+          pathname-has-file-type?
           pathname-add-type
           pathname->location
           location->pathname
@@ -49,6 +51,7 @@
           (srfi :8 receive)
           (srfi :98 os-environment-variables)
           (spells foof-loop)
+          (only (spells misc) and=>)
           (spells alist)
           (spells xvector)
           (spells fmt)
@@ -91,6 +94,20 @@
 (define (opt-ref/list vals key)
   (reverse (or (assq-ref vals key) '())))
 
+(define (sort-tagged-tree tree <?)
+  (if (pair? tree)
+      (cons (car tree)
+            (list-sort
+             (lambda (x y)
+               (cond ((and (pair? x) (pair? y)) (<? (car x) (car y)))
+                     ((pair? x)                 (<? (car x) y))
+                     ((pair? y)                 (<? x (car y)))
+                     (else                      (<? x y))))
+             (map (lambda (element)
+                    (sort-tagged-tree element <?))
+                  (cdr tree))))
+      tree))
+
 (define make-fmt-log
   (case-lambda
     ((logger)
@@ -110,6 +127,11 @@
 (define (dsp-pathname pathname)
   (lambda (st)
     ((dsp (->namestring pathname)) st)))
+
+(define (pathname-has-file-type? pathname type)
+  (let ((file (pathname-file pathname)))
+    (and=> (and file (file-type file))
+           (lambda (file-type) (string=? type file-type)))))
 
 (define (pathname-add-type pathname type)
   (let ((file (pathname-file pathname)))

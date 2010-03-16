@@ -1,6 +1,6 @@
 ;;; bundle.scm --- Bundle unit tests
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -39,7 +39,10 @@
 
 (define (test-bundle-contents bundle)
   (test-eqv #t (bundle? bundle))
-  (test-equal '(bar file-conflict-foo foo unsatisfied-depends)
+  (test-equal '(bar
+                file-conflict-foo foo
+                multi-core multi-tools
+                unsatisfied-depends)
     (list-sort symbol<? (map package-name (bundle-packages bundle)))))
 
 (define-test-case bundle-tests open/directory ()

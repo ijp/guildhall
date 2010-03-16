@@ -3,4 +3,5 @@
         "package.scm"
         "bundle.scm"
         "database.scm"
-        "solver.scm"))
+        "solver.scm"
+        "actions.scm"))

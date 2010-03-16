@@ -25,7 +25,7 @@
 (library (dorodango ui cmdline)
   (export run-cmdline-ui)
   (import (except (rnrs) delete-file file-exists?)
-          (only (srfi :1) drop concatenate unfold)
+          (only (srfi :1) drop concatenate)
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13)
@@ -867,19 +867,7 @@
 ;;; Packaging
 
 (define (create-bundle-command vals)
-  (define (read-packages-list pkg-list-files append-version)
-    (collect-list (for pathname (in-list pkg-list-files))
-      (let ((packages (call-with-input-file (->namestring pathname)
-                        read-pkg-list)))
-        (if (null? append-version)
-            packages
-            (map (lambda (package)
-                   (package-modify-version
-                    package
-                    (lambda (version)
-                      (append version append-version))))
-                 packages)))))
-  (define (compute-bundle-name packages)
+  (define (compute-bundle-filename packages)
     (match packages
       (()
        (die "all package lists have been empty."))
@@ -904,25 +892,19 @@
       (when (null? pkg-list-files)
         (die (cat "no package lists found in or below "
                   (fmt-join dsp-pathname pkg-list-files ", ")) "."))
-      (let* ((packages-list (read-packages-list pkg-list-files append-version))
+      (let* ((packages-list (read-package-lists pkg-list-files append-version))
              (output
               (or output-filename
                   (->namestring
                    (pathname-with-file
                     output-directory
-                    (compute-bundle-name (concatenate packages-list)))))))
+                    (compute-bundle-filename (concatenate packages-list)))))))
         (create-bundle output
                        (map (lambda (pathname)
                               (pathname-with-file pathname #f))
                             pkg-list-files)
                        packages-list
                        need-rewrite?)))))
-
-(define (read-pkg-list port)
-  (unfold eof-object?
-          parse-package-form
-          (lambda (seed) (read port))
-          (read port)))
 
 (define-command create-bundle
   (description "Create a bundle.")

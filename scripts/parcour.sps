@@ -135,7 +135,6 @@
       (lambda ()
         (run "update")
         (run "upgrade" "srfi" "spells" "dorodango")))
-    #;
     (rm-rf repo-dir)))
 
 (define (parcour)
@@ -144,10 +143,8 @@
                    (prefix-directory prefix)
                    (global-args (list "--yes" "--no-config" "--prefix" prefix)))
       (do-install)
-      #;
       (do-installation-test)
       (do-upgrade)
-      #;
       (rm-rf (prefix-directory)))))
 
 (parcour)

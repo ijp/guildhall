@@ -38,12 +38,11 @@
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map last)
           (srfi :8 receive)
-          (only (srfi :13) string-join string-suffix? string-null?)
+          (only (srfi :13) string-join string-suffix?)
           (spells alist)
           (spells misc)
           (only (spells record-types)
                 define-functional-fields)
-          (spells string-utils)
           (spells match)
           (spells ports)
           (spells pathname)
@@ -53,9 +52,8 @@
           (spells fmt)
           (spells logging)
           (spells tracing)
-          (only (spells assert) cout)
-          (prefix (weinholt compression zip) zip:)
           (dorodango private utils)
+          (dorodango private zip)
           (dorodango package)
           (dorodango inventory)
           (dorodango inventory mapping))
@@ -209,51 +207,14 @@
     ((bundle/extract-entry ops entry dest-port)
      (extract-zip-entry zip-port entry dest-port))))
 
-(define (extract-zip-entry zip-port zip-central dest-port)
-  (let ((zip-local (zip:central-directory->file-record zip-port zip-central)))
-    (zip:extract-to-port zip-port zip-local zip-central dest-port)))
-
 (define (open-zip-input-bundle pathname options)
   (let* ((port (open-file-input-port (->namestring pathname)))
-         (zip-dir (zip:get-central-directory port))
          (inventory? (not (enum-set-member? 'no-inventory options)))
-         (inventory (zip-dir->inventory zip-dir))
+         (inventory (zip-port->inventory port))
          (ops (make-zip-bundle-ops pathname port)))
     (make-bundle (and inventory? inventory)
                  (list-bundle-packages ops inventory inventory?)
                  ops)))
-
-;; This should be made more robust; if there are inconsistencies in
-;; the central directory file names (such as duplicates or "files
-;; inside a file"), `inventory-update' will error out; this should be
-;; caught and appropriately reported.
-(define (zip-dir->inventory zip-dir)
-  (loop continue ((for entry (in-list zip-dir))
-                  (with inventory (make-inventory 'root #f)))
-    => inventory
-    (if (zip:central-directory? entry)
-        (receive (path container?)
-                 (filename->path (zip:central-directory-filename entry))
-          (if (null? path)
-              (continue)  ;bad zipfile, probably should error out here
-              (continue
-               (=> inventory
-                   (inventory-leave-n
-                    (inventory-update inventory path container? entry)
-                    (length path))))))
-        (continue))))
-
-(define (filename->path filename)
-  (let* ((path (string-split filename #\/))
-         (relative-path (if (and (not (null? path))
-                                 (string-null? (car path)))
-                            (cdr path)
-                            path))
-         (reversed-path (reverse relative-path)))
-    (if (and (not (null? reversed-path))
-             (string-null? (car reversed-path)))
-        (values (reverse (cdr reversed-path)) #t)
-        (values relative-path #f))))
 
 
 ;;; Package handling

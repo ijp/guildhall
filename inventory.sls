@@ -250,7 +250,7 @@
 
 (define (inventory-update/aux inventory path other-node)
   (define (lose msg . irritants)
-    (apply error 'inventory-update msg irritants))
+    (apply assertion-violation 'inventory-update msg irritants))
   (define (adder node path-rest)
     (if (inventory-leaf? node)
         (lose "unexpected leaf node (expected container)"

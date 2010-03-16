@@ -116,7 +116,7 @@
           (for version (in-list (package-versions package)))
           (if (and-let* ((db-version (version-tag version)))
                 (db:version-constraint-satisified? constraint db-version)))
-          (values (cons version targets) updated-version-count)))
+        (values (cons version targets) updated-version-count)))
     
     (define (get/create-package package-name version-count)
       (cond ((hashtable-ref package-table package-name #f)

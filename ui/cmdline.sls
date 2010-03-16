@@ -1062,7 +1062,7 @@
   (arg-setter 'prefix))
 
 (define-option destination-option ("dest" #\d) destination
-  "select configured destination"
+  "select configured destination named DESTINATION"
   (arg-setter 'destination string->symbol))
 
 (define-option version-option ("version" #\V) #f

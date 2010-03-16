@@ -1,6 +1,6 @@
 ;;; maint.sps --- Maintainance tool for dorodango
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -50,7 +50,7 @@
                                          (symbol->string (package-name package))
                                          name-suffix))
                         (package-version package)))
-         (renamed-filename (package->string renamed-package "_"))
+         (renamed-filename (package->string renamed-package "-"))
          (tmp-dir (create-temp-directory '(())))
          (dist-dir (pathname-join tmp-dir `((,renamed-filename)))))
     ;; Create hardlink tree

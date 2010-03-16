@@ -28,7 +28,3 @@
         (dorodango ui cmdline))
 
 (run-cmdline-ui (command-line))
-
-;; Local Variables:
-;; scheme-indent-styles: (foof-loop (match 1))
-;; End:

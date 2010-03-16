@@ -717,7 +717,7 @@
 
 (define (select-package/string db package-string)
   (receive (name version) (parse-package-string package-string)
-    (select-package db name version)))
+    (select-package db name (or version 'newest))))
 
 (define (select-package db name version)
   (let ((item (database-lookup db name version)))
@@ -772,19 +772,18 @@
 (define (upgrade-command vals)
   (let ((packages (opt-ref/list vals 'operands))
         (db (config->database vals)))
-    (define (select-upgrade package-name)
-      (and-let* ((installed (database-lookup db package-name 'installed))
-                 (item (database-lookup db package-name 'newest)))
+    (define (select-upgrade items)
+      (and-let* ((item (car items))
+                 ((exists database-item-installed? items))
+                 ((not (database-item-installed? item))))
         (database-item-package item)))
-    (loop ((for package-name (in-list (if (null? packages)
-                                          (database-package-names db)
-                                          (map string->symbol packages))))
-           (for to-upgrade (listing (select-upgrade package-name) => values)))
+    (loop ((for package-name items (in-database db))
+           (for to-upgrade (listing (select-upgrade items) => values)))
       => (apply-actions db to-upgrade '()))))
 
 (define-command upgrade
-  (description "Upgrade packages.")
-  (synopsis "upgrade [PACKAGE...]")
+  (description "Upgrade all packages.")
+  (synopsis "upgrade")
   (options)
   (handler upgrade-command))
 

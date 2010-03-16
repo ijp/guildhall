@@ -134,7 +134,7 @@
                                     (last (pathname-directory repo-dir)))
       (lambda ()
         (run "update")
-        (run "upgrade" "srfi" "spells" "dorodango")))
+        (run "install" "srfi" "spells" "dorodango")))
     (rm-rf repo-dir)))
 
 (define (parcour)

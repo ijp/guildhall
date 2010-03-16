@@ -1,6 +1,6 @@
 ;;; ui.sls --- dorodango UI operations
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -33,13 +33,21 @@
           ui/prompt)
   (import (rnrs)
           (srfi :39 parameters)
+          (only (spells misc) unspecific)
           (spells operations))
 
 (define-operation (ui/message ui . formats))
 (define-operation (ui/y-or-n ui default message))
 (define-operation (ui/prompt ui message choices))
 
-(define current-ui (make-parameter #f))
+(define (make-null-ui)
+  (object #f
+    ((ui/message ui . formats)
+     (unspecific))
+    ((ui/y-or-n ui default message)
+     default)))
+
+(define current-ui (make-parameter (make-null-ui)))
 
 (define (make-ui-wrapper operation)
   (lambda args
@@ -50,3 +58,7 @@
 (define y-or-n  (make-ui-wrapper ui/y-or-n))
 
 )
+
+;; Local Variables:
+;; scheme-indent-styles: ((object 1))
+;; End:

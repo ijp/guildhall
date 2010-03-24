@@ -95,7 +95,8 @@
           repositories
           cache-dir
           file-table
-          pkg-table))
+          pkg-table
+          (mutable closed?)))
 
 (define-record-type item
   (fields package state sources bundle))
@@ -143,7 +144,8 @@
                                   repositories
                                   cache-dir
                                   file-table
-                                  pkg-table)))
+                                  pkg-table
+                                  #f)))
            (iterate! (for repository (in-list repositories))
              (create-directory* (database-cache-directory db repository)))
            (load-available-files! db repositories)
@@ -177,8 +179,8 @@
   (status-subdirectory (database-directory db)))
 
 (define (close-database db)
-  ;; TODO: mark the database as closed, so that future operations will
-  ;; fail
+  (guarantee-open-database 'close-database db)
+  (database-closed?-set! db #t)
   (let ((closed-bundles (make-eq-hashtable))
         (pkg-table (database-pkg-table db)))
     (receive (pkg-names items-vector) (hashtable-entries pkg-table)
@@ -190,6 +192,24 @@
                         (close-bundle bundle)
                         (hashtable-set! closed-bundles bundle #t))))))))
     (hashtable-clear! pkg-table)))
+
+(define (call-with-database db proc)
+  (let ((entered? #f))
+    (dynamic-wind
+      (lambda ()
+        (when entered?
+          (assertion-violation 'call-with-database
+                               "cannot re-enter extent" db))
+        (set! entered? #t))
+      (lambda () (proc db))
+      (lambda () (close-database db)))))
+
+(define (guarantee-open-database who db)
+  (unless (database? db)
+    (assertion-violation who "expected database" db))
+  (when (database-closed? db)
+    (assertion-violation who "database has already been closed" db))
+  db)
 
 (define (load-available-files! db repositories)
   ;; The repositories are loaded in reverse order, as later-added
@@ -297,6 +317,7 @@
 ;;; Source manipulation
 
 (define (database-add-bundle! db pathname)
+  (guarantee-open-database 'database-add-bundle! db)
   (let ((bundle (open-input-bundle pathname (bundle-options no-inventory))))
     (loop ((for package (in-list (bundle-packages bundle))))
       (add-package-source! db
@@ -341,6 +362,7 @@
                      '()))
 
 (define (database-update! db)
+  (guarantee-open-database 'database-update! db)
   (loop ((for repository (in-list (reverse (database-repositories db)))))
     (cond ((repository-fetch-available
             repository
@@ -376,8 +398,8 @@
   (vector->list (hashtable-keys (database-pkg-table db))))
 
 (define (database-lookup db name version)
-  (define (lose msg . irritants)
-    (apply assertion-violation 'database-lookup msg irritants))
+  (define who 'database-lookup)
+  (guarantee-open-database who db)
   (let ((items (database-items db name)))
     (cond ((eqv? version #f)
            (or (find item-installed? items)
@@ -386,11 +408,12 @@
            (case version
              ((installed) (find item-installed? items))
              ((newest)    (and (pair? items) (car items)))
-             (else        (lose "invalid version" version))))
+             (else        (assertion-violation who "invalid version" version))))
           (else
            (find-item-by-version items version)))))
 
 (define (database-items db name)
+  (guarantee-open-database 'database-items db)
   (hashtable-ref (database-pkg-table db) name '()))
 
 (define (find-item-by-version items version)
@@ -467,8 +490,9 @@
                       (make-file (package-name package) "info")))
 
 (define (database-install! db package)
+  (define who 'database-install!)
   (define (lose msg . irritants)
-    (apply error 'database-install! msg irritants))
+    (apply error who msg irritants))
   (define (do-install! desired-item)
     (let* ((bundle (or (open-bundle! db desired-item)
                        (lose "could not obtain bundle for package" package)))
@@ -481,6 +505,7 @@
       (save-package-info (database-package-info-pathname db package) package)
       (database-update-item! db package (lambda (item)
                                           (item-with-state item 'installed)))))
+  (guarantee-open-database who db)
   (let* ((items (database-items db (package-name package)))
          (desired-item (find-item-by-version items (package-version package))))
     (cond ((not desired-item)
@@ -551,6 +576,7 @@
         (put-string port "\n")))))
 
 (define (database-remove! db package-name)
+  (guarantee-open-database 'database-remove! db)
   (and-let* ((item (find item-installed?
                          (hashtable-ref (database-pkg-table db) package-name '()))))
     (let ((package (item-package item)))

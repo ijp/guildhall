@@ -1022,8 +1022,9 @@
          (item (if destination
                    (or (config-ref config destination)
                        (die (cat "no such destination configured: " destination)))
-                   (config-default-item config))))
-    (open-database (config-item-database-location item)
+                   (config-default-item config)))
+         (location (config-item-database-location item)))
+    (open-database location
                    (config-item-destination item)
                    (append repos (config-item-repositories item))
                    implementation

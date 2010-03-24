@@ -660,15 +660,16 @@
            bundle-option)
   (handler
    (lambda (vals)
-     (let ((all? (assq-ref vals 'all?))
-           (db (config->database vals)))
-       (database-add-bundles! db (opt-ref/list vals 'bundles))
-       (loop ((for package items (in-database db (sorted-by symbol<?))))
-         (cond (all?
-                (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
-               ((find database-item-installed? items)
-                => (lambda (installed)
-                     (fmt #t (dsp-db-item/short installed) "\n")))))))))
+     (let ((all? (assq-ref vals 'all?)))
+       (call-with-database (config->database vals)
+         (lambda (db)
+           (database-add-bundles! db (opt-ref/list vals 'bundles))
+           (loop ((for package items (in-database db (sorted-by symbol<?))))
+             (cond (all?
+                    (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
+                   ((find database-item-installed? items)
+                    => (lambda (installed)
+                         (fmt #t (dsp-db-item/short installed) "\n")))))))))))
 
 (define-command show
   (description "Show package information.")
@@ -676,11 +677,12 @@
   (synopsis "show [--bundle BUNDLE]... PACKAGE...")
   (handler
    (lambda (vals)
-     (let ((packages (opt-ref/list vals 'operands))
-           (db (config->database vals)))
-       (database-add-bundles! db (opt-ref/list vals 'bundles))
-       (loop ((for item (in-list (find-db-items db packages))))
-         (fmt #t (dsp-db-item item)))))))
+     (let ((packages (opt-ref/list vals 'operands)))
+       (call-with-database (config->database vals)
+         (lambda (db)
+           (database-add-bundles! db (opt-ref/list vals 'bundles))
+           (loop ((for item (in-list (find-db-items db packages))))
+             (fmt #t (dsp-db-item item)))))))))
 
 (define-command show-bundle
   (synopsis "show-bundle BUNDLE...")
@@ -711,9 +713,9 @@
   (description "Update repository information")
   (handler
    (lambda (vals)
-     (let ((db (config->database vals)))
-       (database-update! db)
-       (close-database db)))))
+     (call-with-database (config->database vals)
+       (lambda (db)
+         (database-update! db))))))
 
 (define (select-package/string db package-string)
   (receive (name version) (parse-package-string package-string)
@@ -733,16 +735,17 @@
 (define (install-command vals)
   (let ((bundle-locations (opt-ref/list vals 'bundles))
         (packages (opt-ref/list vals 'operands))
-        (no-depends? (assq-ref vals 'no-depends?))
-        (db (config->database vals)))
-    (database-add-bundles! db bundle-locations)
-    (loop ((for package (in-list packages))
-           (for to-install (listing (select-package/string db package))))
-      => (cond (no-depends?
-                (loop ((for package (in-list to-install)))
-                  (database-install! db package)))
-               (else
-                (apply-actions db to-install '()))))))
+        (no-depends? (assq-ref vals 'no-depends?)))
+    (call-with-database (config->database vals)
+      (lambda (db)
+        (database-add-bundles! db bundle-locations)
+        (loop ((for package (in-list packages))
+               (for to-install (listing (select-package/string db package))))
+          => (cond (no-depends?
+                    (loop ((for package (in-list to-install)))
+                      (database-install! db package)))
+                   (else
+                    (apply-actions db to-install '()))))))))
 
 (define-command install
   (synopsis "install [--bundle BUNDLE]... PACKAGE...")
@@ -752,16 +755,17 @@
 
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
-        (no-depends? (assq-ref vals 'no-depends?))
-        (db (config->database vals)))
-    (cond (no-depends?
-           (loop ((for package-name (in-list packages)))
-             (unless (database-remove! db (string->symbol package-name))
-               (message "Package " package-name " was not installed."))))
-          (else
-           (loop ((for package-name (in-list packages))
-                  (for to-remove (listing (string->symbol package-name))))
-             => (apply-actions db '() to-remove))))))
+        (no-depends? (assq-ref vals 'no-depends?)))
+    (call-with-database (config->database vals)
+      (lambda (db)
+        (cond (no-depends?
+               (loop ((for package-name (in-list packages)))
+                 (unless (database-remove! db (string->symbol package-name))
+                   (message "Package " package-name " was not installed."))))
+              (else
+               (loop ((for package-name (in-list packages))
+                      (for to-remove (listing (string->symbol package-name))))
+                 => (apply-actions db '() to-remove))))))))
 
 (define-command remove
   (description "Remove packages.")
@@ -770,16 +774,17 @@
   (handler remove-command))
 
 (define (upgrade-command vals)
-  (let ((packages (opt-ref/list vals 'operands))
-        (db (config->database vals)))
+  (let ((packages (opt-ref/list vals 'operands)))
     (define (select-upgrade items)
       (and-let* ((item (car items))
                  ((exists database-item-installed? items))
                  ((not (database-item-installed? item))))
         (database-item-package item)))
-    (loop ((for package-name items (in-database db))
-           (for to-upgrade (listing (select-upgrade items) => values)))
-      => (apply-actions db to-upgrade '()))))
+    (call-with-database (config->database vals)
+      (lambda (db)
+        (loop ((for package-name items (in-database db))
+               (for to-upgrade (listing (select-upgrade items) => values)))
+          => (apply-actions db to-upgrade '()))))))
 
 (define-command upgrade
   (description "Upgrade all packages.")
@@ -847,10 +852,14 @@
             ((0)  #f)
             ((1)  (string->symbol (car operands)))
             (else (die "`setup-destination' takes zero or one arguments")))))
-    (config->database (append (if destination
-                                  '((destination . ,destination))
-                                  '())
-                              vals))))
+    (call-with-database
+        (config->database (append (if destination
+                                      '((destination . ,destination))
+                                      '())
+                                  vals))
+      (lambda (db)
+        ;; no need to do anything
+        (unspecific)))))
 
 (define-option implementation-option ("implementation" #\i) implementation
   "use IMPLEMENTATION in destination"

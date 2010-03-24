@@ -39,6 +39,7 @@
   (export database?
           open-database
           close-database
+          call-with-database
           
           database-add-bundle!
           database-add-bundles!

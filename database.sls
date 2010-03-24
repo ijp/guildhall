@@ -64,6 +64,9 @@
           database-file-conflict-offender
           database-file-conflict-pathname
 
+          database-locked-error?
+          locked-database-pathname
+
           logger:dorodango.db)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map lset-adjoin)
@@ -126,6 +129,11 @@
 (define (file-conflict item package pathname)
   (raise (condition (make-file-conflict item package pathname))))
 
+(define-condition-type &database-locked-error &error
+  make-database-locked-error database-locked-error?
+  (pathname locked-database-pathname))
+
+
 
 ;;; Database loading
 
@@ -138,6 +146,7 @@
        (unless (file-exists? status-directory)
          (setup-destination destination `((implementation . ,implementation)))
          (create-directory* status-directory))
+       (lock-database-directory directory)
        (receive (pkg-table file-table)
                 (load-installed-packages status-directory destination)
          (let ((db (make-database directory
@@ -179,8 +188,16 @@
 (define (database-status-directory db)
   (status-subdirectory (database-directory db)))
 
+(define (lock-database-directory directory)
+  (unless (create-lock-file (pathname-with-file directory "lock"))
+    (raise (make-database-locked-error directory))))
+
+(define (unlock-database-directory directory)
+  (delete-file (pathname-with-file directory "lock")))
+
 (define (close-database db)
   (guarantee-open-database 'close-database db)
+  (unlock-database-directory (database-directory db))
   (database-closed?-set! db #t)
   (let ((closed-bundles (make-eq-hashtable))
         (pkg-table (database-pkg-table db)))

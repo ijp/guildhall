@@ -40,6 +40,7 @@
           pathname-add-type
           pathname->location
           location->pathname
+          create-lock-file
           uri-with-directory-path
           home-pathname
           rm-rf
@@ -144,6 +145,17 @@
 
 (define (location->pathname location)
   (make-pathname #f (drop-right location 1) (last location)))
+
+(define (create-lock-file pathname)
+  (receive (tmp-file tmp-port)
+           (create-temp-file (pathname-with-file pathname ".lk"))
+    (call-with-port tmp-port
+      (lambda (port) (put-string port "locked")))
+    (guard (c ((i/o-file-already-exists-error? c)
+               #f))
+      (create-hard-link tmp-file pathname)
+      (delete-file tmp-file)
+      #t)))
 
 ;;++ Also in irclogs; need to consolidate
 (define (uri-with-directory-path uri)

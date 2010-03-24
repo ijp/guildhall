@@ -78,6 +78,16 @@
 (define r6rs-script-wrappers
   '("r6rs-script" "r6rs-script.ikarus" "r6rs-script.ypsilon"))
 
+(define-test-case db-tests locking ((setup (assert-clear-stage))
+                                    (teardown (clear-stage)))
+  (let ((db-1 (open-test-database))
+        (cookie (list 'cookie)))
+    (test-eq cookie
+      (guard (c ((database-locked-error? c)
+                 cookie))
+        (open-test-database)))
+    (close-database db-1)))
+
 (define-test-case db-tests install+remove
   ((setup
     (assert-clear-stage))

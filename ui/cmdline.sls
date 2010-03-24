@@ -1033,11 +1033,13 @@
                        (die (cat "no such destination configured: " destination)))
                    (config-default-item config)))
          (location (config-item-database-location item)))
-    (open-database location
-                   (config-item-destination item)
-                   (append repos (config-item-repositories item))
-                   implementation
-                   (config-item-cache-directory item))))
+    (guard (c ((database-locked-error? c)
+               (die (cat (cat "database locked: " (dsp-pathname location))))))
+      (open-database location
+                     (config-item-destination item)
+                     (append repos (config-item-repositories item))
+                     implementation
+                     (config-item-cache-directory item)))))
 
 (define-option config-option ("config" #\c) file
   (cat "use configuration in FILE"

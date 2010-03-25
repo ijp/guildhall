@@ -42,6 +42,193 @@ configuration file and using it for this invocation of @command{doro}.
 @node Command Reference
 @section Command Reference
 
+Note that all commands take a @option{--help} option showing brief
+usage information, although that option is not explicitly listed
+below.
+
+@subsection Querying
+
+The following commands gather information; either from the package
+database, uninstalled bundles, or about the configuration.
+
+@deffn Command list
+
+Produces a list of packages, along with their installation status and
+version on standard output.
+
+@table @option
+@item --all
+@itemx -a
+
+Show all packages, including uninstalled, but available ones. By
+default only installed packages are listed.
+
+@item --bundle=@var{bundle}
+@itemx -b @var{bundle}
+
+Temporarily adds @var{bundle}'s contents to the package database.
+
+@end table
+@end deffn
+
+@deffn Command show package ...
+
+Shows information about one or more packages. This command lists
+package, name, version and dependencies in RFC822-like style on
+standard output.
+
+@table @option
+@item --bundle=@var{bundle}
+@itemx -b @var{bundle}
+
+Temporarily adds @var{bundle}'s contents to the package database.
+
+@end table
+@end deffn
+
+@deffn Command show-bundle bundle ...
+
+Shows the contents of one or more bundles on standard output. The
+content listing consist of each package's information, as shown by the
+the @command{show} command, plus the package's the list of files in
+each category. @xref{Packages}.
+
+@end deffn
+
+@deffn Command config
+Shows the current configuration in YAML-like style.
+@end deffn
+
+@subsection Package managment
+
+@deffn Command update
+Download information about available packages from all repositories of
+the selected destination.
+@end deffn
+
+@deffn Command install package ...
+
+Install the listed @var{package}s. Each @var{package} argument can be
+a package name, in which case the newest available version is
+installed. If the package in question is already installed, it will be
+upgraded. One may also explicitly specifying a specific version to be
+installed using the syntax @samp{@var{package-name}=@var{version}}.
+
+@table @option
+@item --bundle=@var{bundle}
+@itemx -b @var{bundle}
+
+Temporarily adds @var{bundle}'s contents to the package database.
+
+@item --no-depends
+
+Disable dependency resolution. This option allows for installing
+packages with unresolved dependencies.
+
+@end table
+@end deffn
+
+@deffn Command remove package ...
+
+Remove the listed @var{package}s from the system.
+
+@table @option
+@item --no-depends
+
+Disable dependency resolution. This option allows for installing
+packages with unresolved dependencies.
+
+@end table
+@end deffn
+
+@deffn Command upgrade
+Upgrade all packages to the newest available version.
+@end deffn
+
+@deffn Command init
+This command can be used to explicitly initialize a destination for
+use with a particuliar Scheme implementation. The initialization is
+otherwise done implicitly upon first opening the database for that
+destination, and uses the @code{default-implementation} configuration
+clause (@pxref{default-implementation}).
+
+@table @option
+@item --implementation=@var{impl}
+@itemx -i @var{impl}
+
+Select the implementation to use for that destination.
+
+@end table
+@end deffn
+
+@subsection Development
+
+The following commands are of use if you want to create your own
+packages and repositories.
+
+@deffn Command create-bundle directory ...
+Create a bundle from the directories given as arguments.
+
+@table @option
+@item --output=@var{filename}
+@itemx -o @var{filename}
+
+Output the bundle to @var{filename}. When this option is not given,
+dorodango will try to name the bundle based on the package contained
+in it. Should the bundle contain multiple packages, this option is
+mandatory.
+
+@item --directory=@var{directory}
+@itemx -d @var{directory}
+
+Output directory for the created bundle file. This option only has an
+effect when @option{--output} is @emph{not} provided.
+
+@item --append-version=@var{version}
+Rewrite the versions of all packages in the created bundle by
+appending @var{version}. This is useful, for e.g. creating
+``snapshot'' bundles from a VCS, where one could append the current
+date to the upstream version.
+@end table
+@end deffn
+
+@deffn Command scan-bundles directory ...
+Search the directories passed as arguments for bundles and produce an
+``available file'' containing information about found bundles on
+standard output.
+
+@table @option
+@item --output=@var{filename}
+@itemx -o @var{filename}
+@end table
+@end deffn
+
+@deffn Command symlink-bundle bundle-directory target-directory
+
+Create a symbolic link tree in @var{target-directory}, using the
+bundle at @var{bundle-directory}.
+
+@table @option
+@item --force
+Allow the command to operate even when @var{target-directory} already
+exists.
+
+@item --deep
+Create a symbolic link for every file. Without this option,
+@command{doro} will create symbolic links to directories when this
+doesn't change the created symlink tree.
+
+@item --include=@var{packages}
+Create symbolic links just for the packages listed in the comma- or
+space-seperated list @var{packages}.
+
+@item --exclude=@var{packages}
+Create symbolic links for all @emph{but} the packages listed in the
+comma- or space-seperated list @var{packages}.
+
+@end table
+@end deffn
+
 @node Configuration File
 @section Configuration File
 
@@ -110,6 +297,8 @@ package database on disk; if it is left out, dorodango will use a
 default location, based on the destination's prefix.
 
 @subsection Defaults
+
+@anchor{default-implementation}
 
 The @code{default-implementation} clause specifies the Scheme
 implementation to use by default when setting up new destinations,

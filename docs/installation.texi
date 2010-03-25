@@ -1,5 +1,5 @@
 @node Installation
-@chapter Installation
+@section Installation
 
 Dorodango comes in a tarball, which includes all its dependencies and
 an installation script. The installation script will probe for a

@@ -44,21 +44,29 @@ ball.
 @end quotation
 
 Using dorodango, you can easily install and distribute collections of
-R6RS libraries and programs using these libraries. It can handle
-dependencies, so when a program requires several libraries, and each
-of those has further dependencies, dorodango allows you to install all
-the prerequisites for that program in one go.
+R6RS libraries as well as programs using these libraries. It can
+handle dependencies, so when a program requires several libraries, and
+each of those has further dependencies, dorodango allows you to
+install all the prerequisites for that program in one go.
 
 @menu
-* Installation::
-* Quickstart:: Getting started, quickly
+* Getting Started:: Installation and a quick introduction
 * Overview:: Dorodango summed up
 * Reference:: All of dorodango's functionality
 * Index:: Concept index
 @end menu
 
+@node Getting Started
+@chapter Getting Started
+
+@menu
+* Installation:: Installing dorodango
+* Quickstart:: A quick introduction
+@end menu
+
 @include installation.texi
 @include quickstart.texi
+
 @include overview.texi
 @include reference.texi
 

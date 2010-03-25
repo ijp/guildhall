@@ -1,10 +1,10 @@
 @node Quickstart
-@chapter Quickstart
+@section Quickstart
 
 For the unpatient, this section presents the minium you need to know
 to use dorodango for installing software.
 
-@section Configuration
+@subheading Configuration
 
 So, you've successfully installed dorodango, and were able to get the
 help message via @command{doro --help}? Then it's time to tell dorodango
@@ -20,7 +20,7 @@ repository, and gives it the name @samp{experimental}. You could add
 further repositories with different names and locations, and dorodango
 will consider them all when installing packages.
 
-@section Updating the package database
+@subheading Updating the package database
 
 This is all configuration that is needed; if you now run @command{doro
 update}, you should see something like the following:
@@ -44,7 +44,7 @@ u fidfw                      0-20091204
 The rightmost columns indicates the package state (@samp{u} means
 "uninstalled"), the other columns are the package name and version.
 
-@section Installing software
+@subheading Installing software
 
 You can now install any of the listed packages, using @command{doro
 install @var{package-name}}:
@@ -64,7 +64,7 @@ As demonstrated in the above verbatim, dorodango knows that the package
 @samp{spells} depends on @samp{srfi}, and will automatically install
 that package as well.
 
-@section Other important commands
+@subheading Other important commands
 
 Now you you know how to achieve the primary task of dorodango:
 installing software. There are a few other things you probably want to
@@ -78,7 +78,7 @@ Attempts to upgrade each package to the newest available version.
 Allows you to remove packages from your system.
 @end table
 
-@heading Getting help
+@subheading Getting help
 
 For each command, you can invoke @command{doro @var{command} --help}, and it will
 show you what options and argument that command requires:

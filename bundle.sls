@@ -264,7 +264,7 @@
                                (categorize-inventory
                                 (package-properties package)
                                 inventory)
-                               (values #f (make-inventory 'uncategorized #f)))
+                               (values '() (make-inventory 'uncategorized #f)))
                     (continue
                      (=> result (cons (package-with-inventories
                                        package

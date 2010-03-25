@@ -654,7 +654,7 @@
 (define-command list
   (synopsis "list")
   (description "List packages.")
-  (options (option '("all") #f #f #f
+  (options (option '("all" #\a) #f #f #f
                    "also show available packages"
                    (value-setter 'all? #t))
            bundle-option)
@@ -839,7 +839,8 @@
 
 (define-command config
   (description "Show configuration.")
-  (synopsis "config destination PACKAGE CATEGORY [FILENAME]")
+  (synopsis "config"
+            "config destination PACKAGE CATEGORY [FILENAME]")
   (options)
   (handler config-command))
 

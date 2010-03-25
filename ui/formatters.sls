@@ -1,6 +1,6 @@
 ;;; formatters.sls --- formatting combinators
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -86,7 +86,7 @@
                    (let ((inventory (package-category-inventory pkg category)))
                      (if (inventory-empty? inventory)
                          fmt-null
-                         (cat "Inventory: " category "\n"
+                         (cat "Category: " category "\n"
                               (dsp-inventory inventory)))))
                  (package-categories pkg))))
 

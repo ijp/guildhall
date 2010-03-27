@@ -67,6 +67,12 @@
           database-locked-error?
           locked-database-pathname
 
+          database-corruption-error?
+          corrupt-database-pathname
+
+          database-unavailable-package-error?
+          database-unavailable-package
+
           logger:dorodango.db)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) filter-map lset-adjoin)
@@ -129,10 +135,23 @@
 (define (file-conflict item package pathname)
   (raise (condition (make-file-conflict item package pathname))))
 
-(define-condition-type &database-locked-error &error
+(define-condition-type &database-locked &error
   make-database-locked-error database-locked-error?
   (pathname locked-database-pathname))
 
+(define-condition-type &database-corruption-error &error
+  make-database-corruption-error database-corruption-error?
+  (pathname corrupt-database-pathname))
+
+(define (database-corruption who pathname message . irritants)
+  (raise (condition (make-who-condition who)
+                    (make-database-corruption-error pathname)
+                    (make-message-condition message)
+                    (make-irritants-condition irritants))))
+
+(define-condition-type &database-unavailable-package &error
+  make-database-unavailable-package-error database-unavailable-package-error?
+  (package database-unavailable-package))
 
 
 ;;; Database loading
@@ -243,7 +262,7 @@
 
 (define (load-available-file! db repository pathname)
   (define (lose msg . irritants)
-    (apply error 'load-available-file! msg (cons pathname irritants)))
+    (apply database-corruption 'load-available-file! pathname msg irritants))
   (call-with-input-file (->namestring pathname)
     (lambda (port)
       (loop ((for form (in-port port read)))
@@ -259,8 +278,12 @@
                (lose "invalid package form in available file" form)))))))
 
 (define (load-installed-packages directory destination)
-  (define (lose msg . irritants)
-    (apply error 'load-installed-packages msg irritants))
+  (define (lose filename msg . irritants)
+    (apply database-corruption
+           'load-installed-packages
+           (pathname-with-file directory filename)
+           msg
+           irritants))
   (let ((pkg-table (make-eq-hashtable))
         (file-table (make-hashtable pathname-hash pathname=?)))
     (loop ((for filename (in-directory directory)))
@@ -268,13 +291,14 @@
       (when (string-suffix? ".info" filename)
         (let ((package (load-package-info
                         (pathname-with-file directory filename))))
-          (hashtable-update! pkg-table
-                             (package-name package)
-                             (lambda (items)
-                               (if items
-                                   (lose "duplicate package in status file" )
-                                   (list (make-item package 'installed '() #f))))
-                             #f)
+          (hashtable-update!
+           pkg-table
+           (package-name package)
+           (lambda (items)
+             (if items
+                 (lose filename "duplicate package in status file" items)
+                 (list (make-item package 'installed '() #f))))
+           #f)
           (update-file-table! file-table
                               destination
                               package))))))
@@ -509,8 +533,11 @@
 
 (define (database-install! db package)
   (define who 'database-install!)
-  (define (lose msg . irritants)
-    (apply error who msg irritants))
+  (define (lose msg package)
+    (raise (condition
+            (make-who-condition who)
+            (make-database-unavailable-package-error package)
+            (make-message-condition msg))))
   (define (do-install! desired-item)
     (let* ((bundle (or (open-bundle! db desired-item)
                        (lose "could not obtain bundle for package" package)))
@@ -522,13 +549,12 @@
       (extract-package bundle package (database-destination db))
       (save-package-info (database-package-info-pathname db package) package)
       (database-update-item! db package (lambda (item)
-                                          (item-with-state item 'installed)))))
+                                          (item-with-state item 'installed)))
+      #t))
   (guarantee-open-database who db)
-  (let* ((items (database-items db (package-name package)))
-         (desired-item (find-item-by-version items (package-version package))))
-    (cond ((not desired-item)
-           (lose "no such package in database" package))
-          ((exists (lambda (item)
+  (and-let* ((items (database-items db (package-name package)))
+             (desired-item (find-item-by-version items (package-version package))))
+    (cond ((exists (lambda (item)
                      (and (item-installed? item)
                           (not (eq? item desired-item))))
                    items)
@@ -536,7 +562,9 @@
                 (database-remove! db (package-name package))
                 (do-install! desired-item)))
           ((not (item-installed? desired-item))
-           (do-install! desired-item)))))
+           (do-install! desired-item))
+          (else
+           #f))))
 
 (define (open-bundle! db item)
   (define (update-bundle-packages bundle source)
@@ -551,7 +579,8 @@
                              (make-item package 'available (list source) #f))))
   (let ((sources (item-sources item)))
     (when (null? sources)
-      (error 'open-bundle! "no sources for package" (item-package item)))
+      (assertion-violation 'open-bundle!
+                           "no sources for package" (item-package item)))
     (loop continue ((for source (in-list sources)))
       => #f
       (let ((repo (source-repository source)))

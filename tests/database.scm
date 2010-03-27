@@ -74,6 +74,7 @@
 
 (define package:foo (make-package 'foo '((0))))
 (define package:bar (make-package 'bar '((0))))
+(define package:not-there (make-package 'not-there '((0))))
 (define package:file-conflict-foo (make-package 'file-conflict-foo '((0))))
 (define r6rs-script-wrappers
   '("r6rs-script" "r6rs-script.ikarus" "r6rs-script.ypsilon"))
@@ -96,7 +97,7 @@
   (begin
     ;; Install package
     (let ((db (open-test-database)))
-      (database-install! db package:foo)
+      (test-eqv #t (database-install! db package:foo))
       (let ((item (database-lookup db 'foo '((0)))))
         (test-eqv #t (database-item? item))
         (test-eqv #t (database-item-installed? item)))
@@ -117,7 +118,7 @@
         (directory->tree dest-dir))
 
       ;; Test removal
-      (database-remove! db 'foo)
+      (test-eqv #t (database-remove! db 'foo))
       (test-equal `(("bin" ,@r6rs-script-wrappers))
         (directory->tree dest-dir))
       (close-database db))
@@ -126,6 +127,15 @@
       (test-eqv #t (database-item? item))
       (test-eqv #f (database-item-installed? item))
       (close-database db))))
+
+(define-test-case db-tests non-existing ((setup
+                                          (assert-clear-stage))
+                                         (teardown
+                                          (clear-stage)))
+  (call-with-database (open-test-database)
+    (lambda (db)
+      (test-eqv #f (database-install! db package:not-there))
+      (test-eqv #f (database-remove! db 'not-there)))))
 
 (define-test-case db-tests file-conflict
   ((setup

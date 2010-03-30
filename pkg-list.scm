@@ -2,6 +2,7 @@
 (package (dorodango (0))
   (depends (srfi)
            (spells)
+           (parscheme)
            (industria)
            (ocelotl))
   (libraries (sls -> "dorodango")

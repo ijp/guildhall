@@ -141,6 +141,13 @@
        (let ((bundle (open-input-bundle bundle-location)))
          (fmt #t (dsp-bundle bundle)))))))
 
+(define-command man
+  (synopsis "man")
+  (description "Show help for all commands in groff (man page) format")
+  (handler
+   (lambda (vals)
+     (fmt #t (dsp-man-page)))))
+
 (define (dsp-db-item item)
   (dsp-package (database-item-package item)))
 
@@ -458,7 +465,7 @@
    (lambda (option option-name arg vals)
      (acons 'run
             (lambda (vals)
-              (fmt #t (dsp-help command))
+              (fmt #t (dsp-help indented-help-formatter command))
               '())
             vals))))
 
@@ -557,7 +564,7 @@
         config))
     (parameterize ((current-ui (make-cmdline-ui `((assume-yes? . ,assume-yes?)))))
       (cond ((null? operands)
-             (fmt #t (dsp-help (find-command 'main))))
+             (fmt #t (dsp-help indented-help-formatter (find-command 'main))))
             ((find-command (string->symbol (car operands)))
              => (lambda (command)
                   (let ((config (cond ((assq-ref vals 'config)
@@ -583,10 +590,7 @@
    ""
    "Commands:"
    ""
-   (dsp-listing "  " (map command-name (command-list))
-                "  " (map (lambda (command)
-                            (apply-cat (command-description command)))
-                          (command-list))))
+   (dsp-command-listing  (command-list)))
   (footer "Use \"doro COMMAND --help\" to get more information about COMMAND.\n"
           (pad/both 72 "This doro has Super Ball Powers.")
           "\n")

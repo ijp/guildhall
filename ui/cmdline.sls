@@ -179,11 +179,11 @@
 (define (select-package db name version)
   (let ((item (database-lookup db name version)))
     (cond ((not item)
-           (die (cat "could not find any package matching `"
-                     name (if (package-version? version)
-                              (cat "-" (dsp-package-version version))
-                              fmt-null)
-                     "'")))
+           (fatal (cat "could not find any package matching `"
+                       name (if (package-version? version)
+                                (cat "-" (dsp-package-version version))
+                                fmt-null)
+                       "'")))
           (else
            (database-item-package item)))))
 
@@ -198,7 +198,12 @@
                (for to-install (listing (select-package/string db package))))
           => (cond (no-depends?
                     (loop ((for package (in-list to-install)))
-                      (database-install! db package)))
+                      (or (database-install! db package)
+                          (let ((db-package
+                                 (database-lookup db (package-name package))))
+                            (message "Package " package-name
+                                     " already at version "
+                                     (package-version db-package))))))
                    (else
                     (apply-actions db to-install '()))))))))
 
@@ -259,7 +264,7 @@
         (case (string->symbol (car operands))
           ((destination)
            (unless (<= 3 n-operands 4)
-             (die "`config destination' requires 2 or 3 arguments"))
+             (fatal "`config destination' requires 2 or 3 arguments"))
            (let ((destination (config-item-destination
                                (config-default-item config)))
                  (package (string->package (list-ref operands 1) "="))
@@ -307,7 +312,7 @@
           (case n-operands
             ((0)  #f)
             ((1)  (string->symbol (car operands)))
-            (else (die "`setup-destination' takes zero or one arguments")))))
+            (else (fatal "`setup-destination' takes zero or one arguments")))))
     (call-with-database
         (config->database (append (if destination
                                       '((destination . ,destination))
@@ -334,11 +339,11 @@
   (define (compute-bundle-filename packages)
     (match packages
       (()
-       (die "all package lists have been empty."))
+       (fatal "all package lists have been empty."))
       ((package)
        (package->string package "_"))
       (_
-       (die "multiple packages found and no bundle name specified."))))
+       (fatal "multiple packages found and no bundle name specified."))))
   (let ((directories (match (opt-ref/list vals 'operands)
                        (()
                         (list (make-pathname #f '() #f)))
@@ -354,8 +359,8 @@
     (let ((pkg-list-files (find-pkg-list-files directories))
           (need-rewrite? (not (null? append-version))))
       (when (null? pkg-list-files)
-        (die (cat "no package lists found in or below "
-                  (fmt-join dsp-pathname pkg-list-files ", ")) "."))
+        (fatal (cat "no package lists found in or below "
+                    (fmt-join dsp-pathname pkg-list-files ", ")) "."))
       (let* ((packages-list (read-package-lists pkg-list-files append-version))
              (output
               (or output-filename
@@ -437,7 +442,7 @@
                                (else
                                 #t)))))
       (_
-       (die "`symlink' expects two arguments")))))
+       (fatal "`symlink' expects two arguments")))))
 
 (define-command symlink-bundle
   (description "Create symbolink links for a bundle.")
@@ -471,7 +476,7 @@
 
 (define (process-command-line command cmd-line seed-vals)
   (define (unrecognized-option option name arg vals)
-    (die (cat "unrecognized option: " name)))
+    (fatal (cat "unrecognized option: " name)))
   (define (process-operand operand vals)
     (apush 'operands operand vals))
   (let ((vals (args-fold* cmd-line
@@ -498,11 +503,11 @@
          (repos (opt-ref/list options 'repositories))
          (item (if destination
                    (or (config-ref config destination)
-                       (die (cat "no such destination configured: " destination)))
+                       (fatal (cat "no such destination configured: " destination)))
                    (config-default-item config)))
          (location (config-item-database-location item)))
     (guard (c ((database-locked-error? c)
-               (die (cat (cat "database locked: " (dsp-pathname location))))))
+               (fatal (cat "database locked: " (dsp-pathname location)))))
       (open-database location
                      (config-item-destination item)
                      (append repos (config-item-repositories item))
@@ -536,7 +541,7 @@
   (lambda (option name arg vals)
     (apush 'repositories
            (or (uri-string->repository arg)
-               (die (cat "unsupported repository URI: " arg)))
+               (fatal (cat "unsupported repository URI: " arg)))
            vals)))
 
 (define-option yes-option ("yes" #\y) #f
@@ -547,7 +552,7 @@
   (define (read-config/default pathname)
     (guard (c ((i/o-file-does-not-exist-error? c)
                (cond (pathname
-                      (die (cat "specified config file `"
+                      (fatal (cat "specified config file `"
                                 (dsp-pathname pathname) "' does not exist.")))
                      (else (default-config)))))
       (call-with-input-file (->namestring pathname)
@@ -579,7 +584,7 @@
                        (destination . ,(assq-ref vals 'destination))
                        (config . ,(config-with-prefix config)))))))
             (else
-             (die "unknown command" (car operands)))))))
+             (fatal "unknown command" (car operands)))))))
 
 (define-command main
   (synopsis "[OPTIONS] COMMAND [COMMAND-OPTIONS] [ARGS]\n")
@@ -643,11 +648,14 @@
      (,logger:dorodango.solver
       (propagate? #f)
       (handlers (warning ,(make-message-log-handler 1))))))
-  (process-command-line (find-command 'main)
-                        (cdr argv)
-                        `((operands)
-                          (repositories . ())
-                          (config . ,(default-config-location)))))
+  (guard (c ((fatal-error? c)
+             (fmt (current-error-port) (cat "doro: " (condition-message c) "\n"))
+             (exit #f)))
+    (process-command-line (find-command 'main)
+                          (cdr argv)
+                          `((operands)
+                            (repositories . ())
+                            (config . ,(default-config-location))))))
 
 )
 

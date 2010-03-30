@@ -31,7 +31,8 @@
           sort-tagged-tree
           
           warn
-          die
+          fatal
+          fatal-error?
           define-guarantor
 
           opt-ref/list
@@ -62,7 +63,6 @@
           (ocelotl wt-tree)
           (ocelotl net uri))
 
-
 (define-syntax define-guarantor
   (syntax-rules ()
     ((define-guarantor guarantor predicate type-name)
@@ -81,9 +81,13 @@
                (make-message-condition message)
                (make-irritants-condition irritants))))
 
-(define (die formatter)
-  (fmt (current-error-port) (cat "doro: " formatter "\n"))
-  (exit #f))
+(define-condition-type &fatal-error &error
+  make-fatal-error fatal-error?)
+
+(define (fatal formatter)
+  (raise (condition
+          (make-fatal-error)
+          (make-message-condition (fmt #f formatter)))))
 
 (define (apush k v vals)
   (cond ((assq k vals)

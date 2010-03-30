@@ -137,6 +137,18 @@
       (test-eqv #f (database-install! db package:not-there))
       (test-eqv #f (database-remove! db 'not-there)))))
 
+(define-test-case db-tests locked ((setup (assert-clear-stage))
+                                   (teardown (clear-stage)))
+  (let ((exception-cookie (list 'exception)))
+    (test-eq exception-cookie
+      (guard (c ((database-locked-error? c)
+                 exception-cookie))
+        (call-with-database (open-test-database)
+          (lambda (db)
+            (call-with-database (open-test-database)
+              (lambda (db-nested)
+                'fail))))))))
+
 (define-test-case db-tests file-conflict
   ((setup
     (assert-clear-stage))

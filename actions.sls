@@ -134,9 +134,9 @@
       (cond ((> n-directories 1)
              (let ((directory-part (pathname-directory directory)))
                (when (null? directory-part)
-                 (die (cat "unable to compute top-level directory for"
-                           " bundle component `"
-                           (dsp-pathname directory) "'.")))
+                 (fatal (cat "unable to compute top-level directory for"
+                             " bundle component `"
+                             (dsp-pathname directory) "'.")))
                (pathname-with-file bundle-directory (last directory-part))))
             (else
              bundle-directory)))
@@ -153,7 +153,7 @@
 (define (zip-files zip-filename directory pathnames)
   (let ((zip-path (force %zip-path)))
     (unless zip-path
-      (die "`zip' executable not found in PATH."))
+      (fatal "`zip' executable not found in PATH."))
     (let ((zip-filename (pathname-join (working-directory) zip-filename)))
       (with-working-directory directory
         (lambda ()
@@ -169,13 +169,13 @@
 (define (process-status-checker program-path expected-status)
   (lambda (status signal . results)
     (cond (signal
-           (die (cat "`zip' was terminated by signal " signal)))
+           (fatal (cat "`zip' was terminated by signal " signal)))
           ((= status 0)
            (if (null? results)
                (unspecific)
                (apply values results)))
           (else
-           (die (cat "`zip' returned with unexpected status " status))))))
+           (fatal (cat "`zip' returned with unexpected status " status))))))
 
 (define %zip-path (delay (find-exec-path "zip")))
 
@@ -269,7 +269,7 @@
                         consider-package?)
   (define (assert-directory pathname)
     (unless (file-directory? pathname)
-      (die (cat "not a directory: " (->namestring pathname)))))
+      (fatal (cat "not a directory: " (->namestring pathname)))))
   (let ((target-directory (merge-pathnames (pathname-as-directory target-directory)
                                            (working-directory)))
         (bundle-directory (merge-pathnames (pathname-as-directory bundle-directory)
@@ -278,8 +278,8 @@
     (when (file-exists? target-directory)
       (if force?
           (assert-directory target-directory)
-          (die (cat "target directory `" (->namestring target-directory)
-                    "' must not exist."))))
+          (fatal (cat "target directory `" (->namestring target-directory)
+                      "' must not exist."))))
     (let ((bundle (open-input-bundle bundle-directory)))
       (loop continue ((for package (in-list (bundle-packages bundle)))
                       (with target-inventory (make-inventory 'target #f)))

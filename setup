@@ -68,6 +68,6 @@ case "$1" in
         ;;
     *)
         echo "* Installing dorodango"
-        $runner scripts/doro.sps "$@" init --implementation "$IMPL"
-        $runner scripts/doro.sps "$@" --no-config install --bundle ..  dorodango
+        $runner scripts/doro.sps "$@" --no-config --yes init --implementation "$IMPL"
+        $runner scripts/doro.sps "$@" --no-config --yes install --bundle ..  dorodango
 esac

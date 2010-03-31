@@ -33,7 +33,7 @@ later version published by the Free Software Foundation.
 This manual is for dorodango, version 0.0.1.
 @end ifnottex
 
-Dorodango is package manager written in and for R6RS Scheme.
+Dorodango is a package manager written in and for R6RS Scheme.
 
 From @uref{http://en.wikipedia.org/wiki/Dorodango,Wikipedia}:
 

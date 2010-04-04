@@ -156,6 +156,7 @@
 
 ;;; Database loading
 
+;;@ Open a package database.
 (define open-database
   (case-lambda
     ((directory destination repositories implementation cache-dir)
@@ -214,6 +215,7 @@
 (define (unlock-database-directory directory)
   (delete-file (pathname-with-file directory "lock")))
 
+;;@ Close a previously opened database.
 (define (close-database db)
   (guarantee-open-database 'close-database db)
   (unlock-database-directory (database-directory db))
@@ -230,6 +232,8 @@
                         (hashtable-set! closed-bundles bundle #t))))))))
     (hashtable-clear! pkg-table)))
 
+;;@ Ensures a database is closed upon leaving the dynamic extent of
+;; the call to @var{proc}.
 (define (call-with-database db proc)
   (let ((entered? #f))
     (dynamic-wind
@@ -358,6 +362,8 @@
 
 ;;; Source manipulation
 
+;;@ Add the bundle located at @var{pathname} as a source of packages
+;; to the database @var{db}.
 (define (database-add-bundle! db pathname)
   (guarantee-open-database 'database-add-bundle! db)
   (let ((bundle (open-input-bundle pathname (bundle-options no-inventory))))
@@ -367,6 +373,9 @@
                            (make-source null-repository pathname)))
     (close-bundle bundle)))
 
+;;@ Add, as with @xref{dorodango database
+;; database-add-bundle!,database-add-bundle!}, each element of the
+;; list @var{pathnames} to the database.
 (define (database-add-bundles! db pathnames)
   (loop ((for pathname (in-list pathnames)))
     (database-add-bundle! db pathname)))
@@ -403,6 +412,8 @@
                      update-items
                      '()))
 
+;;@ Update the database with the package availability information of
+;; its repositories.
 (define (database-update! db)
   (guarantee-open-database 'database-update! db)
   (loop ((for repository (in-list (reverse (database-repositories db)))))
@@ -439,6 +450,23 @@
 (define (database-package-names db)
   (vector->list (hashtable-keys (database-pkg-table db))))
 
+;;@ Lookup the package identified by @var{name} and @var{version} in
+;; the database @var{db} and return its item, or @code{#f} if the
+;; specified item can not be found. Besides specifying a specific
+;; package version via @var{version}, this argument can also be one of
+;; the following special values to specify a lookup strategy for the
+;; package version:
+;;
+;; @table @code @item #f Return the installed version, or the latest
+;;version if the package is not installed.
+;;
+;; @item 'installed
+;; Return the installed version, or @code{#f} if the package is
+;; not installed.
+;;
+;; @item 'newest
+;; Return the newest version.
+;; @end table
 (define (database-lookup db name version)
   (define who 'database-lookup)
   (guarantee-open-database who db)
@@ -454,6 +482,7 @@
           (else
            (find-item-by-version items version)))))
 
+;;@ Return the list of items for the package named @var{name}.
 (define (database-items db name)
   (guarantee-open-database 'database-items db)
   (hashtable-ref (database-pkg-table db) name '()))
@@ -464,6 +493,7 @@
                                       (item-package item))))
         items))
 
+;;@ Foof-loop iterator.
 (define-syntax in-database
   (syntax-rules (sorted-by)
     ((_ (name-var items-var) (db-expr) cont . env)
@@ -531,6 +561,7 @@
   (pathname-with-file (database-status-directory db)
                       (make-file (package-name package) "info")))
 
+;:@ Install a package.
 (define (database-install! db package)
   (define who 'database-install!)
   (define (lose msg package)
@@ -622,6 +653,7 @@
                           (list category))))
         (put-string port "\n")))))
 
+;;@ Remove a package from the database.
 (define (database-remove! db package-name)
   (guarantee-open-database 'database-remove! db)
   (and-let* ((item (find item-installed?

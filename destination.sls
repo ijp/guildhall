@@ -50,7 +50,7 @@
                 string-concatenate-reverse
                 string-contains) 
           (spells alist)
-          (only (spells misc) and=>)
+          (only (spells misc) and=> scheme-implementation)
           (spells lazy)
           (spells fmt)
           (spells record-types)
@@ -173,7 +173,8 @@
 (define (fhs-destination-setup destination options)
   (define (implementation-pathname pathname implementation)
     (pathname-add-type pathname (symbol->string implementation)))
-  (let ((implementation (assq-ref options 'implementation))
+  (let ((implementation (or (assq-ref options 'implementation)
+                            (scheme-implementation)))
         (interpreter-pathname (pathname-join (destination-prefix destination)
                                              script-interpreter-pathname)))
     (log/fhs 'info

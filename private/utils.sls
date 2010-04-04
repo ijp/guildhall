@@ -42,6 +42,7 @@
           pathname->location
           location->pathname
           create-lock-file
+          directory->tree
           uri-with-directory-path
           home-pathname
           rm-rf
@@ -160,6 +161,22 @@
       (create-hard-link tmp-file pathname)
       (delete-file tmp-file)
       #t)))
+
+(define (maybe-car thing)
+  (if (pair? thing) (car thing) thing))
+
+(define (directory->tree pathname)
+  (let ((directory (pathname-as-directory pathname)))
+    (loop ((for filename (in-directory directory))
+           (let pathname (pathname-with-file directory filename))
+           (for result
+                (listing-reverse
+                 (if (file-directory? pathname)
+                     (cons filename (directory->tree pathname))
+                     filename))))
+      => (list-sort (lambda (x y)
+                      (string<? (maybe-car x) (maybe-car y)))
+                    result))))
 
 ;;++ Also in irclogs; need to consolidate
 (define (uri-with-directory-path uri)

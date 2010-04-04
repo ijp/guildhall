@@ -50,22 +50,6 @@
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 
-(define (maybe-car thing)
-  (if (pair? thing) (car thing) thing))
-
-(define (directory->tree pathname)
-  (let ((directory (pathname-as-directory pathname)))
-    (loop ((for filename (in-directory directory))
-           (let pathname (pathname-with-file directory filename))
-           (for result
-                (listing-reverse
-                 (if (file-directory? pathname)
-                     (cons filename (directory->tree pathname))
-                     filename))))
-      => (list-sort (lambda (x y)
-                      (string<? (maybe-car x) (maybe-car y)))
-                    result))))
-
 (define (clear-stage)
   (rm-rf test-dir))
 

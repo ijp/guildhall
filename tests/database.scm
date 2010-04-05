@@ -29,6 +29,8 @@
         (spells logging)
         (spells testing)
         (spells testing run-env)
+        (only (spells misc)
+              scheme-implementation)
         (dorodango private utils)
         (dorodango inventory)
         (dorodango package)
@@ -46,7 +48,7 @@
   (let ((db (open-database (pathname-join test-dir "db")
                            (make-fhs-destination 'test dest-dir)
                            '()
-                           'test-scheme)))
+                           (scheme-implementation))))
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 
@@ -60,6 +62,8 @@
 (define package:bar (make-package 'bar '((0))))
 (define package:not-there (make-package 'not-there '((0))))
 (define package:file-conflict-foo (make-package 'file-conflict-foo '((0))))
+(define package:hook (make-package 'hook '((0))))
+
 (define r6rs-script-wrappers
   '("r6rs-script" "r6rs-script.ikarus" "r6rs-script.ypsilon"))
 
@@ -166,8 +170,8 @@
     (clear-stage)))
   (begin
     (let ((db (open-test-database)))
-      (database-install! db package:foo)
-      (database-install! db package:bar)
+      (test-eqv #t (database-install! db package:foo))
+      (test-eqv #t (database-install! db package:bar))
       (close-database db))
     (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
                   ("share"
@@ -177,12 +181,21 @@
                     ("foo" "a.sls"))))
       (directory->tree dest-dir))
     (let ((db (open-test-database)))
-      (database-remove! db 'bar)
+      (test-eqv #t (database-remove! db 'bar))
       (close-database db))
     (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
                   ("share"
                    ("libr6rs-foo" ("programs" "foo"))
                    ("r6rs-libs" ("foo" "a.sls"))))
+      (directory->tree dest-dir))))
+
+(define-test-case db-tests setup ((setup (assert-clear-stage))
+                                  (teardown (clear-stage)))
+  (let ((db (open-test-database)))
+    (test-eqv #t (database-install! db package:hook))
+    (database-setup! db 'hook)
+    (test-equal `(("bin" ,@r6rs-script-wrappers)
+                  ("share" ("r6rs-libs" "test.sls")))
       (directory->tree dest-dir))))
 
 #;

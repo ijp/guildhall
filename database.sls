@@ -51,6 +51,7 @@
 
           database-update!
           database-install!
+          database-setup!
           database-remove!
 
           (rename (item? database-item?)
@@ -95,7 +96,8 @@
           (dorodango bundle)
           (dorodango package)
           (dorodango repository)
-          (dorodango destination))
+          (dorodango destination)
+          (dorodango hooks))
 
 ;;; Data types and conditions
 
@@ -106,7 +108,8 @@
           cache-dir
           file-table
           pkg-table
-          (mutable closed?)))
+          (mutable closed?)
+          (mutable hook-runner)))
 
 (define-record-type item
   (fields package state sources bundle))
@@ -175,7 +178,9 @@
                                   cache-dir
                                   file-table
                                   pkg-table
-                                  #f)))
+                                  #f ;closed?
+                                  #f ;hook-runner
+                                  )))
            (iterate! (for repository (in-list repositories))
              (create-directory* (database-cache-directory db repository)))
            (load-available-files! db repositories)
@@ -443,6 +448,14 @@
                          (lambda (items)
                            (filter-map item-without-repository items))
                          '()))))
+
+(define (database-get-hook-runner db)
+  (cond ((database-hook-runner db)
+         => values)
+        (else
+         (let ((hook-runner (spawn-hook-runner (database-destination db))))
+           (database-hook-runner-set! db hook-runner)
+           hook-runner))))
 
 
 ;;; Querying
@@ -723,6 +736,27 @@
         (delete-inventory category package-inventory '())))
     (loop ((for directory (in-vector (hashtable-keys maybe-remove))))
       (maybe-remove-directory directory #t))))
+
+;;@ Run installation hook for a package.
+(define (database-setup! db package-name)
+  (define who 'database-setup!)
+  (guarantee-open-database who db)
+  (cond ((find item-installed? (hashtable-ref (database-pkg-table db)
+                                              package-name
+                                              '()))
+         => (lambda (item)
+              (let* ((package (item-package item))
+                     (installation-hook (package-property package
+                                                          'installation-hook
+                                                          #f)))
+                (when installation-hook
+                  (log/db 'info (cat "Setting up "
+                                     (dsp-package-identifier package) " ..."))
+                  (run-hook (database-get-hook-runner db)
+                            package
+                            `(installation-hook . ,installation-hook))))))
+        (else
+         (assertion-violation who "package not installed" package-name))))
 
 
 ;;; Logging

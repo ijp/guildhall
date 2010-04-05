@@ -41,6 +41,7 @@
   (test-eqv #t (bundle? bundle))
   (test-equal '(bar
                 file-conflict-foo foo
+                hook
                 multi-core multi-tools
                 unsatisfied-depends)
     (list-sort symbol<? (map package-name (bundle-packages bundle)))))

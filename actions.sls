@@ -54,6 +54,7 @@
           (dorodango package)
           (dorodango bundle)
           (dorodango ui)
+          (dorodango ui formatters)
           (dorodango private utils))
 
 (define (read-package-lists pkg-list-files append-version)
@@ -290,12 +291,16 @@
                                       deep?)
         (if (consider-package? package)
             (let ((libraries (package-category-inventory package 'libraries)))
+              (log/debug "adding libraries of package "
+                         (dsp-package-identifier package))
               (receive (target source)
-                       (apply-inventory-mapper identity-inventory-mapper
+                       (apply-inventory-mapper star-inventory-mapper
                                                target-inventory
                                                libraries)
                 (continue (=> target-inventory target))))
             (continue))))))
+
+(define star-inventory-mapper (make-recursive-inventory-mapper list))
 
 (define (create-inventory-symlinks inventory
                                    original
@@ -388,6 +393,8 @@
                   #f))
            (continue)))))
 
+
+(define log/debug (make-fmt-log logger:dorodango 'debug))
 
 )
 

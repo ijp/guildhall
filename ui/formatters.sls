@@ -25,8 +25,10 @@
 (library (dorodango ui formatters)
   (export dsp-solution
           dsp-bundle
+          dsp-inventory
           dsp-package
-          dsp-package-version)
+          dsp-package-version
+          dsp-package-identifier)
   (import (rnrs)
           (spells fmt)
           (spells foof-loop)
@@ -63,6 +65,10 @@
               (fmt-join dsp part "."))
             version
             "-"))
+
+(define (dsp-package-identifier package)
+  (cat (package-name package)
+       " (" (dsp-package-version (package-version package)) ")"))
 
 (define (dsp-dependency dependency)
   (let ((info (universe-dependency-tag dependency)))

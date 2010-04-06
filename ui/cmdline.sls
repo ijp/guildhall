@@ -548,6 +548,10 @@
   "assume yes on prompts"
   (value-setter 'assume-yes? #t))
 
+(define-option log-level-option ("log-level" #\l) level
+  "set the log level (`error', `warning', `info', `debug' or `trace'; default is `info')"
+  (arg-setter 'log-level string->symbol))
+
 (define (main-handler vals)
   (define (read-config/default pathname)
     (guard (c ((i/o-file-does-not-exist-error? c)
@@ -559,7 +563,8 @@
         read-config)))
   (let ((operands (opt-ref/list vals 'operands))
         (prefix (assq-ref vals 'prefix))
-        (assume-yes? (assq-ref vals 'assume-yes?)))
+        (assume-yes? (assq-ref vals 'assume-yes?))
+        (log-level (or (assq-ref vals 'log-level) 'info)))
   (define (config-with-prefix config)
     (if prefix
         (make-prefix-config
@@ -568,23 +573,32 @@
          (config-default-implementation config))
         config))
     (parameterize ((current-ui (make-cmdline-ui `((assume-yes? . ,assume-yes?)))))
-      (cond ((null? operands)
-             (fmt #t (dsp-help indented-help-formatter (find-command 'main))))
-            ((find-command (string->symbol (car operands)))
-             => (lambda (command)
-                  (let ((config (cond ((assq-ref vals 'config)
-                                       => read-config/default)
-                                      (else
-                                       (default-config)))))
-                    (process-command-line
-                     command
-                     (cdr operands)
-                     `((operands . ())
-                       (repositories . ,(assq-ref vals 'repositories))
-                       (destination . ,(assq-ref vals 'destination))
-                       (config . ,(config-with-prefix config)))))))
-            (else
-             (fatal "unknown command" (car operands)))))))
+      (let-logger-properties
+          ((logger:dorodango
+            `((handlers (,log-level ,(make-message-log-handler 1)))))
+           (logger:dorodango.db
+            `((propagate? #f)
+              (handlers (,log-level ,(make-message-log-handler 2)))))
+           (logger:dorodango.solver
+            `((propagate? #f)
+              (handlers (warning ,(make-message-log-handler 1))))))
+        (cond ((null? operands)
+               (fmt #t (dsp-help indented-help-formatter (find-command 'main))))
+              ((find-command (string->symbol (car operands)))
+               => (lambda (command)
+                    (let ((config (cond ((assq-ref vals 'config)
+                                         => read-config/default)
+                                        (else
+                                         (default-config)))))
+                      (process-command-line
+                       command
+                       (cdr operands)
+                       `((operands . ())
+                         (repositories . ,(assq-ref vals 'repositories))
+                         (destination . ,(assq-ref vals 'destination))
+                         (config . ,(config-with-prefix config)))))))
+              (else
+               (fatal "unknown command" (car operands))))))))
 
 (define-command main
   (synopsis "[OPTIONS] COMMAND [COMMAND-OPTIONS] [ARGS]\n")
@@ -604,7 +618,8 @@
            destination-option
            repository-option
            yes-option
-           version-option)
+           version-option
+           log-level-option)
   (handler main-handler))
 
 (define (make-message-log-handler name-drop)
@@ -634,20 +649,6 @@
                             output))))))
 
 (define (run-cmdline-ui argv)
-  (for-each
-   (match-lambda
-    ((logger . properties)
-     (set-logger-properties!
-      logger
-      properties)))
-   `((,logger:dorodango
-      (handlers (info ,(make-message-log-handler 1))))
-     (,logger:dorodango.db
-      (propagate? #f)
-      (handlers (info ,(make-message-log-handler 2))))
-     (,logger:dorodango.solver
-      (propagate? #f)
-      (handlers (warning ,(make-message-log-handler 1))))))
   (guard (c ((fatal-error? c)
              (fmt (current-error-port) (cat "doro: " (condition-message c) "\n"))
              (exit #f)))
@@ -660,5 +661,5 @@
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop (let-assq 2) as-match)
+;; scheme-indent-styles: (foof-loop (let-assq 2) as-match (let-logger-properties 1))
 ;; End:

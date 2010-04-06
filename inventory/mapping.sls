@@ -1,6 +1,6 @@
-;;; mapping-rules.sls --- 
+;;; mapping.sls --- Applying mappings to inventories
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -34,6 +34,7 @@
           evaluate-inventory-mapping-rules
 
           identity-inventory-mapper
+          make-recursive-inventory-mapper
           null-inventory-mapper)
   (import (rnrs)
           (only (srfi :1) append-map filter-map)
@@ -117,6 +118,15 @@
                  (list filename))
                (lambda (filename)
                  (values (list filename) #f))))
+
+(define (make-recursive-inventory-mapper transform)
+  (letrec ((mapper (make-inventory-mapper
+                    (lambda (filename)
+                      (transform filename))
+                    (lambda (filename)
+                      (values (transform filename)
+                              mapper)))))
+    mapper))
 
 ;; Mapping rule evaluation
 

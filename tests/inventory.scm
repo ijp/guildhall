@@ -1,6 +1,6 @@
 ;;; inventory.scm --- Tests for the inventory tree data structure
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -229,13 +229,8 @@
     (evaluate-inventory-mapping-rules
      '((* -> "star")
        (("private" "net") -> ("star" "net" "private")))
-     (letrec ((star-mapper (make-inventory-mapper
-                            (lambda (filename)
-                              (list filename))
-                            (lambda (filename)
-                              (values (list filename) star-mapper)))))
-       (lambda (name)
-         (and (eq? name '*) star-mapper))))
+     (lambda (name)
+       (and (eq? name '*) (make-recursive-inventory-mapper list))))
     '(a "top.sls")
     '(b "x.sls"
         ("private" ("net" "foo.sls"))

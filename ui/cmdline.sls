@@ -111,7 +111,7 @@
   (handler
    (lambda (vals)
      (let ((all? (assq-ref vals 'all?)))
-       (call-with-database (config->database vals)
+       (call-with-database* vals
          (lambda (db)
            (database-add-bundles! db (opt-ref/list vals 'bundles))
            (loop ((for package items (in-database db (sorted-by symbol<?))))
@@ -128,7 +128,7 @@
   (handler
    (lambda (vals)
      (let ((packages (opt-ref/list vals 'operands)))
-       (call-with-database (config->database vals)
+       (call-with-database* vals
          (lambda (db)
            (database-add-bundles! db (opt-ref/list vals 'bundles))
            (loop ((for item (in-list (find-db-items db packages))))
@@ -170,7 +170,7 @@
   (description "Update repository information")
   (handler
    (lambda (vals)
-     (call-with-database (config->database vals)
+     (call-with-database* vals
        (lambda (db)
          (database-update! db))))))
 
@@ -193,7 +193,7 @@
   (let ((bundle-locations (opt-ref/list vals 'bundles))
         (packages (opt-ref/list vals 'operands))
         (no-depends? (assq-ref vals 'no-depends?)))
-    (call-with-database (config->database vals)
+    (call-with-database* vals
       (lambda (db)
         (database-add-bundles! db bundle-locations)
         (loop ((for package (in-list packages))
@@ -218,7 +218,7 @@
 (define (remove-command vals)
   (let ((packages (opt-ref/list vals 'operands))
         (no-depends? (assq-ref vals 'no-depends?)))
-    (call-with-database (config->database vals)
+    (call-with-database* vals
       (lambda (db)
         (cond (no-depends?
                (loop ((for package-name (in-list packages)))
@@ -242,7 +242,7 @@
                  ((exists database-item-installed? items))
                  ((not (database-item-installed? item))))
         (database-item-package item)))
-    (call-with-database (config->database vals)
+    (call-with-database* vals
       (lambda (db)
         (loop ((for package-name items (in-database db))
                (for to-upgrade (listing (select-upgrade items) => values)))
@@ -315,11 +315,10 @@
             ((0)  #f)
             ((1)  (string->symbol (car operands)))
             (else (fatal "`setup-destination' takes zero or one arguments")))))
-    (call-with-database
-        (config->database (append (if destination
-                                      '((destination . ,destination))
-                                      '())
-                                  vals))
+    (call-with-database* (append (if destination
+                                     '((destination . ,destination))
+                                     '())
+                                 vals)
       (lambda (db)
         ;; no need to do anything
         (unspecific)))))
@@ -516,6 +515,14 @@
                      (append repos (config-item-repositories item))
                      implementation
                      (config-item-cache-directory item)))))
+
+(define (call-with-database* options proc)
+  (call-with-database (config->database options)
+    (lambda (db)
+      (guard (c ((error? c)
+                 (close-database db)
+                 (raise c)))
+        (proc db)))))
 
 (define-option config-option ("config" #\c) file
   (cat "use configuration in FILE"

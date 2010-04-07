@@ -237,18 +237,13 @@
                         (hashtable-set! closed-bundles bundle #t))))))))
     (hashtable-clear! pkg-table)))
 
-;;@ Ensures a database is closed upon leaving the dynamic extent of
-;; the call to @var{proc}.
+;;@ Calls @var{proc} with @var{db} as argument and closes the database
+;; upon return of the call to @var{proc}. The database is @emph{not}
+;; closed when @var{proc} is exited via a continuation or exception.
 (define (call-with-database db proc)
-  (let ((entered? #f))
-    (dynamic-wind
-      (lambda ()
-        (when entered?
-          (assertion-violation 'call-with-database
-                               "cannot re-enter extent" db))
-        (set! entered? #t))
-      (lambda () (proc db))
-      (lambda () (close-database db)))))
+  (receive results (proc db)
+    (close-database db)
+    (apply values results)))
 
 (define (guarantee-open-database who db)
   (unless (database? db)

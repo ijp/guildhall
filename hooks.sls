@@ -140,15 +140,12 @@
         (inventory-leave-n (inventory-update inventory path #f #t)
                            (length path))))
     (define (finish processed inventory rest)
-      (append-reverse
-       processed
-       (cons (cons category (updated-inventory inventory))
-             rest)))
+      (append-reverse processed (cons (updated-inventory inventory) rest)))
     (loop continue ((for entry entry-rest (in-list inventories))
                     (with processed '()))
       => (finish processed (make-inventory category 'category) '())
-      (cond ((eq? category (car entry))
-             (finish processed (cdr entry) (cdr entry-rest)))
+      (cond ((eq? category (inventory-name entry))
+             (finish processed entry (cdr entry-rest)))
             (else
              (continue (=> processed (cons entry processed))))))))
 

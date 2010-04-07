@@ -1,6 +1,6 @@
 ;;; package.sls --- 
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -59,6 +59,7 @@
           package-category-inventory
           package-inventories
           package-with-inventories
+          package-modify-inventories
           
           package->form
           parse-package-form

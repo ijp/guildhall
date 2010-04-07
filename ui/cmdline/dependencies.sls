@@ -81,7 +81,7 @@
   (loop ((for choice (in-choice-set choices)))
     (let ((version (choice-version choice)))
       (cond ((universe-version-tag version)
-             (database-install! db (universe-version->package version)))
+             (database-unpack! db (universe-version->package version)))
             (else
              (database-remove! db (universe-version-package-name version)))))))
 

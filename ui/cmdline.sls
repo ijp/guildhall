@@ -200,7 +200,7 @@
                (for to-install (listing (select-package/string db package))))
           => (cond (no-depends?
                     (loop ((for package (in-list to-install)))
-                      (or (database-install! db package)
+                      (or (database-unpack! db package)
                           (let ((db-package
                                  (database-lookup db (package-name package))))
                             (message "Package " package-name

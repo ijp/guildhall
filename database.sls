@@ -76,7 +76,7 @@
 
           logger:dorodango.db)
   (import (except (rnrs) file-exists? delete-file)
-          (only (srfi :1) filter-map lset-adjoin)
+          (only (srfi :1) append-reverse filter-map lset-adjoin)
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13) string-map string-suffix?)
@@ -654,8 +654,6 @@
                            pathname
                            extractor))))
 
-(define managed-categories '(libraries documentation programs))
-
 (define (save-item-info pathname item)
   (let ((package (item-package item)))
     (call-with-output-file/atomic (->namestring pathname)
@@ -664,12 +662,8 @@
         (put-string port "\n\n")
         (put-datum port (package->form package))
         (put-string port "\n\n")
-        (loop ((for category (in-list managed-categories)))
-          (put-datum port
-                     (cond ((package-category-inventory package category)
-                            => inventory->tree)
-                           (else
-                            (list category))))
+        (loop ((for inventory (in-list (package-inventories package))))
+          (put-datum port (inventory->tree inventory))
           (put-string port "\n"))))))
 
 ;;@ Remove a package from the database.
@@ -746,23 +740,66 @@
 ;;@ Run installation hook for a package.
 (define (database-setup! db package-name)
   (define who 'database-setup!)
-  (guarantee-open-database who db)
-  (cond ((find item-installed? (hashtable-ref (database-pkg-table db)
-                                              package-name
-                                              '()))
-         => (lambda (item)
-              (let* ((package (item-package item))
-                     (installation-hook (package-property package
-                                                          'installation-hook
-                                                          #f)))
-                (when installation-hook
-                  (log/db 'info (cat "Setting up "
-                                     (dsp-package-identifier package) " ..."))
+  (define (setup-item item)
+    (define (conflict a-cursor b-cursor)
+      ;;++ could use better diagnostics
+      (file-conflict item #f #f))
+    (let* ((package (item-package item))
+           (installation-hook (package-property package
+                                                'installation-hook
+                                                #f)))
+      (log/db 'info (cat "Setting up "
+                         (dsp-package-identifier package) " ..."))
+      (let* ((installed-files
+              (if installation-hook
                   (run-hook (database-get-hook-runner db)
                             package
-                            `(installation-hook . ,installation-hook))))))
-        (else
-         (assertion-violation who "package not installed" package-name))))
+                            `(installation-hook . ,installation-hook))
+                  '()))
+             (installed-item
+              (item-with-state (item-add-files item installed-files conflict)
+                               'installed)))
+        (save-item-info
+         (database-package-info-pathname db package)
+         installed-item)
+        (database-update-item! db package (lambda (item) installed-item)))))
+  (guarantee-open-database who db)
+  (let ((item (find item-installed?
+                    (hashtable-ref (database-pkg-table db) package-name '()))))
+    (cond ((not item)
+           (assertion-violation who "package not installed" package-name))
+          ((eq? 'unpacked (item-state item))
+           (setup-item item))
+          (else
+           (assertion-violation who "package already setup" package-name)))))
+
+(define (item-add-files item inventories conflict)
+  (item-modify-package
+   item
+   (lambda (package)
+     (package-modify-inventories
+      package
+      (lambda (existing)
+        (merge-category-inventories existing inventories conflict))))))
+
+(define (merge-category-inventories a-inventories b-inventories conflict)
+  (define (same-name-as inventory)
+    (let ((name (inventory-name inventory)))
+      (lambda (other)
+        (eq? name (inventory-name other)))))
+  (loop continue ((for a-entry (in-list a-inventories))
+                  (with result '()))
+    => (append-reverse result
+                       (collect-list (for b-entry (in-list b-inventories))
+                           (if (not (find (same-name-as b-entry) a-inventories)))
+                         b-entry))
+    (cond ((find (same-name-as a-entry) b-inventories)
+           => (lambda (b-entry)
+                (continue
+                 (=> result (cons (merge-inventories a-entry b-entry conflict)
+                                  result)))))
+          (else
+           (continue (=> result (cons a-entry result)))))))
 
 
 ;;; Logging

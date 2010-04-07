@@ -191,12 +191,24 @@
 
 (define-test-case db-tests setup ((setup (assert-clear-stage))
                                   (teardown (clear-stage)))
-  (let ((db (open-test-database)))
-    (test-eqv #t (database-unpack! db package:hook))
-    (database-setup! db 'hook)
-    (test-equal `(("bin" ,@r6rs-script-wrappers)
-                  ("share" ("r6rs-libs" "test.sls")))
-      (directory->tree dest-dir))))
+  (let ()
+    (define (test-inventories db)
+      (let ((item (database-lookup db 'hook 'installed)))
+        (test-eqv #t (database-item? item))
+        (test-equal '(libraries "test.sls")
+          (inventory->tree
+           (package-category-inventory (database-item-package item)
+                                       'libraries)))))
+    (let ((db (open-test-database)))
+      (test-eqv #t (database-unpack! db package:hook))
+      (database-setup! db 'hook)
+      (test-inventories db)
+      (test-equal `(("bin" ,@r6rs-script-wrappers)
+                    ("share" ("r6rs-libs" "test.sls")))
+        (directory->tree dest-dir))
+      (close-database db))
+    (call-with-database (open-test-database)
+      test-inventories)))
 
 #;
 (set-logger-properties!
@@ -206,6 +218,7 @@
     ,(lambda (entry)
        (default-log-formatter entry (current-output-port))))))
 
+(set-test-debug-errors?! #t)
 (run-test-suite db-tests)
 
 ;; Local Variables:

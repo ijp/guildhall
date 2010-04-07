@@ -85,7 +85,7 @@
   (begin
     ;; Install package
     (let ((db (open-test-database)))
-      (test-eqv #t (database-install! db package:foo))
+      (test-eqv #t (database-unpack! db package:foo))
       (let ((item (database-lookup db 'foo '((0)))))
         (test-eqv #t (database-item? item))
         (test-eqv #t (database-item-installed? item)))
@@ -122,7 +122,7 @@
                                           (clear-stage)))
   (call-with-database (open-test-database)
     (lambda (db)
-      (test-eqv #f (database-install! db package:not-there))
+      (test-eqv #f (database-unpack! db package:not-there))
       (test-eqv #f (database-remove! db 'not-there)))))
 
 (define-test-case db-tests locked ((setup (assert-clear-stage))
@@ -144,7 +144,7 @@
     (clear-stage)))
   (begin
     (let ((db (open-test-database)))
-      (database-install! db package:foo)
+      (database-unpack! db package:foo)
       (close-database db))
     (let ((db (open-test-database)))
       (test-equal '(conflict foo file-conflict-foo)
@@ -153,11 +153,11 @@
                 (list 'conflict
                       (package-name (database-file-conflict-package c))
                       (package-name (database-file-conflict-offender c)))))
-          (database-install! db package:file-conflict-foo)
+          (database-unpack! db package:file-conflict-foo)
           'no-exception))
       
       (database-remove! db 'foo)
-      (database-install! db package:file-conflict-foo)
+      (database-unpack! db package:file-conflict-foo)
       (let ((item (database-lookup db 'file-conflict-foo '((0)))))
         (test-eqv #t (database-item? item))
         (test-eqv #t (database-item-installed? item)))
@@ -170,8 +170,8 @@
     (clear-stage)))
   (begin
     (let ((db (open-test-database)))
-      (test-eqv #t (database-install! db package:foo))
-      (test-eqv #t (database-install! db package:bar))
+      (test-eqv #t (database-unpack! db package:foo))
+      (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
     (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
                   ("share"
@@ -192,7 +192,7 @@
 (define-test-case db-tests setup ((setup (assert-clear-stage))
                                   (teardown (clear-stage)))
   (let ((db (open-test-database)))
-    (test-eqv #t (database-install! db package:hook))
+    (test-eqv #t (database-unpack! db package:hook))
     (database-setup! db 'hook)
     (test-equal `(("bin" ,@r6rs-script-wrappers)
                   ("share" ("r6rs-libs" "test.sls")))

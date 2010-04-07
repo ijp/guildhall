@@ -50,7 +50,7 @@
           in-database
 
           database-update!
-          database-install!
+          database-unpack!
           database-setup!
           database-remove!
 
@@ -81,6 +81,7 @@
           (srfi :8 receive)
           (only (srfi :13) string-map string-suffix?)
           (srfi :67 compare-procedures)
+          (spells alist)
           (spells foof-loop)
           (spells nested-foof-loop)
           (spells pathname)
@@ -124,7 +125,7 @@
   (package-version (item-package item)))
 
 (define (item-installed? item)
-  (eq? 'installed (item-state item)))
+  (and (memq (item-state item) '(unpacked installed)) #t))
 
 (define-record-type source
   (fields repository location))
@@ -293,19 +294,19 @@
     (loop ((for filename (in-directory directory)))
       => (values pkg-table file-table)
       (when (string-suffix? ".info" filename)
-        (let ((package (load-package-info
-                        (pathname-with-file directory filename))))
+        (let ((item (load-item-info
+                     (pathname-with-file directory filename))))
           (hashtable-update!
            pkg-table
-           (package-name package)
+           (package-name (item-package item))
            (lambda (items)
              (if items
                  (lose filename "duplicate package in status file" items)
-                 (list (make-item package 'installed '() #f))))
+                 (list item)))
            #f)
           (update-file-table! file-table
                               destination
-                              package))))))
+                              (item-package item)))))))
 
 (define (update-file-table! table destination package)
   (define (fill-table directory category inventory)
@@ -349,15 +350,19 @@
     (let ((category (inventory-name inventory)))
       (fill-table (make-pathname #f '() #f) category inventory))))
 
-(define (load-package-info pathname)
+(define (load-item-info pathname)
   (call-with-input-file (->namestring pathname)
     (lambda (port)
-      (let* ((package-form (get-datum port))
+      (let* ((item-properties (get-datum port))
+             (package-form (get-datum port))
              (package (parse-package-form package-form (lambda (properties) '())))
              (name (package-name package)))
         (loop ((for form (in-port port read))
                (for inventories (listing (tree->inventory form name))))
-          => (package-with-inventories package inventories))))))
+          => (make-item (package-with-inventories package inventories)
+                        (assq-ref item-properties 'state)
+                        '()
+                        #f))))))
 
 
 ;;; Source manipulation
@@ -569,9 +574,9 @@
   (pathname-with-file (database-status-directory db)
                       (make-file (package-name package) "info")))
 
-;:@ Install a package.
-(define (database-install! db package)
-  (define who 'database-install!)
+;:@ Unpack a package.
+(define (database-unpack! db package)
+  (define who 'database-unpack!)
   (define (lose msg package)
     (raise (condition
             (make-who-condition who)
@@ -581,14 +586,17 @@
     (let* ((bundle (or (open-bundle! db desired-item)
                        (lose "could not obtain bundle for package" package)))
            (package (bundle-package-ref bundle package)))
-      (log/db 'info (cat "installing " (dsp-package-identifier package) " ..."))
+      (log/db 'info (cat "unpacking " (dsp-package-identifier package) " ..."))
       (update-file-table! (database-file-table db)
                           (database-destination db)
                           package)
       (extract-package bundle package (database-destination db))
-      (save-package-info (database-package-info-pathname db package) package)
-      (database-update-item! db package (lambda (item)
-                                          (item-with-state item 'installed)))
+      (let ((unpacked-item (item-with-package
+                            (item-with-state desired-item 'unpacked)
+                            package)))
+        (save-item-info (database-package-info-pathname db package)
+                        unpacked-item)
+        (database-update-item! db package (lambda (item) unpacked-item)))
       #t))
   (guarantee-open-database who db)
   (and-let* ((items (database-items db (package-name package)))
@@ -648,18 +656,21 @@
 
 (define managed-categories '(libraries documentation programs))
 
-(define (save-package-info pathname package)
-  (call-with-output-file/atomic (->namestring pathname)
-    (lambda (port)
-      (put-datum port (package->form package))
-      (put-string port "\n\n")
-      (loop ((for category (in-list managed-categories)))
-        (put-datum port
-                   (cond ((package-category-inventory package category)
-                          => inventory->tree)
-                         (else
-                          (list category))))
-        (put-string port "\n")))))
+(define (save-item-info pathname item)
+  (let ((package (item-package item)))
+    (call-with-output-file/atomic (->namestring pathname)
+      (lambda (port)
+        (put-datum port `((state . ,(item-state item))))
+        (put-string port "\n\n")
+        (put-datum port (package->form package))
+        (put-string port "\n\n")
+        (loop ((for category (in-list managed-categories)))
+          (put-datum port
+                     (cond ((package-category-inventory package category)
+                            => inventory->tree)
+                           (else
+                            (list category))))
+          (put-string port "\n"))))))
 
 ;;@ Remove a package from the database.
 (define (database-remove! db package-name)

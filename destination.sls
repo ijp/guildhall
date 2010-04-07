@@ -57,6 +57,7 @@
           (spells pathname)
           (spells filesys)
           (spells logging)
+          (spells irregex)
           (spells foof-loop)
           (spells process) ;just needed for `chmod'
           (spells sysutils) ;ditto
@@ -119,7 +120,8 @@
         . ,(make-program-handler/sh-wrapper
             prefix
             '("share" ("libr6rs-" name) "programs")
-            '("bin")))))))
+            '("bin")))
+       (man . ,(make-man-page-handler prefix))))))
 
 (define script-interpreter-pathname '(("bin") "r6rs-script"))
 
@@ -204,12 +206,37 @@
    (lambda (package pathname)
      (list (destination-pathname prefix template package pathname)))
    (lambda (package pathname extractor)
-     (let ((dest-pathname (destination-pathname prefix template package pathname)))
-       (create-directory* (pathname-with-file dest-pathname #f))
-       (let ((filename (->namestring dest-pathname)))
-         (log/fhs 'debug "installing " filename)
-         (call-with-port (open-file-output-port filename)
-           extractor))))))
+     (do-install-file (destination-pathname prefix template package pathname)
+                      extractor))))
+
+(define (make-man-page-handler prefix)
+  (define (man-page-pathname pathname)
+    (let ((section (filename->man-section (file-namestring pathname))))
+      (pathname-join
+       prefix
+       `(("share" "man" ,(string-append "man" (number->string section))))
+       pathname)))
+  (make-handler
+   (lambda (package pathname)
+     (list (man-page-pathname pathname)))
+   (lambda (package pathname extractor)
+     (do-install-file (man-page-pathname pathname) extractor))))
+
+(define (filename->man-section filename)
+  (cond ((irregex-search section-irx filename)
+         => (lambda (match)
+              (string->number (irregex-match-substring match 1))))
+        (else
+         1))) ;lame default
+
+(define section-irx (irregex '(: "." ($ (+ (~ numeric))))))
+
+(define (do-install-file dest-pathname extractor)
+  (create-directory* (pathname-with-file dest-pathname #f))
+  (let ((filename (->namestring dest-pathname)))
+    (log/fhs 'debug "installing " filename)
+    (call-with-port (open-file-output-port filename)
+      extractor)))
 
 (define (make-program-handler/sh-wrapper prefix
                                          program-template
@@ -227,11 +254,7 @@
                                                       sh-wrapper-template
                                                       package
                                                       pathname)))
-       (create-directory* (pathname-with-file program-pathname #f))
-       (let ((filename (->namestring program-pathname)))
-         (log/fhs 'debug "installing " filename)
-         (call-with-port (open-file-output-port filename)
-           extractor))
+       (do-install-file program-pathname extractor)
        (create-directory* (pathname-with-file sh-wrapper-pathname #f))
        (let ((filename (->namestring sh-wrapper-pathname)))
          (log/fhs 'debug "creating shell wrapper" filename)
@@ -247,7 +270,7 @@
          => (lambda (chmod-path)
               (run-process #f chmod-path "+x" pathname)))
         (else
-         (log/fhs 'warn "`chmod' not found in PATH"))))
+         (log/fhs 'warning "`chmod' not found in PATH"))))
 
 (define (dsp-sh-wrapper prefix package program-pathname)
   (let ((library-path

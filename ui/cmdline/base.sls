@@ -36,7 +36,7 @@
           
           define-command
           find-command
-          command-list
+          %commands
 
           arg-pusher
           arg-setter
@@ -49,6 +49,7 @@
           (spells operations)
           (spells alist)
           (spells args-fold)
+          (spells cells)
           (only (spells misc) and=> unspecific)
           (spells record-types)
           (spells foof-loop)
@@ -138,10 +139,7 @@
 
 ;;; Commands
 
-(define %commands '())
-
-(define (command-list)
-  (reverse %commands))
+(define %commands (make-cell '()))
 
 (define-record-type* command
   (make-command name description synopsis footer options handler)
@@ -162,10 +160,10 @@
                        (assertion-violation 'clause-alist->command
                                             "handler clause missing")))))
 
-(define (find-command name)
+(define (find-command name list)
   (find (lambda (command)
           (eq? name (command-name command)))
-        %commands))
+        list))
 
 (define-syntax define-command
   (syntax-rules (description synopsis options handler)
@@ -177,7 +175,7 @@
                            ...)))))))
 
 (define (add-command command)
-  (set! %commands (cons command %commands)))
+  (cell-set! %commands (cons command (cell-ref %commands))))
 
 (define (arg-pusher name)
   (lambda (option option-name arg vals)

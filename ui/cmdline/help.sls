@@ -236,7 +236,7 @@
              (fmt-join dsp-token (parse-synopsis line))))
       ((cat (fmt-join dsp-synopsis-line synopsis "\n")) st))))
 
-(define (dsp-man-page)
+(define (dsp-man-page command-list)
   (let ((formatter man-help-formatter))
     (fmt-let 'help-formatter formatter
       (fmt-let 'help-level 0
@@ -245,7 +245,7 @@
         ".Sh NAME\n"
         ".Nm doro\n"
         ".Nd An R6RS package manager\n"
-        (let ((main (find-command 'main)))
+        (let ((main (find-command 'main command-list)))
           (cat (dsp-synopsis (command-synopsis main))
                (dsp-description (command-description main))))
         (dsp-section "Commands"
@@ -254,7 +254,7 @@
                       (dsp-help formatter command))
                     (filter (lambda (command)
                               (not (eq? 'main (command-name command))))
-                            (command-list)))
+                            command-list))
           ".El\n")
         (dsp-section "See Also"
           "The full documentation for \n.Nm doro\nis maintained as a Texinfo "

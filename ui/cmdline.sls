@@ -23,7 +23,8 @@
 #!r6rs
 
 (library (dorodango ui cmdline)
-  (export run-cmdline-ui)
+  (export command-list
+          run-cmdline-ui)
   (import (except (rnrs) delete-file file-exists?)
           (only (srfi :1) drop concatenate)
           (srfi :2 and-let*)
@@ -40,6 +41,7 @@
           (spells define-values)
           (spells alist)
           (only (spells misc) and=> unspecific)
+          (spells cells)
           (spells fmt)
           (spells match)
           (spells foof-loop)
@@ -146,7 +148,7 @@
   (description "Show help for all commands in groff (man page) format")
   (handler
    (lambda (vals)
-     (fmt #t (dsp-man-page)))))
+     (fmt #t (dsp-man-page (command-list))))))
 
 (define (dsp-db-item item)
   (dsp-package (database-item-package item)))
@@ -460,9 +462,10 @@
   (handler symlink-command))
 
 
-;;; Entry point
-
 ;;; Command-line processing
+
+(define (command-list)
+  (reverse (cell-ref %commands)))
 
 (define (make-help-option command)
   (option
@@ -583,8 +586,10 @@
             `((propagate? #f)
               (handlers (warning ,(make-message-log-handler 1))))))
         (cond ((null? operands)
-               (fmt #t (dsp-help indented-help-formatter (find-command 'main))))
-              ((find-command (string->symbol (car operands)))
+               (fmt #t (dsp-help indented-help-formatter
+                                 (find-command 'main (cell-ref %commands)))))
+              ((find-command (string->symbol (car operands))
+                             (cell-ref %commands))
                => (lambda (command)
                     (let ((config (cond ((assq-ref vals 'config)
                                          => read-config/default)
@@ -652,7 +657,7 @@
   (guard (c ((fatal-error? c)
              (fmt (current-error-port) (cat "doro: " (condition-message c) "\n"))
              (exit #f)))
-    (process-command-line (find-command 'main)
+    (process-command-line (find-command 'main (cell-ref %commands))
                           (cdr argv)
                           `((operands)
                             (repositories . ())

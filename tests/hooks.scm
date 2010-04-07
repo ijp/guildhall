@@ -28,6 +28,7 @@
         (spells testing)
         (spells logging)
         (dorodango private utils)
+        (dorodango inventory)
         (dorodango package)
         (dorodango destination)
         (dorodango hooks))
@@ -64,15 +65,18 @@
       (call-with-port (open-output-file (->namestring test-pathname))
         (lambda (port)
           (write test-datum port)))
-      (run-hook runner
-                package:null
-                `(installation-hook ()
-                   (import (rnrs base))
-                   (lambda (agent)
-                     (agent 'install-file
-                            'libraries
-                            "test-library.sls"
-                            ,(->namestring test-pathname)))))
+      (test-equal '((libraries . (libraries "test-library.sls")))
+       (map (lambda (entry)
+              (cons (car entry) (inventory->tree (cdr entry))))
+            (run-hook runner
+                      package:null
+                      `(installation-hook ()
+                         (import (rnrs base))
+                         (lambda (agent)
+                           (agent 'install-file
+                                  'libraries
+                                  "test-library.sls"
+                                  ,(->namestring test-pathname)))))))
       (test-eqv #t (file-regular? dest-pathname))
       (test-equal test-datum
         (call-with-port (open-input-file (->namestring dest-pathname))

@@ -39,6 +39,7 @@
 
           logger:dorodango.hooks)
   (import (except (rnrs) delete-file file-exists?)
+          (only (srfi :1) append-reverse)
           (srfi :8 receive)
           (spells pathname)
           (spells filesys)
@@ -50,6 +51,7 @@
           (spells fmt)
           (spells logging)
           (dorodango private utils)
+          (dorodango inventory)
           (dorodango package)
           (dorodango destination))
 
@@ -96,6 +98,8 @@
       (raise-hook-runner-error
        "hook runner process returned unexpected exit status" status))))
 
+;;@ Run @var{hook-form} as hook for the package @var{package}. Returns
+;; an alist of inventories, which list files installed by the hook.
 (define (run-hook runner package hook-form)
   (receive (kind options libraries hook-proc-expr)
            (parse-hook-form hook-form)
@@ -103,7 +107,8 @@
                       `(run-hook ,kind ,options ,libraries ,hook-proc-expr))
     (loop continue ((with message
                           (hook-runner-receive runner)
-                          (hook-runner-receive runner)))
+                          (hook-runner-receive runner))
+                    (with inventories '()))
       (match message
         (('install-file (? symbol? category)
                         (? string? dest-filename)
@@ -114,9 +119,10 @@
                               dest-filename
                               (make-file-extractor src-filename))
          (hook-runner-send runner #t)
-         (continue))
+         (continue
+          (=> inventories (update-inventories inventories category dest-filename))))
         (('hook-done)
-         (unspecific))
+         inventories)
         (_
          (raise-hook-runner-error "invalid message from hook runner"
                                   message))))))
@@ -126,6 +132,25 @@
     (call-with-port (open-file-input-port filename)
       (lambda (src-port)
         (copy-port src-port dest-port)))))
+
+(define (update-inventories inventories category pathname)
+  (let ((pathname (->pathname pathname)))
+    (define (updated-inventory inventory)
+      (let ((path (pathname-directory (pathname-as-directory pathname))))
+        (inventory-leave-n (inventory-update inventory path #f #t)
+                           (length path))))
+    (define (finish processed inventory rest)
+      (append-reverse
+       processed
+       (cons (cons category (updated-inventory inventory))
+             rest)))
+    (loop continue ((for entry entry-rest (in-list inventories))
+                    (with processed '()))
+      => (finish processed (make-inventory category 'category) '())
+      (cond ((eq? category (car entry))
+             (finish processed (cdr entry) (cdr entry-rest)))
+            (else
+             (continue (=> processed (cons entry processed))))))))
 
 (define (parse-hook-form form)
   (match form

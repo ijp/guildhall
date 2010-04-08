@@ -31,7 +31,10 @@
           (spells finite-types)
           (spells record-types)
           (spells foof-loop)
+          (spells nested-foof-loop)
           (spells xvector)
+          (spells tracing) ;debug
+          (only (spells misc) topological-sort)
           (dorodango private utils)
           (dorodango package)
           (dorodango solver)
@@ -78,12 +81,35 @@
              #f)))))
 
 (define (apply-choices db choices)
-  (loop ((for choice (in-choice-set choices)))
+  (define (run-setup versions)
+    (loop ((for package-name (in-list (calculate-setup-sequence versions))))
+      (database-setup! db package-name)))
+  (loop continue ((for choice (in-choice-set choices))
+                  (with unpacked-versions '()))
+    => (run-setup unpacked-versions)
     (let ((version (choice-version choice)))
       (cond ((universe-version-tag version)
-             (database-unpack! db (universe-version->package version)))
+             (if (database-unpack! db (universe-version->package version))
+                 (continue
+                  (=> unpacked-versions (cons version unpacked-versions)))
+                 (continue)))
             (else
              (database-remove! db (universe-version-package-name version)))))))
+
+(define (calculate-setup-sequence versions)
+  (reverse (topological-sort (versions->setup-graph versions) eq?)))
+
+(define (versions->setup-graph versions)
+  (let ((version-table (make-hashtable universe-version-hash universe-version=?)))
+    (iterate! (for version (in-list versions))
+      (hashtable-set! version-table version #t))
+    (collect-list (for version (in-vector (hashtable-keys version-table)))
+      (cons (universe-version-package-name version)
+            (collect-list
+                (for dependency (in-list (universe-version-dependencies version)))
+                (for target (in-list (universe-dependency-targets dependency)))
+                (if (hashtable-contains? version-table target))
+              (universe-version-package-name target))))))
 
 (define (resolve-dependencies universe package-table to-install to-remove)
   (receive (initial-choices version-scores)
@@ -379,3 +405,7 @@
   (universe-package-name (universe-version-package version)))
 
 )
+
+;; Local Variables:
+;; scheme-indent-styles: (foof-loop)
+;; End:

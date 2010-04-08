@@ -32,11 +32,12 @@
           
           bundle-packages
           bundle-package-ref
+          bundle-package-map
 
           bundle-inventory
           in-bundle-inventory)
   (import (except (rnrs) file-exists? delete-file)
-          (only (srfi :1) filter-map last)
+          (only (srfi :1) concatenate filter-map last)
           (srfi :8 receive)
           (only (srfi :13) string-join string-suffix?)
           (spells alist)
@@ -219,6 +220,9 @@
 
 ;;; Package handling
 
+(define (bundle-package-map bundle)
+  (construct-package-map (bundle-ops bundle) (bundle-inventory bundle) #f))
+
 (define pkgs-path '("pkg-list.scm"))
 
 (define (inventory-pkg-lists inventory)
@@ -235,15 +239,18 @@
            => result))))
 
 (define (list-bundle-packages ops inventory inventory?)
+  (concatenate (map cdr (construct-package-map ops inventory inventory?))))
+
+(define (construct-package-map ops inventory inventory?)
+  (define (snarf-packages elt)
+    (match elt
+      ((path . entry)
+       (let ((pkg-inventory (and inventory?
+                                 (inventory-ref inventory path))))
+         (cons path (bundle-entry->packages ops entry path pkg-inventory))))))
   (loop ((for elt (in-list (inventory-pkg-lists inventory)))
-         (for result
-              (appending-reverse
-               (match elt
-                 ((path . entry)
-                  (let ((pkg-inventory (and inventory?
-                                            (inventory-ref inventory path))))
-                    (bundle-entry->packages ops entry path pkg-inventory)))))))
-    => (reverse result)))
+         (for result (listing (snarf-packages elt))))
+    => result))
 
 (define (bundle-entry->packages ops entry path inventory)
   (define who 'bundle-entry->packages)

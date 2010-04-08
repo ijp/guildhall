@@ -33,6 +33,9 @@
 (define (symbol<? s1 s2)
   (string<? (symbol->string s1) (symbol->string s2)))
 
+(define (sorted-package-names packages)
+  (list-sort symbol<? (map package-name packages)))
+
 
 (define-test-suite bundle-tests
   "Bundles")
@@ -44,7 +47,18 @@
                 hook
                 multi-core multi-tools
                 unsatisfied-depends)
-    (list-sort symbol<? (map package-name (bundle-packages bundle)))))
+    (sorted-package-names (bundle-packages bundle)))
+  (test-equal '((("bar") bar)
+                (("file-conflict-foo") file-conflict-foo)
+                (("foo") foo)
+                (("hook") hook)
+                (("multi") multi-core multi-tools)
+                (("unsatisfied-depends") unsatisfied-depends))
+    (list-sort (lambda (entry-1 entry-2)
+                 (string<? (caar entry-1) (caar entry-2)))
+               (map (lambda (entry)
+                      (cons (car entry) (sorted-package-names (cdr entry))))
+                    (bundle-package-map bundle)))))
 
 (define-test-case bundle-tests open/directory ()
   (let ((bundle (open-input-bundle (pathname-join (this-directory) "bundle"))))

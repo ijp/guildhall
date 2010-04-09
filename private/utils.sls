@@ -28,6 +28,7 @@
           fmt-join/xvector
 
           apush
+          list-prefix
           sort-tagged-tree
           
           warn
@@ -96,6 +97,14 @@
               (acons k (cons v (cdr entry)) (remq entry vals))))
         (else
          (acons k (list v) vals))))
+
+(define (list-prefix prefix list =?)
+  (loop continue ((for elt elt-rest (in-list list))
+                  (for prefix-elt prefix-rest (in-list prefix)))
+    => (and (null? prefix-rest)
+            elt-rest)
+    (cond ((=? elt prefix-elt) (continue))
+          (else                #f))))
 
 (define (opt-ref/list vals key)
   (reverse (or (assq-ref vals key) '())))

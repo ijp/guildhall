@@ -75,7 +75,10 @@
                             (agent 'install-file
                                    'libraries
                                    "test-library.sls"
-                                   ,(->namestring test-pathname)))))))
+                                   ,(->namestring test-pathname))))
+                       (lambda ()
+                         (assertion-violation 'hooks-tests
+                                              "unexpected unpack call")))))
       (test-eqv #t (file-regular? dest-pathname))
       (test-equal test-datum
         (call-with-port (open-input-file (->namestring dest-pathname))

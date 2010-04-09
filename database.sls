@@ -577,14 +577,8 @@
 ;:@ Unpack a package.
 (define (database-unpack! db package)
   (define who 'database-unpack!)
-  (define (lose msg package)
-    (raise (condition
-            (make-who-condition who)
-            (make-database-unavailable-package-error package)
-            (make-message-condition msg))))
   (define (do-install! desired-item)
-    (let* ((bundle (or (open-bundle! db desired-item)
-                       (lose "could not obtain bundle for package" package)))
+    (let* ((bundle (checked-open-bundle! who db desired-item))
            (package (bundle-package-ref bundle package)))
       (log/db 'info (cat "unpacking " (dsp-package-identifier package) " ..."))
       (update-file-table! (database-file-table db)
@@ -612,6 +606,15 @@
            (do-install! desired-item))
           (else
            #f))))
+
+(define (checked-open-bundle! who db item)
+  (define (lose msg package)
+    (raise (condition
+            (make-who-condition who)
+            (make-database-unavailable-package-error package)
+            (make-message-condition msg))))
+  (or (open-bundle! db item)
+      (lose "could not obtain bundle for package" (item-package item))))
 
 (define (open-bundle! db item)
   (define (update-bundle-packages bundle source)
@@ -754,7 +757,8 @@
               (if installation-hook
                   (run-hook (database-get-hook-runner db)
                             package
-                            `(installation-hook . ,installation-hook))
+                            `(installation-hook . ,installation-hook)
+                            (make-source-unpacker db item))
                   '()))
              (installed-item
               (item-with-state (item-add-files item installed-files conflict)
@@ -772,6 +776,39 @@
            (setup-item item))
           (else
            (assertion-violation who "package already setup" package-name)))))
+
+(define (make-source-unpacker db item)
+  (lambda ()
+    (let* ((bundle (checked-open-bundle! 'make-source-unpacker db item))
+           (tmp-dir (create-temp-directory)))
+      (extract-bundle-package bundle (item-package item) tmp-dir)
+      tmp-dir)))
+
+(define (extract-bundle-package bundle package directory)
+  (define (dest-pathname relative-path file)
+    (pathname-join directory (make-pathname #f relative-path file)))
+  (let ((package-path (find-package-path bundle package)))
+    (loop ((for pathname extractor
+                (in-bundle-inventory bundle (bundle-inventory bundle))))
+      (cond ((list-prefix package-path (pathname-directory pathname) string=?)
+             => (lambda (relative-path)
+                  (let ((dest (dest-pathname relative-path
+                                             (pathname-file pathname))))
+                    (log/db 'debug (cat "extracting to " (dsp-pathname dest)))
+                    (create-directory* (pathname-with-file dest #f))
+                    (call-with-port (open-file-output-port (->namestring dest))
+                      (lambda (port)
+                        (extractor port))))))))))
+
+(define (find-package-path bundle package)
+  (exists (lambda (entry)
+            (match entry
+              ((path . packages)
+               (and (find (lambda (bundle-pkg)
+                            (package=? bundle-pkg package))
+                          packages)
+                    path))))
+          (bundle-package-map bundle)))
 
 (define (item-add-files item inventories conflict)
   (item-modify-package

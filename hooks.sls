@@ -41,6 +41,7 @@
   (import (except (rnrs) delete-file file-exists?)
           (only (srfi :1) append-reverse)
           (srfi :8 receive)
+          (spells alist)
           (spells pathname)
           (spells filesys)
           (spells process)
@@ -100,32 +101,43 @@
 
 ;;@ Run @var{hook-form} as hook for the package @var{package}. Returns
 ;; an alist of inventories, which list files installed by the hook.
-(define (run-hook runner package hook-form)
+(define (run-hook runner package hook-form unpack-source)
   (receive (kind options libraries hook-proc-expr)
            (parse-hook-form hook-form)
-    (hook-runner-send runner
-                      `(run-hook ,kind ,options ,libraries ,hook-proc-expr))
-    (loop continue ((with message
-                          (hook-runner-receive runner)
-                          (hook-runner-receive runner))
-                    (with inventories '()))
-      (match message
-        (('install-file (? symbol? category)
-                        (? string? dest-filename)
-                        (? string? src-filename))
-         (destination-install (hook-runner-destination runner)
-                              package
-                              category
-                              dest-filename
-                              (make-file-extractor src-filename))
-         (hook-runner-send runner #t)
-         (continue
-          (=> inventories (update-inventories inventories category dest-filename))))
-        (('hook-done)
-         inventories)
-        (_
-         (raise-hook-runner-error "invalid message from hook runner"
-                                  message))))))
+    (let ((source-pathname (if (assq-ref options 'needs-source?)
+                               (unpack-source)
+                               #f)))
+      (hook-runner-send runner
+                        `(run-hook ,kind ,options ,libraries ,hook-proc-expr))
+      (loop continue ((with message
+                            (hook-runner-receive runner)
+                            (hook-runner-receive runner))
+                      (with inventories '()))
+        (match message
+          (('install-file (? symbol? category)
+                          (? string? dest-filename)
+                          (? string? src-filename))
+           (destination-install (hook-runner-destination runner)
+                                package
+                                category
+                                dest-filename
+                                (make-file-extractor src-filename))
+           (hook-runner-send runner #t)
+           (continue
+            (=> inventories (update-inventories inventories category dest-filename))))
+          (('package-name)
+           (hook-runner-send runner (package-name package))
+           (continue))
+          (('unpacked-source)
+           (hook-runner-send runner (->namestring source-pathname))
+           (continue))
+          (('hook-done)
+           (when source-pathname
+             (rm-rf source-pathname))
+           inventories)
+          (_
+           (raise-hook-runner-error "invalid message from hook runner"
+                                    message)))))))
 
 (define (make-file-extractor filename)
   (lambda (dest-port)

@@ -81,7 +81,12 @@
        (let ((reply (get)))
          (case reply
            ((#t) #t)
-           (else (raise-protocol-error "unexpected reply to `install-file'"))))))))
+           (else (raise-protocol-error "unexpected reply to `install-file'")))))
+      ((package-name unpacked-source)
+       (unless (null? args)
+         (raise-hook-bug "unexpected arguments to message" message args))
+       (put (list message))
+       (get)))))
 
 
 ;;; Conditions

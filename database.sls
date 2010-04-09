@@ -391,10 +391,10 @@
     (loop continue ((for item (in-list items))
                     (with result '() (cons item result))
                     (with inserted? #f))
-      => (if inserted?
-             (reverse result)
-             (cons (make-item package 'available (list source) #f)
-                   (reverse result)))
+      => (reverse
+          (if inserted?
+              result
+              (cons (make-item package 'available (list source) #f) result)))
       (if3 (package-version-compare (package-version package)
                                     (package-version (item-package item)))
            (continue)
@@ -405,13 +405,14 @@
                                 (lambda (sources)
                                   (append (list source) sources)))
                                result)))
-           (continue (=> inserted? #t)
-                     (=> result
-                         (if inserted?
-                             (cons item result)
-                             (cons* item
-                                    (make-item package 'available (list source) #f)
-                                    result)))))))
+           (if inserted?
+               (continue)
+               (continue
+                (=> inserted? #t)
+                (=> result
+                    (cons* item
+                           (make-item package 'available (list source) #f)
+                           result)))))))
   (hashtable-update! (database-pkg-table db)
                      (package-name package)
                      update-items

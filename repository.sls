@@ -116,10 +116,13 @@
         (http-download (repository/available-pathname repo cache-directory)
                        available-uri))
        ((repository/fetch-bundle repo location cache-directory)
-        (http-download (pathname-join cache-directory
-                                      (location->pathname location))
-                       (merge-uris (make-uri #f #f location #f #f)
-                                   base-uri)))))))
+        (let ((destination (pathname-join cache-directory
+                                          (location->pathname location))))
+          (if (file-exists? destination)
+              destination
+              (http-download destination
+                             (merge-uris (make-uri #f #f location #f #f)
+                                         base-uri)))))))))
 
 (define (http-download destination uri)
   (message "Fetching " (uri->string uri))

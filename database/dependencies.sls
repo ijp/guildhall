@@ -1,6 +1,6 @@
 ;;; dependencies.sls --- Package database <-> solver integration
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -37,7 +37,7 @@
           (spells nested-foof-loop)
           (spells lazy-streams)
           (spells match)
-          (spells tracing)
+          (spells tracing) ;debug
           (dorodango database)
           (prefix (dorodango package)
                   db:)
@@ -55,8 +55,8 @@
            (let version (make-version version-id
                                       (database-item-version item)
                                       package))
-           (for versions (listing-reverse (initial (list uninstalled-version))
-                                          version))
+           (for versions (listing (initial (list uninstalled-version))
+                                  version))
            (with current-version
                  uninstalled-version
                  (if (database-item-installed? item)

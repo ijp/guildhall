@@ -54,6 +54,8 @@
           database-setup!
           database-remove!
 
+          database-clear-cache!
+          
           (rename (item? database-item?)
                   (item-package database-item-package)
                   (item-name database-item-name)
@@ -838,6 +840,10 @@
                                   result)))))
           (else
            (continue (=> result (cons a-entry result)))))))
+
+(define (database-clear-cache! db)
+  (rm-rf (database-cache-dir db))
+  (create-directory* (database-cache-dir db)))
 
 
 ;;; Logging

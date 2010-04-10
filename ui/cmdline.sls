@@ -254,6 +254,15 @@
   (options)
   (handler upgrade-command))
 
+(define-command clean
+  (description "Clean the package cache.")
+  (synopsis "clean")
+  (handler
+   (lambda (vals)
+     (call-with-database* vals
+       (lambda (db)
+         (database-clear-cache! db))))))
+
 
 ;;; Configuration
 

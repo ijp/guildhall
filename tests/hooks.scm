@@ -25,7 +25,7 @@
 (import (except (rnrs) delete-file file-exists?)
         (spells pathname)
         (spells filesys)
-        (spells testing)
+        (wak trc-testing)
         (spells logging)
         (dorodango private utils)
         (dorodango inventory)

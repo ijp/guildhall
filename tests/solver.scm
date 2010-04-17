@@ -1,6 +1,6 @@
 ;;; solver.scm --- Dependency solver unit tests
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -33,8 +33,8 @@
         (dorodango solver universe)
         (dorodango solver logging)
         (spells match)
-        (spells fmt)
-        (spells testing)
+        (wak fmt)
+        (wak trc-testing)
         (spells logging))
 
 ;; Set this to `#t' to show the universe that the solver will operate

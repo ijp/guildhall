@@ -25,8 +25,8 @@
 (import (rnrs)
         (srfi :8 receive)
         (spells misc)
-        (spells foof-loop)
-        (spells testing)
+        (wak foof-loop)
+        (wak trc-testing)
         (dorodango inventory)
         (dorodango inventory mapping))
 

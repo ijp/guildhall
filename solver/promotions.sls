@@ -1,6 +1,6 @@
 ;;; promotion-set.sls --- Dependency solver, promotion set
 
-;; Copyright (C) 2009 Andreas Rottmann
+;; Copyright (C) 2009, 2010 Andreas Rottmann
 ;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -48,10 +48,10 @@
           (srfi :2 and-let*)
           (srfi :8 receive)
           (srfi :67 compare-procedures)
+          (wak fmt)
+          (wak foof-loop)
           (spells record-types)
           (spells xvector)
-          (spells fmt)
-          (spells foof-loop)
           (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver logging)

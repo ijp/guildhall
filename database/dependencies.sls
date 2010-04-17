@@ -32,10 +32,10 @@
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :8 receive)
+          (wak foof-loop)
+          (wak foof-loop nested)
+          (wak riastreams)
           (spells record-types)
-          (spells foof-loop)
-          (spells nested-foof-loop)
-          (spells lazy-streams)
           (spells match)
           (spells tracing) ;debug
           (dorodango database)

@@ -1,6 +1,6 @@
 ;;; solver.sls --- Dependency solver, algorithm
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -44,10 +44,10 @@
           (spells tracing)
           (spells misc)
           (spells alist)
-          (spells fmt)
           (spells logging)
-          (spells foof-loop)
-          (spells lazy-streams)
+          (wak riastreams)
+          (wak fmt)
+          (wak foof-loop)
           (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver logging)

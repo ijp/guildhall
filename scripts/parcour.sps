@@ -28,9 +28,9 @@
         (srfi :19 time)
         (srfi :39 parameters)
         (srfi :98 os-environment-variables)
-        (spells foof-loop)
-        (spells nested-foof-loop)
-        (spells fmt)
+        (wak foof-loop)
+        (wak foof-loop nested)
+        (wak fmt)
         (spells pathname)
         (spells filesys)
         (spells process)
@@ -104,7 +104,7 @@
   (run-installed "list"))
 
 (define package-list
-  '(srfi spells industria parscheme ocelotl))
+  '(srfi spells industria wak-parscheme ocelotl))
 
 (define (with-repository uri-string thunk)
   (parameterize ((global-args (append (list "-r" uri-string) (global-args))))

@@ -23,11 +23,11 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (spells lazy)
+        (srfi :45 lazy)
+        (wak foof-loop)
+        (wak foof-loop nested)
+        (wak fmt)
         (spells match)
-        (spells foof-loop)
-        (spells nested-foof-loop)
-        (spells fmt)
         (spells pathname)
         (spells filesys)
         (spells process)
@@ -39,7 +39,17 @@
 (define bundle-base (make-pathname '(back) '() #f))
 
 (define transitive-dependencies
-  '(srfi spells industria parscheme ocelotl))
+  '(srfi
+    wak-common
+    wak-syn-param
+    wak-riastreams
+    wak-foof-loop
+    wak-fmt
+    wak-irregex
+    wak-parscheme
+    spells
+    industria
+    ocelotl))
 
 (define (run-dist name-suffix)
   (let* ((package (call-with-input-file "pkg-list.scm"

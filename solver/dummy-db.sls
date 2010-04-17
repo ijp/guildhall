@@ -1,6 +1,6 @@
 ;;; dummy-db.sls --- Dependency solver, dummy database
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -35,9 +35,9 @@
           dummy-db->universe)
   (import (rnrs)
           (only (srfi :1) append-map filter-map delete-duplicates)
+          (wak foof-loop)
+          (wak riastreams)
           (spells record-types)
-          (spells foof-loop)
-          (spells lazy-streams)
           (dorodango solver internals))
 
 (define-record-type* dummy-db

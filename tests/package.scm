@@ -1,6 +1,6 @@
 ;;; package.scm --- Test suite for `package.sls'
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -23,7 +23,7 @@
 
 (import (rnrs)
         (only (srfi :1) append-map)
-        (spells testing)
+        (wak trc-testing)
         (dorodango package))
 
 (define-test-suite package-tests

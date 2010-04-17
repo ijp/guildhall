@@ -1,6 +1,6 @@
 ;;; search-graph.sls --- Dependency solver, search graph
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -105,11 +105,11 @@
           (srfi :2 and-let*)
           (srfi :8 receive)
           (srfi :67 compare-procedures)
+          (wak foof-loop)
+          (wak fmt)
           (ocelotl wt-tree)
           (spells record-types)
           (spells xvector)
-          (spells foof-loop)
-          (spells fmt)
           (spells tracing)
           (dorodango private utils)
           (dorodango solver expression)

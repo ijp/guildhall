@@ -44,7 +44,7 @@
           (spells pathname)
           (spells filesys)
           (spells logging)
-          (spells fmt)
+          (wak fmt)
           (ocelotl net uri)
           (ocelotl net http)
           (ocelotl net http-client)

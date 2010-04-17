@@ -49,16 +49,16 @@
                 string-concatenate
                 string-concatenate-reverse
                 string-contains) 
+          (srfi :45 lazy)
           (spells alist)
           (only (spells misc) and=> scheme-implementation)
-          (spells lazy)
-          (spells fmt)
+          (wak fmt)
+          (wak irregex)
+          (wak foof-loop)
           (spells record-types)
           (spells pathname)
           (spells filesys)
           (spells logging)
-          (spells irregex)
-          (spells foof-loop)
           (spells process) ;just needed for `chmod'
           (spells sysutils) ;ditto
           (dorodango private utils)

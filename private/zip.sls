@@ -28,8 +28,8 @@
   (import (rnrs)
           (srfi :8 receive)
           (only (srfi :13) string-null?)
+          (wak foof-loop)
           (spells string-utils)
-          (spells foof-loop)
           (prefix (weinholt compression zip) zip:)
           (dorodango inventory))
 

@@ -40,11 +40,11 @@
           (only (srfi :1) append-map filter-map)
           (srfi :2 and-let*)
           (srfi :8 receive)
+          (wak foof-loop)
+          (wak irregex)
           (only (spells misc) and=> or-map)
           (spells record-types)
           (spells match)
-          (spells foof-loop)
-          (spells irregex)
           (spells tracing) ;debug
           (dorodango inventory))
 

@@ -30,8 +30,8 @@
           dsp-package-version
           dsp-package-identifier)
   (import (rnrs)
-          (spells fmt)
-          (spells foof-loop)
+          (wak fmt)
+          (wak foof-loop)
           (dorodango inventory)
           (dorodango package)
           (dorodango bundle)

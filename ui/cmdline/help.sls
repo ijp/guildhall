@@ -33,12 +33,12 @@
           (only (srfi :13) string-fold-right string-map)
           (spells operations)
           (spells args-fold)
-          (spells fmt)
+          (wak fmt)
           (spells alist)
           (spells match)
           (spells tracing) ;debug
-          (parscheme parser-combinators)
-          (parscheme text-parser-combinators)
+          (wak parscheme parser-combinators)
+          (wak parscheme text-parser-combinators)
           (dorodango private utils)
           (dorodango ui cmdline base))
 

@@ -1,6 +1,6 @@
 ;;; logging.sls --- Dependency solver, logging utilities
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -40,11 +40,11 @@
           dsp-choice-set
           dsp-choice-table)
   (import (rnrs)
+          (wak fmt)
+          (wak foof-loop)
+          (wak riastreams)
           (spells alist)
           (spells logging)
-          (spells fmt)
-          (spells foof-loop)
-          (spells lazy-streams)
           (ocelotl wt-tree)
           (dorodango private utils)
           (dorodango solver universe)

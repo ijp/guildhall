@@ -1,6 +1,6 @@
 ;;; expression.sls --- Dynamically updateable expression DAG
 
-;; Copyright (C) 2009 Andreas Rottmann
+;; Copyright (C) 2009, 2010 Andreas Rottmann
 ;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -47,8 +47,8 @@
           (only (spells gc) make-weak-cell weak-cell-ref)
           (only (spells misc) unspecific)
           (spells operations)
-          (spells foof-loop)
-          (spells fmt))
+          (wak foof-loop)
+          (wak fmt))
 
 
 ;;; Operations valid on all expressions

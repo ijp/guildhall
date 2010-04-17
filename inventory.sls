@@ -1,6 +1,6 @@
 ;;; inventory.sls --- Tree data structure modeling a hierarchical namespace
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -64,7 +64,7 @@
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :8 receive)
-          (spells foof-loop)
+          (wak foof-loop)
           (spells tracing)
           (spells zipper-tree))
 

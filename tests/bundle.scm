@@ -23,8 +23,8 @@
 #!r6rs
 
 (import (rnrs)
-        (spells testing)
-        (spells testing run-env)
+        (wak trc-testing)
+        (spells test-runner environment)
         (spells pathname)
         (dorodango package)
         (dorodango bundle))

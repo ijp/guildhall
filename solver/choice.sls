@@ -1,6 +1,6 @@
 ;;; choice.sls --- Dependency solver, choice datastructures
 
-;; Copyright (C) 2009 Andreas Rottmann
+;; Copyright (C) 2009, 2010 Andreas Rottmann
 ;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -92,12 +92,12 @@
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :67 compare-procedures)
+          (wak fmt)
+          (wak foof-loop)
           (only (spells misc) unspecific)
           (spells hash-utils)
           (spells record-types)
           (spells misc)
-          (spells fmt)
-          (spells foof-loop)
           (spells tracing)
           (ocelotl wt-tree)
           (dorodango private utils)

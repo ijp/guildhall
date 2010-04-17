@@ -52,8 +52,8 @@
           (spells cells)
           (only (spells misc) and=> unspecific)
           (spells record-types)
-          (spells foof-loop)
-          (spells fmt)
+          (wak foof-loop)
+          (wak fmt)
           (dorodango private utils)
           (dorodango ui))
 

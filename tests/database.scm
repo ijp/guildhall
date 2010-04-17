@@ -23,12 +23,12 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (spells foof-loop)
+        (wak foof-loop)
         (spells pathname)
         (spells filesys)
         (spells logging)
-        (spells testing)
-        (spells testing run-env)
+        (wak trc-testing)
+        (spells test-runner environment)
         (only (spells misc)
               scheme-implementation)
         (dorodango private utils)

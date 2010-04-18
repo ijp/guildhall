@@ -55,6 +55,11 @@
        (define name (make-help-formatter-wrapper formatter))
        ...))))
 
+(define (make-help-formatter-wrapper operation)
+  (lambda args
+    (lambda (st)
+      ((apply operation (help-formatter st) args) st))))
+
 (define-wrappers
   (dsp-section help/dsp-section)
   (dsp-command-listing help/dsp-command-listing)
@@ -67,11 +72,6 @@
 
 (define (help-level st)
   (fmt-ref st 'help-level))
-
-(define (make-help-formatter-wrapper operation)
-  (lambda args
-    (lambda (st)
-      ((apply operation (help-formatter st) args) st))))
 
 (define (dsp-help formatter command)
   (fmt-let 'help-formatter formatter

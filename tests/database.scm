@@ -67,7 +67,10 @@
 (define package:hook (make-package 'hook '((0))))
 
 (define r6rs-script-wrappers
-  '("r6rs-script" "r6rs-script.ikarus" "r6rs-script.ypsilon"))
+  '("r6rs-script"
+    "r6rs-script.ikarus"
+    "r6rs-script.mzscheme"
+    "r6rs-script.ypsilon"))
 
 (define-test-case db-tests locking ((setup (assert-clear-stage))
                                     (teardown (clear-stage)))

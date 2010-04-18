@@ -170,7 +170,7 @@
       (lambda (port)
         (fmt-join/suffix dsp (get-lines/replace port substitutions) "\n")))))
 
-(define supported-implementations '(ikarus ypsilon))
+(define supported-implementations '(ikarus ypsilon mzscheme))
 
 (define (fhs-destination-setup destination options)
   (define (implementation-pathname pathname implementation)

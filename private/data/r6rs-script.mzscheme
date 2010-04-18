@@ -1,0 +1,21 @@
+#!/bin/sh
+
+export PLTCOLLECTS=":@R6RS_LIBRARY_PATH@"
+
+while true; do
+    case "$1" in
+        --compile)
+            shift
+            exec plt-r6rs --compile "$@"
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+exec plt-r6rs -- "$@"

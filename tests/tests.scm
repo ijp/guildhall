@@ -1,4 +1,5 @@
-((files "inventory.scm"
+((files "utils.scm"
+        "inventory.scm"
         "expression.scm"
         "package.scm"
         "bundle.scm"

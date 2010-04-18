@@ -82,7 +82,8 @@
                                                '("dorodango" "private")
                                                "hook-runner.sps")
                                 (library-search-paths))))
-    (let ((process (spawn-process #f #f #f (current-error-port) r6rs-script hook-runner)))
+    (let ((process (spawn-process #f #f #f (standard-error-port)
+                                  r6rs-script hook-runner)))
       (make-hook-runner destination
                         process
                         (transcoded-port (process-input process)

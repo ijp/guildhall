@@ -45,10 +45,12 @@
     (test-failure "working stage not clear" test-dir)))
 
 (define (open-test-database)
-  (let ((db (open-database (pathname-join test-dir "db")
-                           (make-fhs-destination 'test dest-dir)
-                           '()
-                           (scheme-implementation))))
+  (let ((db (open-database
+             (pathname-join test-dir "db")
+             (make-fhs-destination 'test
+                                   (merge-pathnames dest-dir (working-directory)))
+             '()
+             (scheme-implementation))))
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 
@@ -218,7 +220,6 @@
     ,(lambda (entry)
        (default-log-formatter entry (current-output-port))))))
 
-(set-test-debug-errors?! #t)
 (run-test-suite db-tests)
 
 ;; Local Variables:

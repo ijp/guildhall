@@ -10,8 +10,8 @@ library collections and programs that might be included with them.
 A library collection, possibly including programs and documentation,
 together with some metadata, which, for example, describes the
 dependencies on other software, is called a package. Packages are
-distributed in ZIP files called ; each bundle may contain one or more
-packages.
+distributed in ZIP files referred to as ``bundles''; each bundle may
+contain one or more packages.
 
 If you already are familiar with other package managers, such as
 Debian's APT, having more than one package bundled in the same file

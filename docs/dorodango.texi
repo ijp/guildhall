@@ -52,7 +52,8 @@ install all the prerequisites for that program in one go.
 @menu
 * Getting Started:: Installation and a quick introduction
 * Overview:: Dorodango summed up
-* Reference:: All of dorodango's functionality
+* Reference:: The command-line interface
+* Packaging Guide:: How to create packages
 * Index:: Concept index
 @end menu
 
@@ -69,6 +70,7 @@ install all the prerequisites for that program in one go.
 
 @include overview.texi
 @include reference.texi
+@include packaging.texi
 
 @node Index
 @unnumbered Index

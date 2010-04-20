@@ -30,7 +30,7 @@ that @command{doro} will just use built-in defaults.
 @itemx -c
 
 Use configuration file @var{file}, instead of the default
-one. @xref{Configuration File}, for configuration file syntax.
+one. @xref{Configuration File} for configuration file syntax.
 
 @item --prefix=@var{prefix}
 
@@ -108,10 +108,10 @@ the selected destination.
 
 @deffn Command install package ...
 
-Install the listed @var{package}s. Each @var{package} argument can be
-a package name, in which case the newest available version is
+Install the listed @var{package}s. Each @var{package} argument can be a
+package name, in which case the newest available version is
 installed. If the package in question is already installed, it will be
-upgraded. One may also explicitly specifying a specific version to be
+upgraded. One may also explicitly specify a specific version to be
 installed using the syntax @samp{@var{package-name}=@var{version}}.
 
 @table @option
@@ -135,8 +135,8 @@ Remove the listed @var{package}s from the system.
 @table @option
 @item --no-depends
 
-Disable dependency resolution. This option allows for installing
-packages with unresolved dependencies.
+Disable dependency resolution.  This option allows for removing packages
+that still have others depending on them.
 
 @end table
 @end deffn
@@ -257,8 +257,8 @@ a configuration that uses all possible clauses:
 
 @subsection Repositories
 
-A repository clause defines a repository, which may be located on an
-HTTP server or a local file system. The repository's is given a name,
+A @code{repository} clause defines a repository, which may be located on
+an HTTP server or a local file system. The repository is given a name,
 and a location is specified as an URI:
 
 @lisp
@@ -266,7 +266,7 @@ and a location is specified as an URI:
 @end lisp
 
 In the running example, @var{<name>} is @code{experimental}, and
-@var{<location-uri>} name is the string
+@var{<location-uri>} is the string
 @code{"http://rotty.yi.org/doro/experimental"}, denoting an HTTP
 repository at the apparent location.
 
@@ -274,14 +274,15 @@ repository at the apparent location.
 @cindex destinations, configuring
 @cindex configuring destinations
 
-Destinations are where a package's files are installed to; they have
-an associated package database that keeps track of installed
-packages. In principle, destinations come in ``flavors'', but at the
-time of writing, there's only a single flavor: @code{fhs}, which puts
-the files in subdirectories of the specified prefix directory that are
-(at least roughly) in line with FHS. This means one can use an
-@code{fhs} destination to install to @file{/usr/local}, and have files
-ending up in familiar locations.
+Destinations are where a package's files are installed to; they have an
+associated package database that keeps track of installed packages. In
+principle, destinations come in ``flavors'', but at the time of writing,
+there's only a single flavor: @code{fhs}, which puts the files in
+subdirectories of the specified prefix directory that are (at least
+roughly) in line with the @uref{http://www.pathname.com/fhs/, FHS},
+which specifies the directory layout of UNIX-like systems.  This means
+one can use an @code{fhs} destination to install to @file{/usr/local},
+and have files ending up in familiar locations.
 
 In the configuration file, destinations are given a name so they can
 be referred to by @command{doro}'s @option{--destination}
@@ -289,8 +290,8 @@ option. @xref{Global Options}.
 
 Unless specified otherwise via the @code{repositories} sub-clause, all
 repositories listed up to the point of the destination's declaration
-will be used with this destination. A repository mus be declared
-before being referenced in a destination's @code{repositories} clause.
+will be used with this destination. A repository must be declared before
+being referenced in a destination's @code{repositories} clause.
 
 The @code{database} sub-clause allows to define the location of the
 package database on disk; if it is left out, dorodango will use a
@@ -301,19 +302,20 @@ default location, based on the destination's prefix.
 @anchor{default-implementation}
 
 The @code{default-implementation} clause specifies the Scheme
-implementation to use by default when setting up new destinations,
-affecting the implementation that R6RS programs installed into the
-location will use. One can initialize a destination using the
-@command{doro init} command, thus overriding the default.
+implementation to use by default when setting up new destinations.  The
+implementation associated with a destination will be used by R6RS
+programs installed into that destinationq.  One can explicitly
+initialize a destination using the @command{doro init} command, thus
+overriding the default.
 
 If @code{default-implementation} is not specified, dorodango will use
 a built-in default (@code{ikarus} at the time of writing).
 
-Using the @code{default-destination} one can specify which configured
-destination will be used when none is explicitly specified via the
-@option{--destination} global option. If there is no
-@code{default-implementation} clause, the first destination specified
-is considered the default.
+Using the @code{default-destination} clause one can specify which
+configured destination will be used when none is explicitly specified
+via the @option{--destination} global option. If there is no
+@code{default-implementation} clause, the first destination specified is
+considered the default.
 
 @subsection Formal Grammar
 @cindex configuration file, grammar

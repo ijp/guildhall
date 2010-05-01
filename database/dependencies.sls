@@ -74,6 +74,10 @@
 ;; may also add packages (with "uninstalled" as single version), as
 ;; dependencies might refer to packages that are not known to the
 ;; database.
+;;
+;; This procedure returns two values: the constructed "universe",
+;; which serves as input to the solver, and an hashtable that maps
+;; package names to the universe's packages.
 (define (database->universe database)
   (let ((package-table (make-eq-hashtable)))
     (define (list-dependencies versions db-items version-count)

@@ -325,7 +325,7 @@
                  (values (list filename) default-documentation-mapper))))
 
 (define lookup-mapper
-  (let ((mapper-alist `((* . ,identity-inventory-mapper)
+  (let ((mapper-alist `((* . ,(make-recursive-inventory-mapper list))
                         (sls . ,default-library-mapper))))
     (lambda (name)
       (or (assq-ref mapper-alist name)

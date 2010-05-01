@@ -619,7 +619,7 @@
                          (destination . ,(assq-ref vals 'destination))
                          (config . ,(config-with-prefix config)))))))
               (else
-               (fatal "unknown command" (car operands))))))))
+               (fatal (cat "unknown command `" (car operands) "'"))))))))
 
 (define-command main
   (synopsis "[OPTIONS] COMMAND [COMMAND-OPTIONS] [ARGS]\n")

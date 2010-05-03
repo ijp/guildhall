@@ -44,14 +44,14 @@
   (test-eqv #t (bundle? bundle))
   (test-equal '(bar
                 file-conflict-foo foo
-                hook
+                hook hook-crash
                 multi-core multi-tools
                 unsatisfied-depends)
     (sorted-package-names (bundle-packages bundle)))
   (test-equal '((("bar") bar)
                 (("file-conflict-foo") file-conflict-foo)
                 (("foo") foo)
-                (("hook") hook)
+                (("hook") hook hook-crash)
                 (("multi") multi-core multi-tools)
                 (("unsatisfied-depends") unsatisfied-depends))
     (list-sort (lambda (entry-1 entry-2)

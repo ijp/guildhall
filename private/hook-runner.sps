@@ -55,7 +55,9 @@
           (put '(hook-done))))
       (let ((input (read in-port)))
         (unless (eof-object? input)
-          (run-hook input)
+          (guard (c ((serious-condition? c)
+                     (put `(exception ,(condition->sexp c)))))
+            (run-hook input))
           (loop))))))
 
 (define (eval-hook env hook)
@@ -97,8 +99,42 @@
 (define (raise-hook-bug message . irritants)
   (apply error 'raise-hook-bug message irritants))
 
+(define (condition->sexp c)
+  (map simple-condition->sexp (simple-conditions c)))
+
+(define (simple-condition->sexp c)
+  (let ((c-rtd (record-rtd c)))
+    (let loop ((rtd c-rtd) (fields '()))
+      (cond (rtd
+             (loop (record-type-parent rtd)
+                   (append-reverse (record-fields rtd c) fields)))
+            (else
+             (cons (record-type-name c-rtd)
+                   (reverse fields)))))))
+
+(define (record-fields rtd record)
+  (let* ((field-names (record-type-field-names rtd))
+         (n-fields (vector-length field-names)))
+    (let loop ((i (- n-fields 1)) (result '()))
+      (if (< i 0)
+          result
+          (loop (- i 1)
+                (cons (cons (vector-ref field-names i)
+                            ((record-accessor rtd i) record))
+                      result))))))
+
 
-;;;; Entry point
+;;; Utilities
+
+(define (append-reverse list1 list2)
+  (let loop ((result list2) (l1 list1))
+    (if (null? l1)
+        result
+        (loop (cons (car l1) result)
+              (cdr l1)))))
+
+
+;;; Entry point
 
 (let ()
   (define (transcoded port)

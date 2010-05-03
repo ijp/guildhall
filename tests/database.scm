@@ -35,7 +35,10 @@
         (dorodango inventory)
         (dorodango package)
         (dorodango destination)
+        (dorodango hooks)
         (dorodango database))
+
+(define debug-output? #f)
 
 (define test-dir (->pathname '((",database-test.tmp"))))
 (define dest-dir (pathname-join test-dir "dest"))
@@ -65,6 +68,7 @@
 (define package:not-there (make-package 'not-there '((0))))
 (define package:file-conflict-foo (make-package 'file-conflict-foo '((0))))
 (define package:hook (make-package 'hook '((0))))
+(define package:hook-crash (make-package 'hook-crash '((0))))
 
 (define r6rs-script-wrappers
   '("r6rs-script"
@@ -215,13 +219,24 @@
     (call-with-database (open-test-database)
       test-inventories)))
 
-#;
-(set-logger-properties!
- logger:dorodango
- `((threshold trace)
-   (handlers
-    ,(lambda (entry)
-       (default-log-formatter entry (current-output-port))))))
+(define-test-case db-tests crash ((setup (assert-clear-stage))
+                                  (teardown (clear-stage)))
+  (let ((exception-cookie (list 'cookie)))
+    (call-with-database (open-test-database)
+      (lambda (db)
+        (test-eqv #t (database-unpack! db package:hook-crash))
+        (test-eq exception-cookie
+          (guard (c ((hook-runner-exception? c)
+                     exception-cookie))
+            (database-setup! db 'hook-crash)))))))
+
+(when debug-output?
+  (set-logger-properties!
+   logger:dorodango
+   `((threshold trace)
+     (handlers
+      ,(lambda (entry)
+         (default-log-formatter entry (current-output-port)))))))
 
 (run-test-suite db-tests)
 

@@ -60,6 +60,7 @@
                   (item-package database-item-package)
                   (item-name database-item-name)
                   (item-version database-item-version)
+                  (item-state database-item-state)
                   (item-installed? database-item-installed?))
 
           database-file-conflict?

@@ -33,6 +33,7 @@
           (spells finite-types)
           (spells record-types)
           (spells xvector)
+          (spells match)
           (spells tracing) ;debug
           (only (spells misc) topological-sort)
           (dorodango private utils)
@@ -41,6 +42,7 @@
           (dorodango solver choice)
           (prefix (dorodango solver universe)
                   universe-)
+          (dorodango hooks)
           (dorodango database)
           (dorodango database dependencies)
           (dorodango ui formatters)
@@ -81,12 +83,9 @@
              #f)))))
 
 (define (apply-choices db choices)
-  (define (run-setup versions)
-    (loop ((for package-name (in-list (calculate-setup-sequence versions))))
-      (database-setup! db package-name)))
   (loop continue ((for choice (in-choice-set choices))
                   (with unpacked-versions '()))
-    => (run-setup unpacked-versions)
+    => (run-setup db unpacked-versions)
     (let ((version (choice-version choice)))
       (cond ((universe-version-tag version)
              (if (database-unpack! db (universe-version->package version))
@@ -98,6 +97,31 @@
 
 (define (calculate-setup-sequence versions)
   (reverse (topological-sort (versions->setup-graph versions) eq?)))
+
+(define (run-setup db versions)
+  (loop ((for package-name (in-list (calculate-setup-sequence versions))))
+    (guard (c ((hook-runner-exception? c)
+               (fmt (current-error-port)
+                    (dsp-hook-runner-exception c))))
+      (database-setup! db package-name))))
+
+(define (dsp-hook-runner-exception c)
+  (define (dsp-hook-exception-part part)
+    (match part
+      ((name fields ___)
+       (cat name
+            (case (length fields)
+              ((0) nl)
+              ((1) (cat ": " (wrt/unshared (cdar fields)) nl))
+              (else
+               (cat ":\n"
+                    (fmt-join/suffix (lambda (field)
+                                       (cat "    " (car field) ": " (cdr field)))
+                                     fields
+                                     nl))))))))
+  (cat "Exception in installation hook:\n"
+       (fmt-indented "  " (fmt-join/suffix dsp-hook-exception-part
+                                           (hook-runner-exception-value c)))))
 
 (define (versions->setup-graph versions)
   (let ((version-table (make-hashtable universe-version-hash universe-version=?)))
@@ -407,5 +431,5 @@
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop)
+;; scheme-indent-styles: (foof-loop as-match)
 ;; End:

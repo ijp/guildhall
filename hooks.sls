@@ -36,7 +36,9 @@
           run-hook
           
           hook-runner-error?
-
+          hook-runner-exception?
+          hook-runner-exception-value
+          
           logger:dorodango.hooks)
   (import (except (rnrs) delete-file file-exists?)
           (only (srfi :1) append-reverse)
@@ -108,6 +110,9 @@
     (let ((source-pathname (if (assq-ref options 'needs-source?)
                                (unpack-source)
                                #f)))
+      (define (cleanup)
+        (when source-pathname
+          (rm-rf source-pathname)))
       (hook-runner-send runner
                         `(run-hook ,kind ,options ,libraries ,hook-proc-expr))
       (loop continue ((with message
@@ -133,10 +138,13 @@
            (hook-runner-send runner (->namestring source-pathname))
            (continue))
           (('hook-done)
-           (when source-pathname
-             (rm-rf source-pathname))
+           (cleanup)
            inventories)
+          (('exception exception)
+           (cleanup)
+           (raise-hook-runner-exception exception))
           (_
+           (cleanup)
            (raise-hook-runner-error "invalid message from hook runner"
                                     message)))))))
 
@@ -174,10 +182,17 @@
 (define-condition-type &hook-runner-error &error
   make-hook-runner-error hook-runner-error?)
 
+(define-condition-type &hook-runner-exception &error
+  make-hook-runner-exception hook-runner-exception?
+  (value hook-runner-exception-value))
+
 (define (raise-hook-runner-error message . irritants)
   (raise (condition (make-hook-runner-error)
                     (make-message-condition message)
                     (make-irritants-condition irritants))))
+
+(define (raise-hook-runner-exception exception)
+  (raise (condition (make-hook-runner-exception exception))))
 
 (define logger:dorodango.hooks
   (make-logger logger:dorodango 'hooks))

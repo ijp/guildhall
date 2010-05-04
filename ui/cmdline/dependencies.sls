@@ -93,7 +93,8 @@
                   (=> unpacked-versions (cons version unpacked-versions)))
                  (continue)))
             (else
-             (database-remove! db (universe-version-package-name version)))))))
+             (database-remove! db (universe-version-package-name version))
+             (continue))))))
 
 (define (calculate-setup-sequence versions)
   (reverse (topological-sort (versions->setup-graph versions) eq?)))

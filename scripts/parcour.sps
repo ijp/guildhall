@@ -137,6 +137,9 @@
         (run "install" "srfi" "spells" "dorodango")))
     (rm-rf repo-dir)))
 
+(define (do-remove)
+  (run "remove" "srfi"))
+
 (define (parcour)
   (let ((prefix (create-temp-directory)))
     (parameterize ((dry-run? #f)
@@ -145,6 +148,7 @@
       (do-install)
       (do-installation-test)
       (do-upgrade)
+      (do-remove)
       (rm-rf (prefix-directory)))))
 
 (parcour)

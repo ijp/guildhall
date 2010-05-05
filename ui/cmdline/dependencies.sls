@@ -55,6 +55,7 @@
   (receive (universe package-table) (database->universe db)
     (let ((irreparable (irreparable-packages universe)))
       (cond ((null? irreparable)
+             (run-setup db (database-unpacked-versions db package-table))
              (let ((result (resolve-dependencies universe
                                                  package-table
                                                  to-install
@@ -95,6 +96,18 @@
             (else
              (database-remove! db (universe-version-package-name version))
              (continue))))))
+
+(define (database-unpacked-versions db package-table)
+  (loop continue ((for package-name items (in-database db))
+                  (with result '()))
+    => (reverse result)
+    (cond ((find (lambda (item) (eq? 'unpacked (database-item-state item)))
+                 items)
+           (let ((version (universe-package-current-version
+                           (hashtable-ref package-table package-name #f))))
+             (continue (=> result (cons version result)))))
+          (else
+           (continue)))))
 
 (define (calculate-setup-sequence versions)
   (reverse (topological-sort (versions->setup-graph versions) eq?)))

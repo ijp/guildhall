@@ -19,6 +19,10 @@
 
 ;;; Commentary:
 
+;; The universe constructed by this library uses the database
+;; package's version as `version-tag' (or #f for the "uninstalled
+;; version").
+
 ;;; Code:
 #!r6rs
 

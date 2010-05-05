@@ -106,24 +106,6 @@
                     (dsp-hook-runner-exception c))))
       (database-setup! db package-name))))
 
-(define (dsp-hook-runner-exception c)
-  (define (dsp-hook-exception-part part)
-    (match part
-      ((name fields ___)
-       (cat name
-            (case (length fields)
-              ((0) nl)
-              ((1) (cat ": " (wrt/unshared (cdar fields)) nl))
-              (else
-               (cat ":\n"
-                    (fmt-join/suffix (lambda (field)
-                                       (cat "    " (car field) ": " (cdr field)))
-                                     fields
-                                     nl))))))))
-  (cat "Exception in installation hook:\n"
-       (fmt-indented "  " (fmt-join/suffix dsp-hook-exception-part
-                                           (hook-runner-exception-value c)))))
-
 (define (versions->setup-graph versions)
   (let ((version-table (make-hashtable universe-version-hash universe-version=?)))
     (iterate! (for version (in-list versions))

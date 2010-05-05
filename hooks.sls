@@ -38,6 +38,7 @@
           hook-runner-error?
           hook-runner-exception?
           hook-runner-exception-value
+          dsp-hook-runner-exception
           
           logger:dorodango.hooks)
   (import (except (rnrs) delete-file file-exists?)
@@ -193,6 +194,25 @@
 
 (define (raise-hook-runner-exception exception)
   (raise (condition (make-hook-runner-exception exception))))
+
+(define (dsp-hook-runner-exception c)
+  (define (dsp-hook-exception-part part)
+    (match part
+      ((name fields ___)
+       (cat name
+            (case (length fields)
+              ((0) nl)
+              ((1) (cat ": " (wrt/unshared (cdar fields)) nl))
+              (else
+               (cat ":\n"
+                    (fmt-join/suffix (lambda (field)
+                                       (cat "    " (car field) ": " (cdr field)))
+                                     fields
+                                     nl))))))))
+  (cat "Exception in installation hook:\n"
+       (fmt-indented "  " (fmt-join/suffix dsp-hook-exception-part
+                                           (hook-runner-exception-value c)))))
+
 
 (define logger:dorodango.hooks
   (make-logger logger:dorodango 'hooks))

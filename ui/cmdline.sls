@@ -59,6 +59,7 @@
           (dorodango bundle)
           (dorodango repository)
           (dorodango destination)
+          (dorodango hooks)
           (dorodango database)
           (dorodango config)
           (dorodango actions)
@@ -199,15 +200,21 @@
         (loop ((for package (in-list packages))
                (for to-install (listing (select-package/string db package))))
           => (cond (no-depends?
-                    (loop ((for package (in-list to-install)))
-                      (or (database-unpack! db package)
-                          (let ((db-package
-                                 (database-lookup db (package-name package))))
-                            (message "Package " package-name
-                                     " already at version "
-                                     (package-version db-package))))))
+                    (install/no-depends db to-install))
                    (else
                     (apply-actions db to-install '()))))))))
+
+(define (install/no-depends db to-install)
+  (loop ((for package (in-list to-install)))
+    (cond ((database-unpack! db package)
+           (guard (c ((hook-runner-exception? c)
+                      (fmt (current-error-port) (dsp-hook-runner-exception c))))
+             (database-setup! db (package-name package))))
+          (else
+           (let ((db-package
+                  (database-lookup db (package-name package))))
+             (message "Package " package-name
+                      " already at version " (package-version db-package)))))))
 
 (define-command install
   (synopsis "install [--bundle BUNDLE]... PACKAGE...")

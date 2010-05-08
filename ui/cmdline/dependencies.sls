@@ -162,6 +162,7 @@
             (continue (=> selected-index new-index)
                       (=> exhausted? (or exhausted? now-exhausted?))))
           (let*-values (((solution) (xvector-ref solutions index))
+                        ((actions) (solution->actions solution))
                         ((risky? assess-message)
                          (assess-solution solution
                                           initial-choices
@@ -178,7 +179,7 @@
                           (cat solution-message
                                "Accept this solution?"))
                       (prompt-choices index (or exhausted? now-exhausted?)))
-                 ((#\y)       (solution->actions (xvector-ref solutions index)))
+                 ((#\y)       actions)
                  ((#\n)       (iterate #f))
                  ((#\q)       #f)
                  ((#\.)       (iterate (+ index 1)))
@@ -188,8 +189,11 @@
                             (=> show-story? (not show-story?))))
                  (else
                   (assert #f))))
+              ((= 0 (choice-set-size actions))
+               (message "Nothing to do.")
+               actions)
               ((y-or-n #t (cat solution-message "Do you want to continue?"))
-               (solution->actions solution))
+               actions)
               (else
                #f))))
         (cond (selected-index

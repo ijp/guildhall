@@ -47,6 +47,7 @@
     wak-fmt
     wak-irregex
     wak-parscheme
+    wak-trc-testing
     spells
     industria
     ocelotl))

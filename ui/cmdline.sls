@@ -246,17 +246,16 @@
   (handler remove-command))
 
 (define (upgrade-command vals)
-  (let ((packages (opt-ref/list vals 'operands)))
-    (define (select-upgrade items)
-      (and-let* ((item (car items))
-                 ((exists database-item-installed? items))
-                 ((not (database-item-installed? item))))
-        (database-item-package item)))
-    (call-with-database* vals
-      (lambda (db)
-        (loop ((for package-name items (in-database db))
-               (for to-upgrade (listing (select-upgrade items) => values)))
-          => (apply-actions db to-upgrade '()))))))
+  (define (select-upgrade items)
+    (and-let* ((item (car items))
+               ((exists database-item-installed? items))
+               ((not (database-item-installed? item))))
+      (database-item-package item)))
+  (call-with-database* vals
+    (lambda (db)
+      (loop ((for package-name items (in-database db))
+             (for to-upgrade (listing (select-upgrade items) => values)))
+        => (apply-actions db to-upgrade '())))))
 
 (define-command upgrade
   (description "Upgrade all packages.")

@@ -128,7 +128,7 @@
     (with-repository (string-append "file://" (->namestring repo-dir))
       (lambda ()
         (run "update")
-        (run "upgrade" "srfi")))
+        (run "upgrade")))
     (populate-repository repo-dir "2")
     (with-repository (string-append http-temp-directory-uri 
                                     (last (pathname-directory repo-dir)))

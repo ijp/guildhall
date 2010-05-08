@@ -226,6 +226,8 @@
   (handler install-command))
 
 (define (remove-command vals)
+  (define (not-installed-error package-name)
+    (fatal (cat "package `" package-name "' is not installed.")))
   (let ((packages (opt-ref/list vals 'operands))
         (no-depends? (assq-ref vals 'no-depends?)))
     (call-with-database* vals
@@ -233,11 +235,18 @@
         (cond (no-depends?
                (loop ((for package-name (in-list packages)))
                  (unless (database-remove! db (string->symbol package-name))
-                   (message "Package " package-name " was not installed."))))
+                   (not-installed-error package-name))))
               (else
-               (loop ((for package-name (in-list packages))
-                      (for to-remove (listing (string->symbol package-name))))
-                 => (apply-actions db '() to-remove))))))))
+               (loop ((for package-string (in-list packages))
+                      (let-values (package-name is-installed?)
+                        (let ((name (string->symbol package-string)))
+                          (values name
+                                  (and (database-lookup db name 'installed) #t))))
+                      (for to-remove (listing package-name
+                                              (if is-installed?))))
+                 => (apply-actions db '() to-remove)
+                 (unless is-installed?
+                   (not-installed-error package-string)))))))))
 
 (define-command remove
   (description "Remove packages.")

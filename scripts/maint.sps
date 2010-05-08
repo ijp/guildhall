@@ -52,7 +52,7 @@
     industria
     ocelotl))
 
-(define (run-dist name-suffix)
+(define (run-dist name-suffix append-version)
   (let* ((package (call-with-input-file "pkg-list.scm"
                     (lambda (port)
                       (parse-package-form (read port)))))
@@ -60,7 +60,7 @@
           (make-package (string->symbol (string-append
                                          (symbol->string (package-name package))
                                          name-suffix))
-                        (package-version package)))
+                        (append (package-version package) append-version)))
          (renamed-filename (package->string renamed-package "-"))
          (tmp-dir (create-temp-directory '(())))
          (dist-dir (pathname-join tmp-dir `((,renamed-filename)))))
@@ -95,7 +95,9 @@
 (define (main argv)
   (match (cdr argv)
     (("dist")
-     (run-dist "-full"))
+     (run-dist "-full" '()))
+    (("dist" append-version)
+     (run-dist "-full" (string->package-version append-version)))
     (args
      (cond ((< (length args) 2)
             (die (cat "need at least one argument.")))

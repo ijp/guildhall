@@ -153,12 +153,14 @@
                   (with items '())
                   (with repositories '())
                   (with implementation #f))
-    => (%make-config/validate who
-                              default
-                              (if (null? items)
-                                  (config-items (default-config))
-                                  (reverse items))
-                              (or implementation (default-implementation)))
+    => (if (null? items)
+           (make-prefix-config (default-prefix)
+                               repositories
+                               (or implementation (default-implementation)))
+           (%make-config/validate who
+                                  default
+                                  (reverse items)
+                                  (or implementation (default-implementation))))
     (define (parse-destination-options options)
       (loop continue ((for option (in-list options))
                       (with db-location #f)

@@ -590,12 +590,10 @@
   (arg-setter 'log-level string->symbol))
 
 (define (main-handler vals)
-  (define (read-config/default pathname)
+  (define (read-config/guard pathname)
     (guard (c ((i/o-file-does-not-exist-error? c)
-               (cond (pathname
-                      (fatal (cat "specified config file `"
-                                (dsp-pathname pathname) "' does not exist.")))
-                     (else (default-config)))))
+               (fatal (cat "specified config file `"
+                           (dsp-pathname pathname) "' does not exist."))))
       (call-with-input-file (->namestring pathname)
         read-config)))
   (let ((operands (opt-ref/list vals 'operands))
@@ -626,7 +624,7 @@
                              (cell-ref %commands))
                => (lambda (command)
                     (let ((config (cond ((assq-ref vals 'config)
-                                         => read-config/default)
+                                         => read-config/guard)
                                         (else
                                          (default-config)))))
                       (process-command-line

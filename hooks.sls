@@ -66,11 +66,12 @@
   (let ((port (hook-runner-input runner)))
     (log/debug (cat "sending to hook runner: " datum))
     (write datum port)
-    (display "\n" port)
+    (newline port)
     (flush-output-port port)))
 
 (define (hook-runner-receive runner)
-  (let ((result (read (hook-runner-output runner))))
+  (let ((result (read (open-string-input-port
+                       (get-line (hook-runner-output runner))))))
     (log/debug (cat "received from hook runner: " result))
     result))
 

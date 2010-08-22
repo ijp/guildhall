@@ -121,10 +121,32 @@
     (let loop ((i (- n-fields 1)) (result '()))
       (if (< i 0)
           result
-          (loop (- i 1)
-                (cons (cons (vector-ref field-names i)
-                            ((record-accessor rtd i) record))
-                      result))))))
+          (let ((field-value ((record-accessor rtd i) record)))
+            (cond ((has-external-representation? field-value)
+                   (loop (- i 1)
+                         (cons (cons (vector-ref field-names i) field-value)
+                               result)))
+                  (else
+                   (loop (- i 1) result))))))))
+
+(define (has-external-representation? object)
+  (or (number? object)
+      (string? object)
+      (symbol? object)
+      (null? object)
+      (cond ((pair? object)
+             (and (has-external-representation? (car object))
+                  (has-external-representation? (cdr object))))
+            ((vector? object)
+             (let loop ((i (- (vector-length object) 1)))
+               (cond ((< i 0)
+                      #t)
+                     ((has-external-representation? (vector-ref object i))
+                      (loop (- i 1)))
+                     (else
+                      #f))))
+            (else
+             #f))))
 
 
 ;;; Utilities

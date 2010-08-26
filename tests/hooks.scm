@@ -85,6 +85,61 @@
           read))
       (close-hook-runner runner))))
 
+(define-test-case hooks-tests exception ((setup (setup-stage))
+                                         (teardown (clear-stage)))
+  (let ((destination (make-fhs-destination 'test test-dir)))
+    (setup-destination destination '())
+    (let ((runner (spawn-hook-runner destination))
+          (test-pathname (make-pathname #f '("foo" "bar") "test.scm"))
+          (exception-cookie (list 'cookie)))
+      (test-eq exception-cookie
+        (guard (c ((hook-runner-exception? c)
+                   exception-cookie))
+          (run-hook runner
+                    package:null
+                    `(installation-hook ()
+                       (import (rnrs base))
+                       (lambda (agent)
+                         (error 'hook "Test error")))
+                    (lambda ()
+                      test-pathname))))
+      (close-hook-runner runner))))
+
+(define-test-case hooks-tests unpacked-source-option ((setup (setup-stage))
+                                                      (teardown (clear-stage)))
+  (let ((destination (make-fhs-destination 'test test-dir)))
+    (setup-destination destination '())
+    (let ((runner (spawn-hook-runner destination))
+          (test-pathname (make-pathname #f '("foo" "bar") "test.scm")))
+      (test-equal '()
+        (run-hook runner
+                  package:null
+                  `(installation-hook ()
+                     (import (rnrs base))
+                     (lambda (agent)
+                       (let ((unpacked-source (agent 'unpacked-source)))
+                         (or (eqv? #f unpacked-source)
+                             (error 'hook
+                                    "Unexpected result of `unpacked-source"
+                                    unpacked-source)))))
+                  (lambda ()
+                    test-pathname)))
+      (test-equal '()
+        (run-hook runner
+                  package:null
+                  `(installation-hook ((needs-source? . #t))
+                     (import (rnrs base))
+                     (lambda (agent)
+                       (let ((unpacked-source (agent 'unpacked-source)))
+                         (or (string=? unpacked-source
+                                       ,(->namestring test-pathname))
+                             (error 'hook
+                                    "Unexpected result of `unpacked-source"
+                                    unpacked-source)))))
+                  (lambda ()
+                    test-pathname)))
+      (close-hook-runner runner))))
+
 (when debug-output?
   (set-logger-properties!
    root-logger

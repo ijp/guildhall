@@ -152,7 +152,8 @@
      (fmt #t (dsp-man-page (command-list))))))
 
 (define (dsp-db-item item)
-  (dsp-package (database-item-package item)))
+  (dsp-package (database-item-package item)
+               (cat "Status: " (database-item-state item) "\n")))
 
 (define (dsp-db-item/short item)
   (lambda (st)
@@ -163,7 +164,9 @@
               ((unpacked)  "U")
               (else        "n"))
             " " (pad (min 32 (div width 3)) (package-name package))
-            " " (dsp-package-version (package-version package)))
+            " " (pad (min 20 (div width 4))
+                     (dsp-package-version (package-version package)))
+            " " (fmt-join dsp (package-property package 'synopsis '()) " "))
        st))))
 
 

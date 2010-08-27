@@ -32,6 +32,7 @@
   (import (rnrs)
           (wak fmt)
           (wak foof-loop)
+          (spells match)
           (dorodango inventory)
           (dorodango package)
           (dorodango bundle)
@@ -83,18 +84,29 @@
              fmt-null
              (cat " " (wrt/unshared (version-constraint->form constraint)))))))
 
-(define (dsp-package pkg)
+(define (dsp-package pkg . extra-fields)
   (cat "Package: " (package-name pkg) "\n"
+       (apply-cat extra-fields)
        (cat "Version: " (dsp-package-version (package-version pkg)) "\n")
-       (cat "Depends: "
-            (fmt-join wrt (package-property pkg 'depends '()) ", ") "\n")
+       (let ((depends (package-property pkg 'depends '())))
+         (if (null? depends)
+             fmt-null
+             (cat "Depends: " (fmt-join wrt depends ", ") "\n")))
        (fmt-join (lambda (category)
                    (let ((inventory (package-category-inventory pkg category)))
                      (if (inventory-empty? inventory)
                          fmt-null
                          (cat "Category: " category "\n"
                               (dsp-inventory inventory)))))
-                 (package-categories pkg))))
+                 (package-categories pkg))
+       (match (package-property pkg 'homepage #f)
+         (((? string? homepage))
+          (cat "Homepage: " homepage "\n"))
+         (_
+          fmt-null))
+       "Description: " (fmt-join dsp (package-property pkg 'synopsis '()) " ")
+       (fmt-join/prefix dsp (package-property pkg 'description '()) "\n ")
+       "\n"))
 
 (define (dsp-inventory inventory)
   (define (dsp-node node path)

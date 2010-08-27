@@ -47,7 +47,9 @@
           (srfi :98 os-environment-variables)
           (wak foof-loop)
           (wak foof-loop nested)
-          (only (spells misc) and=>)
+          (only (spells misc)
+                and=>
+                scheme-implementation)
           (spells alist)
           (spells match)
           (spells record-types)
@@ -131,7 +133,7 @@
   (home-pathname ".local"))
 
 (define (default-implementation)
-  'ikarus)
+  (scheme-implementation))
 
 (define (default-cache-directory)
   (home-pathname '((".cache" "dorodango"))))

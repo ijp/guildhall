@@ -123,7 +123,7 @@
           (let constraint (db:dependency-choice-version-constraint choice))
           (for version (in-list (package-versions package)))
           (if (and-let* ((db-version (version-tag version)))
-                (db:version-constraint-satisified? constraint db-version)))
+                (db:version-constraint-satisfied? constraint db-version)))
         (values (cons version targets) updated-version-count)))
     
     (define (get/create-package package-name version-count)

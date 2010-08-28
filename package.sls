@@ -29,8 +29,8 @@
 ;; The `depends' property is available in parsed form via
 ;; `package-dependencies'; this returns a list of lists of
 ;; `dependency-choice's; of each group (list) of dependency choices in
-;; the outer list there must be at least one that is satisified
-;; for the package to be in good state.
+;; the outer list there must be at least one that is satisfied for the
+;; package to be in good state.
 
 ;;; Code:
 #!r6rs
@@ -85,7 +85,7 @@
           package-form-error?
           package-error-form
 
-          version-constraint-satisified?
+          version-constraint-satisfied?
           null-version-constraint?
           
           ;; these are mainly for the test suite
@@ -333,7 +333,7 @@
 (define (dependency-choice-satisfied? choice package)
   (and (eq? (dependency-choice-target choice)
             (package-name package))
-       (version-constraint-satisified?
+       (version-constraint-satisfied?
         (dependency-choice-version-constraint choice)
         (package-version package))))
 
@@ -351,7 +351,7 @@
     ((version-and constraints) (null? constraints))
     (else                      #f)))
 
-(define (version-constraint-satisified? constraint version)
+(define (version-constraint-satisfied? constraint version)
   (define (check-range lower upper lower-cmp upper-cmp)
     (cond ((and lower upper)
            (and (lower-cmp lower version)
@@ -361,7 +361,7 @@
           ((not upper)
            (lower-cmp lower version))
           (else
-           (assertion-violation 'version-constraint-satisified?
+           (assertion-violation 'version-constraint-satisfied?
                                 "invalid range constraint encountered"))))
   (cases <version-constraint> constraint
     ((version-range lower upper)
@@ -373,14 +373,14 @@
     ((version-:range: lower upper)
      (check-range lower upper package-version<=? package-version<=?))
     ((version-not constraint)
-     (not (version-constraint-satisified? constraint version)))
+     (not (version-constraint-satisfied? constraint version)))
     ((version-or constraints)
      (or-map (lambda (constraint)
-               (version-constraint-satisified? constraint version))
+               (version-constraint-satisfied? constraint version))
              constraints))
     ((version-and constraints)
      (and-map (lambda (constraint)
-               (version-constraint-satisified? constraint version))
+               (version-constraint-satisfied? constraint version))
              constraints))))
 
 (define (%forms->dependencies forms lose)

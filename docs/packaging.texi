@@ -161,8 +161,8 @@ This leads to the following BNF-style grammar for the file's contents:
 <user-defined> -> (<property-name> <property-value>)
 @end verbatim
 
-As should recognizable from the above grammar, properties are identified
-by a keyword, and have specific contents depending on that
+As should be recognizable from the above grammar, properties are
+identified by a keyword, and have specific contents depending on that
 keyword. Currently, the following keywords are defined and used by
 dorodango:
 
@@ -206,6 +206,30 @@ The S-expression representation is a sequence of lists of integers, for
 example @samp{(1 2) (3)}, which is textually rendered as @samp{1.2-3} --
 each list of integers is concatenated using a dot as separator, and
 those groups are then concatenated with a dash separating them.
+
+@subsection The package description
+
+The properties @code{synopsis} and @code{description} are used convey
+the purpose of the package to the user.
+
+The value of the @code{synposis} property should be single string
+shortly describing the package, such that it could be used in a sentence
+starting with ``@var{package} is a(n) @dots{}''.
+
+The @code{description} property contains a longer description of the
+package, specified via a sequence of strings.  These sequence is handled
+like like this:
+
+@itemize @bullet
+@item
+If an item is starting with a space, it is treated as a verbatim line.
+@item
+If an item does @emph{not} start with a space, this item and all
+subsequent ones that don't start with a space are treated as a paragraph
+and are word-wrapped.
+@item
+Paragraphs are separated by empty strings.
+@end itemize
 
 @subsection Dependencies
 

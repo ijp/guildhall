@@ -30,9 +30,11 @@
           dsp-package-version
           dsp-package-identifier)
   (import (rnrs)
+          (only (srfi :13) string-null? string-prefix?)
           (wak fmt)
           (wak foof-loop)
           (spells match)
+          (dorodango private utils)
           (dorodango inventory)
           (dorodango package)
           (dorodango bundle)
@@ -105,8 +107,24 @@
          (_
           fmt-null))
        "Description: " (fmt-join dsp (package-property pkg 'synopsis '()) " ")
-       (fmt-join/prefix dsp (package-property pkg 'description '()) "\n ")
-       "\n"))
+       "\n"
+       (fmt-indented " " (dsp-package-description pkg))))
+
+(define (dsp-package-description pkg)
+  (define (flush-text text blocks)
+    (if (null? text)
+        blocks
+        (cons (wrap-lines (fmt-join dsp (reverse text) " ")) blocks)))
+  (let ((description (package-property pkg 'description '())))
+    (loop continue ((for line (in-list description))
+                    (with text '())
+                    (with blocks '()))
+      => (apply-cat (reverse (flush-text text blocks)))
+      (if (or (string-null? line) (string-prefix? " " line))
+          (continue (=> blocks
+                        (cons (cat line "\n") (flush-text text blocks)))
+                    (=> text '()))
+          (continue (=> text (cons line text)))))))
 
 (define (dsp-inventory inventory)
   (define (dsp-node node path)
@@ -127,5 +145,5 @@
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: ((cases 2))
+;; scheme-indent-styles: ((cases 2) foof-loop)
 ;; End:

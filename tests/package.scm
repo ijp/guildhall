@@ -102,10 +102,25 @@
                   (package-dependencies package)))))
 
 (define-test-case package-tests.parsing failure ()
-  (test-equal '(form-error (package (foo 0 1)))
-    (guard (c ((package-form-error? c)
-               `(form-error ,(package-error-form c))))
-      (parse-package-form '(package (foo 0 1))))))
+  (let ((exception-cookie (list 'cookie)))
+    (define (parse-package-form* form)
+      (guard (c ((package-form-error? c) exception-cookie))
+        (parse-package-form form)))
+    
+    (test-eq exception-cookie
+      (parse-package-form* '(package (foo 0 1))))
+    (test-eq exception-cookie
+      (parse-package-form* '(package (foo (0))
+                                     (depends x))))
+    (test-eq exception-cookie
+      (parse-package-form* '(package (foo (0))
+                                     (homepage #f))))
+    (test-eq exception-cookie
+      (parse-package-form* '(package (foo (0))
+                                     (synopsis "A" "B"))))
+    (test-eq exception-cookie
+      (parse-package-form* '(package (foo (0))
+                                     (description "foo" x "bar"))))))
 
 (define-test-case package-tests.parsing roundtrip ()
   (for-each
@@ -114,7 +129,13 @@
        (package->form (parse-package-form package-form))))
    '((package (foo (0 1))
               (depends (bar (0 1))
-                       (or (foo) (frobotz (and (>= (1 1)) (< (2))))))))))
+                       (or (foo) (frobotz (and (>= (1 1)) (< (2)))))))
+     (package (bar (0 1))
+              (depends (bar (0 1)))
+              (synopsis "bar confuglobulator")
+              (description "A bar confuglobulator satisfying"
+                           "the frobotzim property.")
+              (homepage "http://www.example.com/bar/")))))
 
 
 (run-test-suite package-tests)

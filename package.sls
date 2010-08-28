@@ -49,6 +49,9 @@
           package-property
           package-with-property
           package-properties
+          package-synopsis
+          package-description
+          package-homepage
           
           package->string
           string->package
@@ -121,21 +124,39 @@
 (define-functional-fields package
   name version dependencies properties inventories)
 
+(define (make-loser who)
+  (lambda (primary message . irritants)
+    (raise (condition
+            primary
+            (make-who-condition who)
+            (make-message-condition message)
+            (make-irritants-condition irritants)))))
+
 (define construct-package
-  (case-lambda
-    ((name version properties inventories)
-     (let ((lose (make-loser 'make-package))) ;use exported name
+  (let ((lose (make-loser 'make-package))) ;use exported name
+    (case-lambda
+      ((name version properties inventories)
        (make-package name
                      (check-version version lose)
                      (%forms->dependencies
                       (or (assq-ref properties 'depends) '())
                       lose)
-                     properties
-                     inventories)))
-    ((name version properties)
-     (construct-package name version properties '()))
-    ((name version)
-     (construct-package name version '() '()))))
+                     (validate-properties properties lose)
+                     inventories))
+      ((name version properties)
+       (construct-package name version properties '()))
+      ((name version)
+       (construct-package name version '() '())))))
+
+(define (package-description package)
+  (package-property package 'description '()))
+
+(define (package-synopsis package)
+  (or (and=> (package-property package 'synopsis #f) car)
+      ""))
+
+(define (package-homepage package)
+  (and=> (package-property package 'homepage #f) car))
 
 (define (package=? p1 p2)
   (and (eq? (package-name p1)
@@ -143,16 +164,20 @@
        (package-version=? (package-version p1)
                           (package-version p2))))
 
-(define (package-with-property package property-name property-value)
-  (make-package (package-name package)
-                (package-version package)
-                (if (eq? 'depends property-name)
-                    (%forms->dependencies property-value
-                                          (make-loser 'package-with-property))
-                    (package-dependencies package))
-                (cons (cons property-name property-value)
-                      (package-properties package))
-                (package-inventories package)))
+(define package-with-property
+  (let ((lose (make-loser 'package-with-property)))
+    (lambda (package property-name property-value)
+      (validate-property property-name property-value lose)
+      (make-package (package-name package)
+                    (package-version package)
+                    (if (eq? 'depends property-name)
+                        (%forms->dependencies property-value lose)
+                        (package-dependencies package))
+                    (cons (cons property-name property-value)
+                          (filter (lambda (property)
+                                    (not (eq? (car property) property-name)))
+                                  (package-properties package)))
+                    (package-inventories package)))))
 
 (define (package->string package separator)
   (let ((version (package-version package))
@@ -216,7 +241,8 @@
      (match form
        (('package (name . version) . properties)
         (guard (c ((or (dependency-form-error? c)
-                       (version-form-error? c))
+                       (version-form-error? c)
+                       (package-property-error? c))
                    (lose c)))
           (construct-package name
                              version
@@ -442,6 +468,40 @@
      `(and ,@(map version-constraint->form sub-constraints)))))
 
 
+;;; Property value validation
+
+(define (validate-properties properties lose)
+  (loop ((for property (in-list properties)))
+    => properties
+    (validate-property (car property) (cdr property) lose)))
+
+(define (list-of-predicate item-predicate)
+  (lambda (thing)
+    (and (list? thing)
+         (for-all item-predicate thing))))
+
+(define (singleton-list-predicate predicate)
+  (lambda (thing)
+    (and (pair? thing)
+         (null? (cdr thing))
+         (predicate (car thing)))))
+
+(define property-validators
+  `((description . ,(list-of-predicate string?))
+    (synopsis . ,(singleton-list-predicate string?))
+    (homepage . ,(singleton-list-predicate string?))))
+
+(define (validate-property name value lose)
+  (cond ((assq-ref property-validators name)
+         => (lambda (valid?)
+              (or (valid? value)
+                  (lose (make-package-property-error name value)
+                        "invalid value for property"
+                        name value))))
+        (else
+         (unspecific))))
+
+
 ;;; Conditions
 
 (define-condition-type &dependency-form &error
@@ -456,13 +516,10 @@
   make-package-form-error package-form-error?
   (form package-error-form))
 
-(define (make-loser who)
-  (lambda (primary message . irritants)
-    (raise (condition
-            primary
-            (make-who-condition who)
-            (make-message-condition message)
-            (make-irritants-condition irritants)))))
+(define-condition-type &package-property &error
+  make-package-property-error package-property-error?
+  (name package-property-error-name)
+  (value package-property-error-value))
 
 (define (check-version version lose)
   (if (package-version? version)

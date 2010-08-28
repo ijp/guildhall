@@ -170,7 +170,7 @@
             " " (pad (min 32 (div width 3)) (package-name package))
             " " (pad (min 20 (div width 4))
                      (dsp-package-version (package-version package)))
-            " " (fmt-join dsp (package-property package 'synopsis '()) " "))
+            " " (package-synopsis package))
        st))))
 
 

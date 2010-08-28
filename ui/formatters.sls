@@ -101,12 +101,12 @@
                          (cat "Category: " category "\n"
                               (dsp-inventory inventory)))))
                  (package-categories pkg))
-       (match (package-property pkg 'homepage #f)
-         (((? string? homepage))
-          (cat "Homepage: " homepage "\n"))
-         (_
-          fmt-null))
-       "Description: " (fmt-join dsp (package-property pkg 'synopsis '()) " ")
+       (cond ((package-homepage pkg)
+              => (lambda (homepage)
+                   (cat "Homepage: " homepage "\n")))
+             (else
+              fmt-null))
+       "Description: " (package-synopsis pkg)
        "\n"
        (fmt-indented " " (dsp-package-description pkg))))
 
@@ -115,16 +115,15 @@
     (if (null? text)
         blocks
         (cons (wrap-lines (fmt-join dsp (reverse text) " ")) blocks)))
-  (let ((description (package-property pkg 'description '())))
-    (loop continue ((for line (in-list description))
-                    (with text '())
-                    (with blocks '()))
-      => (apply-cat (reverse (flush-text text blocks)))
-      (if (or (string-null? line) (string-prefix? " " line))
-          (continue (=> blocks
-                        (cons (cat line "\n") (flush-text text blocks)))
-                    (=> text '()))
-          (continue (=> text (cons line text)))))))
+  (loop continue ((for line (in-list (package-description pkg)))
+                  (with text '())
+                  (with blocks '()))
+    => (apply-cat (reverse (flush-text text blocks)))
+    (if (or (string-null? line) (string-prefix? " " line))
+        (continue (=> blocks
+                      (cons (cat line "\n") (flush-text text blocks)))
+                  (=> text '()))
+        (continue (=> text (cons line text))))))
 
 (define (dsp-inventory inventory)
   (define (dsp-node node path)

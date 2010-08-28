@@ -38,13 +38,13 @@
 
 (define-operation (ui/message ui . formats))
 (define-operation (ui/y-or-n ui default message))
-(define-operation (ui/prompt ui message choices))
+(define-operation (ui/prompt ui message choose-yes choices . maybe-choose-yes))
 
 (define (make-null-ui)
   (object #f
     ((ui/message ui . formats)
      (unspecific))
-    ((ui/y-or-n ui default message)
+    ((ui/y-or-n ui default message . maybe-choose-yes)
      default)))
 
 (define current-ui (make-parameter (make-null-ui)))

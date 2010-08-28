@@ -64,8 +64,8 @@
                       (apply-choices db result))
                      (else
                       result))))
-            ((y-or-n #f
-                     (cat (wrap-lines
+            ((let ((action-message
+                    (cat (wrap-lines
                            "The following packages have unsatisfiable dependencies"
                            " and must be removed before proceeding:")
                           (fmt-indented
@@ -74,8 +74,12 @@
                             (fmt-join (lambda (package)
                                         (dsp (package-name package)))
                                       irreparable
-                                      " ")))
-                          "Remove these packages and proceed?"))
+                                      " "))))))
+               (y-or-n #f
+                       (cat action-message "Remove these packages and proceed?")
+                       (lambda ()
+                         (message action-message)
+                         (fatal "not willing to assume `yes' for this question."))))
              (for-each (lambda (package)
                          (database-remove! db (package-name package)))
                        irreparable)
@@ -175,10 +179,13 @@
               (risky?
                (case (prompt
                       (if now-exhausted?
-                          (cat "No more solutions. Proceed with previous solution?")
-                          (cat solution-message
-                               "Accept this solution?"))
-                      (prompt-choices index (or exhausted? now-exhausted?)))
+                          (cat "No more solutions. "
+                               "Proceed with previous solution?")
+                          (cat solution-message "Accept this solution?"))
+                      (prompt-choices index (or exhausted? now-exhausted?))
+                      (lambda ()
+                        (message (dsp-solution solution))
+                        (fatal "not willing to assume `yes' for this choice.")))
                  ((#\y)       actions)
                  ((#\n)       (iterate #f))
                  ((#\q)       #f)

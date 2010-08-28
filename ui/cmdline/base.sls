@@ -123,19 +123,24 @@
     (object #f
       ((ui/message ui . formats)
        (apply cmdline/message formats))
-      ((ui/y-or-n ui default message)
+      ((ui/y-or-n ui default message . maybe-choose-yes)
        (if assume-yes?
-           #t
+           (if (pair? maybe-choose-yes)
+               ((car maybe-choose-yes))
+               #t)
            (cmdline/y-or-n default message)))
-      ((ui/prompt ui message choices)
-       (if assume-yes?
-           (or (and=> (assv #\y choices) car)
-               (assertion-violation 'ui/prompt
+      ((ui/prompt ui message choices . maybe-choose-yes)
+       (let ((choose-yes (or (and (pair? maybe-choose-yes)
+                                  (car maybe-choose-yes))
+                             (lambda ()
+                               (or (and=> (assv #\y choices) car)
+                                   (assertion-violation 'ui/prompt
                                     "cannot assume `yes' for these choices"
-                                    choices))
-           (cmdline/prompt message choices))))))
+                                    choices))))))
+         (if assume-yes?
+             (choose-yes)
+             (cmdline/prompt message choices)))))))
 
-
 
 ;;; Commands
 

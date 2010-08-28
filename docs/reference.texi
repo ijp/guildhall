@@ -37,6 +37,15 @@ one. @xref{Configuration File} for configuration file syntax.
 Use an FHS destination located below the directory @var{prefix}. This
 option has the same effect as adding an FHS destination to the
 configuration file and using it for this invocation of @command{doro}.
+
+@item --yes
+
+Run non-interactively.  This assumes ``yes'' on most questions.
+Confirmation prompts for actions that are ``risky'' (in the sense that
+their effects may be potentially unexpected or unwanted) cause program
+termination with a non-zero exit code, after displaying an error
+message.
+
 @end table
 
 @node Command Reference

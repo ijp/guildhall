@@ -73,9 +73,22 @@ Temporarily adds @var{bundle}'s contents to the package database.
 
 @deffn Command show package ...
 
-Shows information about one or more packages. This command lists
-package, name, version and dependencies in RFC822-like style on
-standard output.
+Shows information about one or more packages.  This command lists
+package, name, version and dependencies in RFC822-like style on standard
+output.  Each @var{package} may be either:
+
+@itemize
+@item
+A package name; in that case, all versions of @var{package} are shown.
+It is not error when the package does not exist in the database or has
+no versions, but that package will be simply ignored.
+
+@item
+A package name and version, separated by an equal sign, for example
+@samp{foo=0.1.0}.  Only the specified version will be shown in this
+case.  It is not an error if the package or specified version cannot be
+found, but the package will simply be ignored.
+@end itemize
 
 @table @option
 @item --bundle=@var{bundle}

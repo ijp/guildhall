@@ -94,9 +94,12 @@
 (define (find-db-items db packages)
   (loop ((for package (in-list packages))
          (for result
-              (listing
+              (appending-reverse
                (receive (name version) (parse-package-string package)
-                 (database-lookup db name version)))))
+                 (if version
+                     (or (and=> (database-lookup db name version) list)
+                         '())
+                     (database-items db name))))))
     => (reverse result)))
 
 
@@ -132,8 +135,9 @@
        (call-with-database* vals
          (lambda (db)
            (database-add-bundles! db (opt-ref/list vals 'bundles))
-           (loop ((for item (in-list (find-db-items db packages))))
-             (fmt #t (dsp-db-item item)))))))))
+           (fmt #t (fmt-join dsp-db-item
+                             (find-db-items db packages)
+                             "\n"))))))))
 
 (define-command show-bundle
   (synopsis "show-bundle BUNDLE...")

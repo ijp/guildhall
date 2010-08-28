@@ -588,6 +588,10 @@
                (fatal (cat "unsupported repository URI: " arg)))
            vals)))
 
+(define-option non-interactive-option ("non-interactive" #\n) #f
+  "run non-interactively"
+  (value-setter 'non-interactive? #t))
+
 (define-option yes-option ("yes" #\y) #f
   "assume yes on prompts"
   (value-setter 'assume-yes? #t))
@@ -605,7 +609,6 @@
         read-config)))
   (let ((operands (opt-ref/list vals 'operands))
         (prefix (assq-ref vals 'prefix))
-        (assume-yes? (assq-ref vals 'assume-yes?))
         (log-level (or (assq-ref vals 'log-level) 'info)))
   (define (config-with-prefix config)
     (if prefix
@@ -614,7 +617,10 @@
          (config-item-repositories (config-default-item config))
          (config-default-implementation config))
         config))
-    (parameterize ((current-ui (make-cmdline-ui `((assume-yes? . ,assume-yes?)))))
+    (parameterize ((current-ui (make-cmdline-ui
+                                `((assume-yes? . ,(assq-ref vals 'assume-yes?))
+                                  (non-interactive?
+                                   . ,(assq-ref vals 'non-interactive?))))))
       (let-logger-properties
           ((logger:dorodango
             `((handlers (,log-level ,(make-message-log-handler 1)))))
@@ -661,6 +667,7 @@
            prefix-option
            destination-option
            repository-option
+           non-interactive-option
            yes-option
            version-option
            log-level-option)

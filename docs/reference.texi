@@ -38,13 +38,20 @@ Use an FHS destination located below the directory @var{prefix}. This
 option has the same effect as adding an FHS destination to the
 configuration file and using it for this invocation of @command{doro}.
 
-@item --yes
+@item --non-interactive
+@itemx -n
 
 Run non-interactively.  This assumes ``yes'' on most questions.
 Confirmation prompts for actions that are ``risky'' (in the sense that
 their effects may be potentially unexpected or unwanted) cause program
 termination with a non-zero exit code, after displaying an error
 message.
+
+@item --yes
+@itemx -y
+
+Like @option{--non-interactive}, but silently assume ``yes'' on all
+questions, even risky ones.
 
 @end table
 

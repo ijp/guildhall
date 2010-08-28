@@ -119,27 +119,32 @@
                   (prompt-again)))))))
 
 (define (make-cmdline-ui options)
-  (let-assq options (assume-yes?)
+  (let-assq options (assume-yes? non-interactive?)
     (object #f
       ((ui/message ui . formats)
        (apply cmdline/message formats))
-      ((ui/y-or-n ui default message . maybe-choose-yes)
-       (if assume-yes?
-           (if (pair? maybe-choose-yes)
-               ((car maybe-choose-yes))
-               #t)
-           (cmdline/y-or-n default message)))
-      ((ui/prompt ui message choices . maybe-choose-yes)
-       (let ((choose-yes (or (and (pair? maybe-choose-yes)
-                                  (car maybe-choose-yes))
-                             (lambda ()
-                               (or (and=> (assv #\y choices) car)
-                                   (assertion-violation 'ui/prompt
-                                    "cannot assume `yes' for these choices"
-                                    choices))))))
-         (if assume-yes?
-             (choose-yes)
-             (cmdline/prompt message choices)))))))
+      ((ui/y-or-n ui default message . maybe-choose-noninteractively)
+       (cond (assume-yes?
+              #t)
+             ((and non-interactive? (pair? maybe-choose-noninteractively))
+              ((car maybe-choose-noninteractively)))
+             (non-interactive?
+              default)
+             (else
+              (cmdline/y-or-n default message))))
+      ((ui/prompt ui message choices . maybe-choose-noninteractively)
+       (define (choose-yes)
+         (or (and=> (assv #\y choices) car)
+             (assertion-violation 'ui/prompt
+                                  "cannot assume `yes' for these choices"
+                                  choices)))
+       (let ((choose-noninteractively
+              (if (pair? maybe-choose-noninteractively)
+                  (car maybe-choose-noninteractively)
+                  choose-yes)))
+         (cond (assume-yes?      (choose-yes))
+               (non-interactive? (choose-noninteractively))
+               (else             (cmdline/prompt message choices))))))))
 
 
 ;;; Commands

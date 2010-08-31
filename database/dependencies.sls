@@ -83,7 +83,8 @@
 ;; which serves as input to the solver, and an hashtable that maps
 ;; package names to the universe's packages.
 (define (database->universe database)
-  (let ((package-table (make-eq-hashtable)))
+  (let ((package-table (make-eq-hashtable))
+        (provides-table (make-eq-hashtable)))
     (define (list-dependencies versions db-items version-count)
       (loop ((for version (in-list versions))
              (for db-item (in-list db-items))
@@ -118,13 +119,30 @@
     (define (list-dependency-targets dependency-choices version-count)
       (iterate-values ((targets '()) (version-count version-count))
           (for choice (in-list dependency-choices))
-          (let-values (package updated-version-count)
-            (get/create-package (db:dependency-choice-target choice) version-count))
-          (let constraint (db:dependency-choice-version-constraint choice))
-          (for version (in-list (package-versions package)))
-          (if (and-let* ((db-version (version-tag version)))
-                (db:version-constraint-satisfied? constraint db-version)))
-        (values (cons version targets) updated-version-count)))
+          (let-values (versions updated-version-count)
+            (list-matching-versions choice version-count))
+        (values (append versions targets) updated-version-count)))
+
+    (define (list-matching-versions choice version-count)
+      (let ((constraint (db:dependency-choice-version-constraint choice)))
+        (cond ((and (db:null-version-constraint? constraint)
+                    (hashtable-ref provides-table
+                                   (db:dependency-choice-target choice)
+                                   #f))
+               => (lambda (providers)
+                    (values providers version-count)))
+              (else
+               (receive (package version-count)
+                        (get/create-package
+                         (db:dependency-choice-target choice)
+                         version-count)
+                 (values
+                   (collect-list
+                       (for version (in-list (package-versions package)))
+                       (if (and-let* ((db-version (version-tag version)))
+                             (db:version-constraint-satisfied? constraint db-version)))
+                       version)
+                   version-count))))))
     
     (define (get/create-package package-name version-count)
       (cond ((hashtable-ref package-table package-name #f)
@@ -140,12 +158,13 @@
                (values package (+ version-count 1))))))
     
     (loop ((for package-name db-items (in-database database))
-           (let package (construct-package (hashtable-size package-table)
-                                           package-name
-                                           db-items
-                                           version-count))
-           (for versions (appending-reverse
-                          (filter version-tag (package-versions package))))
+           (let-values (package pkg-versions)
+             (let ((package (construct-package (hashtable-size package-table)
+                                               package-name
+                                               db-items
+                                               version-count)))
+               (values package (filter version-tag (package-versions package)))))
+           (for versions (appending-reverse pkg-versions))
            (for item-list (appending-reverse db-items))
            (with version-count 0 (+ version-count
                                     (length (package-versions package)))))
@@ -159,7 +178,16 @@
                             version-count
                             (list->stream dependencies))
              package-table))
-      (hashtable-set! package-table package-name package))))
+      (hashtable-set! package-table package-name package)
+      (iterate! ((for db-item (in-list db-items))
+                 (for version (in-list pkg-versions)))
+          (for provided-name (in-list (db:package-provides
+                                       (database-item-package db-item))))
+        (hashtable-update! provides-table
+                           provided-name
+                           (lambda (old-value)
+                             (cons version old-value))
+                           '())))))
 
 
 (define (unresolvable-dependencies universe)

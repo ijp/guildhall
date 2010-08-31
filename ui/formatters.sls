@@ -87,13 +87,23 @@
              (cat " " (wrt/unshared (version-constraint->form constraint)))))))
 
 (define (dsp-package pkg . extra-fields)
-  (cat "Package: " (package-name pkg) "\n"
+  (define (dsp-field name value-formatter)
+    (cat name ": " value-formatter "\n"))
+  (define (dsp-optional-field name empty? value dsp-value)
+    (if (empty? value)
+        fmt-null
+        (dsp-field name (dsp-value value))))
+  (define (list-formatter dsp-element)
+    (lambda (list)
+      (fmt-join dsp-element list ", ")))
+  (define (dsp-list-field name value dsp-element)
+    (dsp-optional-field name null? value (list-formatter dsp-element)))
+  
+  (cat (dsp-field  "Package" (package-name pkg))
        (apply-cat extra-fields)
-       (cat "Version: " (dsp-package-version (package-version pkg)) "\n")
-       (let ((depends (package-property pkg 'depends '())))
-         (if (null? depends)
-             fmt-null
-             (cat "Depends: " (fmt-join wrt depends ", ") "\n")))
+       (dsp-field "Version" (dsp-package-version (package-version pkg)))
+       (dsp-list-field "Depends" (package-property pkg 'depends '()) wrt)
+       (dsp-list-field "Provides" (package-provides pkg) dsp)
        (fmt-join (lambda (category)
                    (let ((inventory (package-category-inventory pkg category)))
                      (if (inventory-empty? inventory)
@@ -101,11 +111,7 @@
                          (cat "Category: " category "\n"
                               (dsp-inventory inventory)))))
                  (package-categories pkg))
-       (cond ((package-homepage pkg)
-              => (lambda (homepage)
-                   (cat "Homepage: " homepage "\n")))
-             (else
-              fmt-null))
+       (dsp-optional-field "Homepage" not (package-homepage pkg) dsp)
        "Description: " (package-synopsis pkg)
        "\n"
        (fmt-indented " " (dsp-package-description pkg))))

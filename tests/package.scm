@@ -120,7 +120,10 @@
                                      (synopsis "A" "B"))))
     (test-eq exception-cookie
       (parse-package-form* '(package (foo (0))
-                                     (description "foo" x "bar"))))))
+                                     (description "foo" x "bar"))))
+    (test-eq exception-cookie
+      (parse-package-form* '(package (foo (0))
+                                     (provides "bar"))))))
 
 (define-test-case package-tests.parsing roundtrip ()
   (for-each
@@ -132,6 +135,7 @@
                        (or (foo) (frobotz (and (>= (1 1)) (< (2)))))))
      (package (bar (0 1))
               (depends (bar (0 1)))
+              (provides fooish)
               (synopsis "bar confuglobulator")
               (description "A bar confuglobulator satisfying"
                            "the frobotzim property.")

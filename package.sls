@@ -58,6 +58,7 @@
           maybe-string->package
           
           package-dependencies
+          package-provides
           package-categories
           package-category-inventory
           package-inventories
@@ -157,6 +158,9 @@
 
 (define (package-homepage package)
   (and=> (package-property package 'homepage #f) car))
+
+(define (package-provides package)
+  (package-property package 'provides '()))
 
 (define (package=? p1 p2)
   (and (eq? (package-name p1)
@@ -489,7 +493,8 @@
 (define property-validators
   `((description . ,(list-of-predicate string?))
     (synopsis . ,(singleton-list-predicate string?))
-    (homepage . ,(singleton-list-predicate string?))))
+    (homepage . ,(singleton-list-predicate string?))
+    (provides . ,(list-of-predicate symbol?))))
 
 (define (validate-property name value lose)
   (cond ((assq-ref property-validators name)

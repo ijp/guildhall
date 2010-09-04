@@ -18,7 +18,6 @@
 ;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-;;@ A package manager for R6RS implementations.
 (package (dorodango (0))
   (depends (srfi)
            (wak-foof-loop)
@@ -28,6 +27,17 @@
            (spells)
            (industria)
            (ocelotl))
+  
+  (synopsis "package manager for R6RS implementations")
+  (description
+   "dorodango allows convinient installation and distribution of"
+   "collections of R6RS libraries as well as programs using these"
+   "libraries.  It can handle dependencies, so when a program requires"
+   "several libraries, and each of those has further dependencies,"
+   "dorodango allows you to install all the prerequisites for that program"
+   "in one go.")
+  (homepage "http://home.gna.org/dorodango/")
+  
   (libraries (sls -> "dorodango")
              ("private" -> ("dorodango" "private")))
   (programs (("scripts" "doro.sps") -> "doro"))

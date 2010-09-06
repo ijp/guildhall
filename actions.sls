@@ -34,7 +34,7 @@
           scan-bundles-in-directory
           symlink-bundle)
   (import (except (rnrs) file-exists? delete-file)
-          (only (srfi :1) make-list last unfold)
+          (only (srfi :1) filter-map make-list last unfold)
           (srfi :2 and-let*)
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
@@ -192,11 +192,15 @@
     (define (run-rcs-lister argv)
       (with-working-directory directory
         (lambda ()
-          (map (lambda (line)
-                 (pathname-join prefix (->pathname line)))
-               (call-with-values
-                 (lambda () (apply run-process/lines #f argv))
-                 (process-status-checker (car argv) 0))))))
+          (filter-map
+           (lambda (line)
+             (let ((pathname (->pathname line)))
+               (and (not (member (file-namestring pathname)
+                                 '(".gitignore")))
+                    (pathname-join prefix pathname))))
+           (call-with-values
+               (lambda () (apply run-process/lines #f argv))
+             (process-status-checker (car argv) 0))))))
     (define (builtin-lister)
       (loop ((for filename (in-directory directory))
              (for result

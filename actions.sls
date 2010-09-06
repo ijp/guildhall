@@ -172,13 +172,15 @@
 (define (process-status-checker program-path expected-status)
   (lambda (status signal . results)
     (cond (signal
-           (fatal (cat "`zip' was terminated by signal " signal)))
-          ((= status 0)
+           (fatal (cat "`" (->namestring program-path)
+                       "' was terminated by signal " signal)))
+          ((= status expected-status)
            (if (null? results)
                (unspecific)
                (apply values results)))
           (else
-           (fatal (cat "`zip' returned with unexpected status " status))))))
+           (fatal (cat "`" (->namestring program-path)
+                       "' returned with unexpected status " status))))))
 
 (define %zip-path (delay (find-exec-path "zip")))
 

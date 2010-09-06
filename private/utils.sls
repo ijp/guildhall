@@ -40,6 +40,7 @@
           dsp-pathname
           pathname-has-file-type?
           pathname-add-type
+          pathname-drop-type
           pathname->location
           location->pathname
           create-lock-file
@@ -153,6 +154,12 @@
     (pathname-with-file pathname
                         (make-file (file-name file)
                                    (append (file-types file) (list type))))))
+
+(define (pathname-drop-type pathname)
+  (let ((file (pathname-file pathname)))
+    (pathname-with-file pathname
+                        (make-file (file-name file)
+                                   (drop-right (file-types file) 1)))))
 
 (define (pathname->location pathname)
   (append (pathname-directory pathname) (list (file-namestring pathname))))

@@ -78,78 +78,80 @@
                        directories
                        packages-list
                        rewrite-pkg-list-files?)
-  (let* ((bundle-pathname (->pathname bundle-pathname))
-         (bundle-directory (make-pathname
-                            #f
-                            (list (file-name (pathname-file bundle-pathname)))
-                            #f))
-         (pathname (cond ((pathname-has-file-type? bundle-pathname "zip")
-                          bundle-pathname)
-                        (else
-                         (pathname-add-type bundle-pathname "zip"))))
-        (n-directories (length directories)))
-    (define (run-zip directory graft-point)
-      (let* ((tmp-dir (create-temp-directory))
-             (graft-dir (pathname-as-directory graft-point))
-             (symlink (pathname-join tmp-dir graft-dir))
-             (symlink-container (pathname-container symlink)))
-        (create-directory* symlink-container)
-        (create-symbolic-link (pathname-join (working-directory) directory)
-                              ;; ensure `fileness' of target argument
-                              (pathname-with-file
-                               symlink-container
-                               (last (pathname-directory symlink))))
-        (zip-files pathname
-                   (pathname-join symlink
-                                  (make-pathname
-                                   (make-list (length (pathname-directory
-                                                       graft-dir))
-                                              'back)
-                                   '()
-                                   #f))
-                   (list-files directory graft-point))
-        (rm-rf tmp-dir)))
-    (define (make-rewriter toplevel-pathname packages)
-      (lambda (tmp-dir)
-        (let* ((directory (pathname-as-directory
-                           (pathname-join tmp-dir toplevel-pathname)))
-               (pathname (pathname-join directory "pkg-list.scm")))
-          (create-directory* directory)
-          (call-with-output-file (->namestring pathname)
-            (lambda (port)
-              (fmt port (fmt-join/suffix
-                         (lambda (package)
-                           (pretty/unshared (package->form package)))
-                         packages
-                         "\n"))))
-          (pathname-join (pathname-as-directory toplevel-pathname)
-                         "pkg-list.scm"))))
-    (define (run-rewriters rewrite-list)
-      (let ((tmp-dir (create-temp-directory)))
-        (loop ((for rewriter (in-list rewrite-list))
-               (for files (listing (rewriter tmp-dir))))
-          => (unless (null? files)
-               (zip-files pathname tmp-dir files)))
-        (rm-rf tmp-dir)))
-    (define (component-graft-point directory packages)
-      (cond ((> n-directories 1)
-             (let ((directory-part (pathname-directory directory)))
-               (when (null? directory-part)
-                 (fatal (cat "unable to compute top-level directory for"
-                             " bundle component `"
-                             (dsp-pathname directory) "'.")))
-               (pathname-with-file bundle-directory (last directory-part))))
-            (else
-             bundle-directory)))
-    (delete-file pathname)
-    (message "Creating " (->namestring pathname))
-    (loop ((for directory (in-list directories))
-           (for packages (in-list packages-list))
-           (let graft-point (component-graft-point directory packages))
-           (for rewrite-list (listing (make-rewriter graft-point packages)
-                                      (if rewrite-pkg-list-files?))))
-      => (run-rewriters rewrite-list)
-      (run-zip directory graft-point))))
+  (define (filename->directory pathname)
+    (make-pathname #f (list (file-namestring pathname)) #f))
+  (define (make-rewriter toplevel-pathname packages)
+    (lambda (tmp-dir)
+      (let* ((directory (pathname-as-directory
+                         (pathname-join tmp-dir toplevel-pathname)))
+             (pathname (pathname-join directory "pkg-list.scm")))
+        (create-directory* directory)
+        (call-with-output-file (->namestring pathname)
+          (lambda (port)
+            (fmt port (fmt-join/suffix
+                       (lambda (package)
+                         (pretty/unshared (package->form package)))
+                       packages
+                       "\n"))))
+        (pathname-join (pathname-as-directory toplevel-pathname)
+                       "pkg-list.scm"))))
+  (receive (bundle-directory pathname)
+           (let ((bundle-pathname (->pathname bundle-pathname)))
+             (cond ((pathname-has-file-type? bundle-pathname "zip")
+                    (values (filename->directory 
+                             (pathname-drop-type bundle-pathname))
+                            bundle-pathname))
+                   (else
+                    (values (filename->directory bundle-pathname)
+                            (pathname-add-type bundle-pathname "zip")))))
+    (let ((n-directories (length directories)))
+      (define (run-zip directory graft-point)
+        (let* ((tmp-dir (create-temp-directory))
+               (graft-dir (pathname-as-directory graft-point))
+               (symlink (pathname-join tmp-dir graft-dir))
+               (symlink-container (pathname-container symlink)))
+          (create-directory* symlink-container)
+          (create-symbolic-link (pathname-join (working-directory) directory)
+                                ;; ensure `fileness' of target argument
+                                (pathname-with-file
+                                 symlink-container
+                                 (last (pathname-directory symlink))))
+          (zip-files pathname
+                     (pathname-join symlink
+                                    (make-pathname
+                                     (make-list (length (pathname-directory
+                                                         graft-dir))
+                                                'back)
+                                     '()
+                                     #f))
+                     (list-files directory graft-point))
+          (rm-rf tmp-dir)))
+      (define (run-rewriters rewrite-list)
+        (let ((tmp-dir (create-temp-directory)))
+          (loop ((for rewriter (in-list rewrite-list))
+                 (for files (listing (rewriter tmp-dir))))
+            => (unless (null? files)
+                 (zip-files pathname tmp-dir files)))
+          (rm-rf tmp-dir)))
+      (define (component-graft-point directory packages)
+        (cond ((> n-directories 1)
+               (let ((directory-part (pathname-directory directory)))
+                 (when (null? directory-part)
+                   (fatal (cat "unable to compute top-level directory for"
+                               " bundle component `"
+                               (dsp-pathname directory) "'.")))
+                 (pathname-with-file bundle-directory (last directory-part))))
+              (else
+               bundle-directory)))
+      (delete-file pathname)
+      (message "Creating " (->namestring pathname))
+      (loop ((for directory (in-list directories))
+             (for packages (in-list packages-list))
+             (let graft-point (component-graft-point directory packages))
+             (for rewrite-list (listing (make-rewriter graft-point packages)
+                                        (if rewrite-pkg-list-files?))))
+        => (run-rewriters rewrite-list)
+        (run-zip directory graft-point)))))
 
 (define (zip-files zip-filename directory pathnames)
   (let ((zip-path (force %zip-path)))

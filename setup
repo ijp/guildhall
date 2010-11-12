@@ -47,7 +47,8 @@ impl_setup() {
 IMPL=none
 while true; do
     case "$1" in
-        -i) shift; IMPL="$1"; shift
+        -i|--implementation)
+            shift; IMPL="$1"; shift
             ;;
         *)
             break

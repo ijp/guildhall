@@ -1,0 +1,21 @@
+#!/bin/sh
+
+export GUILE_LOAD_PATH="@R6RS_LIBRARY_PATH@"
+
+while true; do
+    case "$1" in
+        --compile)
+            shift
+            shift # no-op on guile, compilation is on-demand
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+exec guile -x .guile.sls -x .sls -s "$@"

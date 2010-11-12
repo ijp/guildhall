@@ -79,6 +79,7 @@
 
 (define r6rs-script-wrappers
   '("r6rs-script"
+    "r6rs-script.guile"
     "r6rs-script.ikarus"
     "r6rs-script.mzscheme"
     "r6rs-script.ypsilon"))

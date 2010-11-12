@@ -79,6 +79,5 @@ case "$1" in
         ;;
     *)
         echo "* Installing dorodango"
-        $runner scripts/doro.sps "$@" --no-config --non-interactive init --implementation "$IMPL"
         $runner scripts/doro.sps "$@" --no-config --non-interactive install --bundle ..  dorodango
 esac

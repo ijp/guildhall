@@ -699,10 +699,19 @@
                             (titlecase output)
                             output))))))
 
+(define (dsp-bundle-discrepancy discrepancy)
+  (wrap-lines "This error is usually caused by stale bundles in the cache or "
+              "repositories that provide bogus bundle information."))
+
 (define (run-cmdline-ui argv)
   (guard (c ((fatal-error? c)
              (fmt (current-error-port) (cat "doro: " (condition-message c) "\n"))
-             (exit #f)))
+             (exit #f))
+            ((database-bundle-discrepancy? c)
+             (fmt (current-error-port)
+                  (cat "doro: discrepancy in bundle detected: "
+                       (condition-message c) "\n"
+                       (dsp-bundle-discrepancy c)))))
     (process-command-line (find-command 'main (cell-ref %commands))
                           (cdr argv)
                           `((operands)

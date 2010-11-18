@@ -36,9 +36,13 @@
         (dorodango package)
         (dorodango destination)
         (dorodango hooks)
+        (dorodango repository)
         (dorodango database))
 
 (define debug-output? #f)
+
+
+;;; Utilities
 
 (define test-dir (->pathname '((",database-test.tmp"))))
 (define dest-dir (pathname-join test-dir "dest"))
@@ -47,18 +51,21 @@
   (when (file-exists? test-dir)
     (test-failure "working stage not clear" test-dir)))
 
-(define (open-test-database)
+(define (open-test-database repositories)
   (let ((db (open-database
              (pathname-join test-dir "db")
              (make-fhs-destination 'test
                                    (merge-pathnames dest-dir (working-directory)))
-             '()
+             repositories
              (scheme-implementation))))
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 
 (define (clear-stage)
   (rm-rf test-dir))
+
+
+;;; Main functionality
 
 (define-test-suite db-tests
   "Package database")
@@ -78,12 +85,12 @@
 
 (define-test-case db-tests locking ((setup (assert-clear-stage))
                                     (teardown (clear-stage)))
-  (let ((db-1 (open-test-database))
+  (let ((db-1 (open-test-database '()))
         (cookie (list 'cookie)))
     (test-eq cookie
       (guard (c ((database-locked-error? c)
                  cookie))
-        (open-test-database)))
+        (open-test-database '())))
     (close-database db-1)))
 
 (define-test-case db-tests install+remove
@@ -93,13 +100,13 @@
     (clear-stage)))
   (begin
     ;; Install package
-    (let ((db (open-test-database)))
+    (let ((db (open-test-database '())))
       (test-eqv #t (database-unpack! db package:foo))
       (let ((item (database-lookup db 'foo '((0)))))
         (test-eqv #t (database-item? item))
         (test-eqv #t (database-item-installed? item)))
       (close-database db))
-    (let* ((db (open-test-database))
+    (let* ((db (open-test-database '()))
            (item (database-lookup db 'foo '((0)))))
       ;; Test installation correctness
       (test-eqv #t (database-item? item))
@@ -119,7 +126,7 @@
       (test-equal `(("bin" ,@r6rs-script-wrappers))
         (directory->tree dest-dir))
       (close-database db))
-    (let* ((db (open-test-database))
+    (let* ((db (open-test-database '()))
            (item (database-lookup db 'foo '((0)))))
       (test-eqv #t (database-item? item))
       (test-eqv #f (database-item-installed? item))
@@ -129,7 +136,7 @@
                                           (assert-clear-stage))
                                          (teardown
                                           (clear-stage)))
-  (call-with-database (open-test-database)
+  (call-with-database (open-test-database '())
     (lambda (db)
       (test-eqv #f (database-unpack! db package:not-there))
       (test-eqv #f (database-remove! db 'not-there)))))
@@ -140,9 +147,9 @@
     (test-eq exception-cookie
       (guard (c ((database-locked-error? c)
                  exception-cookie))
-        (call-with-database (open-test-database)
+        (call-with-database (open-test-database '())
           (lambda (db)
-            (call-with-database (open-test-database)
+            (call-with-database (open-test-database '())
               (lambda (db-nested)
                 'fail))))))))
 
@@ -152,10 +159,10 @@
    (teardown
     (clear-stage)))
   (begin
-    (let ((db (open-test-database)))
+    (let ((db (open-test-database '())))
       (database-unpack! db package:foo)
       (close-database db))
-    (let ((db (open-test-database)))
+    (let ((db (open-test-database '())))
       (test-equal '(conflict foo file-conflict-foo)
         (guard
             (c ((database-file-conflict? c)
@@ -178,7 +185,7 @@
    (teardown
     (clear-stage)))
   (begin
-    (let ((db (open-test-database)))
+    (let ((db (open-test-database '())))
       (test-eqv #t (database-unpack! db package:foo))
       (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
@@ -189,7 +196,7 @@
                     ("bar" "b.sls")
                     ("foo" "a.sls"))))
       (directory->tree dest-dir))
-    (let ((db (open-test-database)))
+    (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
     (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
@@ -208,7 +215,7 @@
           (inventory->tree
            (package-category-inventory (database-item-package item)
                                        'libraries)))))
-    (let ((db (open-test-database)))
+    (let ((db (open-test-database '())))
       (test-eqv #t (database-unpack! db package:hook))
       (database-setup! db 'hook)
       (test-inventories db)
@@ -216,19 +223,43 @@
                     ("share" ("r6rs-libs" "test.sls")))
         (directory->tree dest-dir))
       (close-database db))
-    (call-with-database (open-test-database)
+    (call-with-database (open-test-database '())
       test-inventories)))
 
 (define-test-case db-tests crash ((setup (assert-clear-stage))
                                   (teardown (clear-stage)))
   (let ((exception-cookie (list 'cookie)))
-    (call-with-database (open-test-database)
+    (call-with-database (open-test-database '())
       (lambda (db)
         (test-eqv #t (database-unpack! db package:hook-crash))
         (test-eq exception-cookie
           (guard (c ((hook-runner-exception? c)
                      exception-cookie))
             (database-setup! db 'hook-crash)))))))
+
+
+;;; Tests involving a repository
+
+(define-test-suite (db-tests.repository db-tests)
+  "Repository")
+
+(define test-repositories
+  (list (make-file-repository
+         'test
+         (merge-pathnames "repository" (this-directory)))))
+
+(define package:discrepancy (make-package 'discrepancy '((1))))
+
+(define-test-case db-tests.repository discrepancy ((setup (assert-clear-stage))
+                                                   (teardown (clear-stage)))
+  (let ((cookie (list 'cookie)))
+    (call-with-database (open-test-database test-repositories)
+      (lambda (db)
+        (database-update! db)
+        (test-eq cookie
+          (guard (c ((database-bundle-discrepancy? c)
+                     cookie))
+            (database-unpack! db package:discrepancy)))))))
 
 (when debug-output?
   (set-logger-properties!
@@ -238,6 +269,7 @@
       ,(lambda (entry)
          (default-log-formatter entry (current-output-port)))))))
 
+(set-test-debug-errors?! #t)
 (run-test-suite db-tests)
 
 ;; Local Variables:

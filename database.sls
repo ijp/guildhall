@@ -77,6 +77,9 @@
           database-unavailable-package-error?
           database-unavailable-package
 
+          database-bundle-discrepancy?
+          database-discrepant-bundle
+
           logger:dorodango.db)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) append-reverse filter-map lset-adjoin)
@@ -159,6 +162,10 @@
 (define-condition-type &database-unavailable-package &error
   make-database-unavailable-package-error database-unavailable-package-error?
   (package database-unavailable-package))
+
+(define-condition-type &database-bundle-discrepancy &error
+  make-database-bundle-discrepancy database-bundle-discrepancy?
+  (bundle database-discrepant-bundle))
 
 
 ;;; Database loading
@@ -583,18 +590,24 @@
   (define who 'database-unpack!)
   (define (do-install! desired-item)
     (let* ((bundle (checked-open-bundle! who db desired-item))
-           (package (bundle-package-ref bundle package)))
-      (log/db 'info (cat "unpacking " (dsp-package-identifier package) " ..."))
+           (bundle-package (bundle-package-ref bundle package)))
+      (unless bundle-package
+        (raise (condition
+                (make-database-bundle-discrepancy bundle)
+                (make-message-condition "missing package")
+                (make-irritants-condition (list package)))))
+      (log/db 'info
+              (cat "unpacking " (dsp-package-identifier bundle-package) " ..."))
       (update-file-table! (database-file-table db)
                           (database-destination db)
-                          package)
-      (extract-package bundle package (database-destination db))
+                          bundle-package)
+      (extract-package bundle bundle-package (database-destination db))
       (let ((unpacked-item (item-with-package
                             (item-with-state desired-item 'unpacked)
-                            package)))
-        (save-item-info (database-package-info-pathname db package)
+                            bundle-package)))
+        (save-item-info (database-package-info-pathname db bundle-package)
                         unpacked-item)
-        (database-update-item! db package (lambda (item) unpacked-item)))
+        (database-update-item! db bundle-package (lambda (item) unpacked-item)))
       #t))
   (guarantee-open-database who db)
   (and-let* ((items (database-items db (package-name package)))

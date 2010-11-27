@@ -279,12 +279,13 @@
                                       result))
                      (=> inventory uncategorized)))))
             (else
-             (warn who
-                   "unrecognized form in package description file"
-                   form
-                   (string-append (bundle/identifier ops)
-                                  ":"
-                                  (path->string (append path pkgs-path))))
+             (log/bundle 'warning
+                         "unrecognized form in package description file"
+                         form
+                         (string-append (bundle/identifier ops)
+                                        ":"
+                                        (path->string
+                                         (append path pkgs-path))))
              (continue))))))
 
 ;;; Mappers
@@ -371,6 +372,9 @@
 
 (define (path->string path)
   (string-join path "/"))
+
+(define logger:dorodango.bundle (make-logger logger:dorodango 'bundle))
+(define log/bundle (make-fmt-log logger:dorodango.bundle))
 
 (define logger:dorodango.categorizer (make-logger logger:dorodango 'categorizer))
 (define log/categorizer (make-fmt-log logger:dorodango.categorizer))

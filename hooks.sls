@@ -70,10 +70,12 @@
     (flush-output-port port)))
 
 (define (hook-runner-receive runner)
-  (let ((result (read (open-string-input-port
-                       (get-line (hook-runner-output runner))))))
-    (log/debug (cat "received from hook runner: " result))
-    result))
+  (let ((line (get-line (hook-runner-output runner))))
+    (when (eof-object? line)
+      (raise-hook-runner-error "received unexpected EOF"))
+    (let ((result (read (open-string-input-port line))))
+      (log/debug (cat "received from hook runner: " result))
+      result)))
 
 (define null-package (make-package 'null '((0))))
 

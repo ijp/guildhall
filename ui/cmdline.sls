@@ -1,6 +1,6 @@
 ;;; cmdline.sls --- Command-line UI library
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -222,7 +222,7 @@
              (database-setup! db (package-name package))))
           (else
            (let ((db-package
-                  (database-lookup db (package-name package))))
+                  (database-lookup db (package-name package) 'installed)))
              (message "Package " package-name
                       " already at version " (package-version db-package)))))))
 
@@ -395,7 +395,7 @@
           (need-rewrite? (not (null? append-version))))
       (when (null? pkg-list-files)
         (fatal (cat "no package lists found in or below "
-                    (fmt-join dsp-pathname pkg-list-files ", ")) "."))
+                    (fmt-join dsp-pathname pkg-list-files ", ") ".")))
       (let* ((packages-list (read-package-lists pkg-list-files append-version))
              (output
               (or output-filename

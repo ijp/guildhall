@@ -1,6 +1,6 @@
 ;;; search-graph.sls --- Dependency solver, search graph
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -216,7 +216,7 @@
     (values dep solvers)))
 
 (define (step-add-clone! step clone-num)
-  (set-step-clones! (wt-tree/add (step-clones step) clone-num #t)))
+  (set-step-clones! step (wt-tree/add (step-clones step) clone-num #t)))
 
 (define (step-add-forbidden-version! step version choice)
   (set-step-forbidden-versions! step (wt-tree/add (step-forbidden-versions step)
@@ -393,7 +393,7 @@
                    "for propagation."))
       (wt-tree/for-each
        (lambda (clone-num true)
-         (let* ((clone (search-graph-step clone-num))
+         (let* ((clone (search-graph-step graph clone-num))
                 (parent-num (step-parent clone)))
            (when (not parent-num)
              (internal-error "Clone (step " clone-num ") has no parent!"))
@@ -409,7 +409,8 @@
            => (lambda (canonical-num)
                 (log/trace "Adding the promotion " p " to step " canonical-num
                            " instead of to its clone, step" step-num ".")
-                (search-graph-schedule-promotion-propagation! canonical-num
+                (search-graph-schedule-promotion-propagation! graph
+                                                              canonical-num
                                                               promotion)))
           ((= (wt-tree/size target-promotions)
               (search-graph-max-propagated-promotions graph))
@@ -493,7 +494,7 @@
            #f)
           (else
            (let* ((child (search-graph-step graph child-num))
-                  (canonical-child-promotions (search-graph-promotions-list child))
+                  (canonical-child-promotions (search-graph-promotions-list graph child))
                   (first-new-promotion-index
                    (step-promotions-list-first-new-promotion child)))
              (loop continue
@@ -546,13 +547,14 @@
                                   (+ child-num 1)
                                   (or child-has-new-promotion? new-promotion?)
                                   new-choices
-                                  new-tier)))))))))))))
+                                  new-tier
+                                  promotion-adder)))))))))))))
 
 (define (search-graph-promotions-list graph step)
   (step-promotions-list
    (cond ((step-canonical-clone step)
           => (lambda (clone-num)
-               (search-graph-step clone-num)))
+               (search-graph-step graph clone-num)))
          (else
           step))))
 
@@ -628,7 +630,10 @@
 (define (solver-tracker-update tracker choice info)
   (let* ((solvers (solver-tracker-solvers tracker))
          (new-solvers (make-xvector)))
-    (receive (i j) (xvector-equal-range solvers entry-by-choice-compare)
+    (receive (i j) (xvector-equal-range solvers
+                                        choice
+                                        entry-by-choice-compare
+                                        values)
       (loop ((for k (up-from 0 (to i))))
         (xvector-push! new-solvers (xvector-ref solvers k)))
       (xvector-push! new-solvers (cons choice info))

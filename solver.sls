@@ -1,6 +1,6 @@
 ;;; solver.sls --- Dependency solver, algorithm
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (C) 2009 Daniel Burrows
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -124,32 +124,32 @@
     
     (define (find-next max-steps)
       (and (not finished?)
-           (when (and (wt-tree/empty? pending)
-                      (wt-tree/empty? pending-future-solutions)
-                      (= 0 (hashtable-size closed)))
-             (start-search))
-           (loop continue
-               ((for remaining-steps (down-from max-steps (to 0)))
-                (with most-future-solution-steps 0)
-                (while (contains-canditate? pending)))
-             => (prepare-result most-future-solution-steps)
-             (when (> most-future-solution-steps 0)
-               (log/debug "Speculative \"future\" resolver tick ("
-                          most-future-solution-steps "/" future-horizon ")."))
-             (let ((cur-step-num (wt-tree/min pending)))
-               (wt-tree/delete! pending cur-step-num)
-               (process-step cur-step-num))
-             (let ((new-most-future-solutions-steps
-                    (if (contains-canditate? pending-future-solutions)
-                        (+ most-future-solution-steps 1)
-                        0)))
-               (log/trace "Done generating successors.")
-               (search-graph-run-scheduled-promotion-propagations!
-                graph
-                add-promotion)
-               (continue
-                (=> most-future-solution-steps new-most-future-solutions-steps))))))
-
+           (begin
+             (when (and (wt-tree/empty? pending)
+                        (wt-tree/empty? pending-future-solutions)
+                        (= 0 (hashtable-size closed)))
+               (start-search))
+             (loop continue
+                 ((for remaining-steps (down-from max-steps (to 0)))
+                  (with most-future-solution-steps 0)
+                  (while (contains-canditate? pending)))
+               => (prepare-result most-future-solution-steps)
+               (when (> most-future-solution-steps 0)
+                 (log/debug "Speculative \"future\" resolver tick ("
+                            most-future-solution-steps "/" future-horizon ")."))
+               (let ((cur-step-num (wt-tree/min pending)))
+                 (wt-tree/delete! pending cur-step-num)
+                 (process-step cur-step-num))
+               (let ((new-most-future-solutions-steps
+                      (if (contains-canditate? pending-future-solutions)
+                          (+ most-future-solution-steps 1)
+                          0)))
+                 (log/trace "Done generating successors.")
+                 (search-graph-run-scheduled-promotion-propagations!
+                  graph
+                  add-promotion)
+                 (continue
+                  (=> most-future-solution-steps new-most-future-solutions-steps)))))))
 
     ;;; Private procedures
     

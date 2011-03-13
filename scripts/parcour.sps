@@ -1,6 +1,6 @@
 ;;; parcour.sps --- Test parcour for the `doro' CLI
 
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -34,6 +34,7 @@
         (spells pathname)
         (spells filesys)
         (spells process)
+        (only (spells misc) scheme-implementation)
         (dorodango private utils)
         (dorodango ui cmdline))
 
@@ -88,7 +89,7 @@
                "unexpected exit status from program" status program)))))
 
 (define (do-install)
-  (run "init" "--implementation" "ikarus")
+  (run "init" "--implementation" (symbol->string (scheme-implementation)))
   (run "install" "--bundle" ".." "dorodango")
   #;
   (fmt #t "* Compiling libraries used by doro\n")

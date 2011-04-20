@@ -7,18 +7,25 @@ REQUIRED_LIBS="srfi spells/spells industria/weinholt ocelotl dorodango"
 REQUIRED_WAK_LIBS="common irregex fmt foof-loop parscheme syn-param riastreams"
 LIBS_DIR="`pwd`/../_libs"
 
+missing_prerequisite() {
+    echo "ERROR: prerequisite $1 not found in parent directory."
+    exit 1
+}
+
 setup_symlinks() {
     exclude_rx="$1"
     rm -rf "$LIBS_DIR"
     mkdir -p "$LIBS_DIR"
     for lib in $REQUIRED_LIBS; do
         if ! echo "$lib" | grep -q "$exclude_rx"; then
+            [ -d "../$lib" ] || missing_prerequisite "$lib"
             ln -s "../$lib" "$LIBS_DIR/"
         fi
     done
     mkdir -p "$LIBS_DIR/wak"
     for lib in $REQUIRED_WAK_LIBS; do
         if ! echo "wak-$lib" | grep -q "$exclude_rx"; then
+            [ -d "../wak-$lib" ] ||  missing_prerequisite "wak-$lib"
             ( cd "../wak-$lib" && find . \( -name "*.sls" ! -path "*/_darcs/*" \) \
                 -o \( -name "*.scm" -a ! -path "*/test/*" -a ! -path "*/_darcs/*" \
                 -a ! -name pkg-list.scm \) \

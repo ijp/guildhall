@@ -2,7 +2,7 @@
 
 set -e
 
-SUPPORTED_IMPLS="ikarus mzscheme ypsilon"
+SUPPORTED_IMPLS="ikarus mzscheme guile ypsilon"
 REQUIRED_LIBS="srfi spells/spells industria/weinholt ocelotl dorodango"
 REQUIRED_WAK_LIBS="common irregex fmt foof-loop parscheme syn-param riastreams"
 LIBS_DIR="`pwd`/../_libs"
@@ -41,7 +41,7 @@ impl_setup() {
         ikarus|ypsilon|mosh)
             setup_symlinks '^$'
             ;;
-        mzscheme)
+        mzscheme|guile)
             setup_symlinks '^srfi$'
             ;;
         *)

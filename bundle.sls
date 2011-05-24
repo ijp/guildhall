@@ -129,7 +129,9 @@
      (let ((bundle (open-input-bundle pathname options)))
        (receive results (proc bundle)
          (close-bundle bundle)
-         (apply values results))))))
+         (apply values results))))
+    ((pathname proc)
+     (call-with-input-bundle pathname (bundle-options) proc))))
 
 
 ;;; Filesystem bundles

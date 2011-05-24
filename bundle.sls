@@ -1,6 +1,6 @@
 ;;; bundles.sls --- Dealing with bundle files
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -70,6 +70,12 @@
 (define (close-bundle bundle)
   (bundle/close (bundle-ops bundle)))
 
+;;@ foof-loop iterator for bundles.
+;;
+;; @lisp
+;; (loop ((for pathname extractor
+;;             (in-bundle-inventory bundle (bundle-inventory bundle)))
+;; @end lisp
 (define-syntax in-bundle-inventory
   (syntax-rules ()
     ((_ (pathname-var extractor-var) (bundle-expr inventory-expr) cont . env)
@@ -86,7 +92,7 @@
         (lambda (port)
           (bundle/extract-entry (bundle-ops bundle)
                                 (inventory-cursor-data cursor)
-                                port))))
+                                  port))))
       ()                                         ;Final bindings
       . env))))
 

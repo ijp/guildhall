@@ -60,7 +60,7 @@
           (dorodango inventory mapping))
 
 (define-record-type bundle
-  (fields inventory packages ops))
+  (fields inventory package-map ops))
 
 (define-operation (bundle/identifier object))
 (define-operation (bundle/extract-entry object entry dest-port))
@@ -154,7 +154,7 @@
                                           (make-pathname-filter inventory?)))
          (ops (make-fs-bundle-ops directory)))
     (make-bundle (and inventory? inventory)
-                 (list-bundle-packages ops inventory inventory?)
+                 (construct-package-map ops inventory inventory?)
                  ops)))
 
 (define (directory->inventory pathname accept?)
@@ -222,14 +222,11 @@
          (inventory (zip-port->inventory port))
          (ops (make-zip-bundle-ops pathname port)))
     (make-bundle (and inventory? inventory)
-                 (list-bundle-packages ops inventory inventory?)
+                 (construct-package-map ops inventory inventory?)
                  ops)))
 
 
 ;;; Package handling
-
-(define (bundle-package-map bundle)
-  (construct-package-map (bundle-ops bundle) (bundle-inventory bundle) #f))
 
 (define pkgs-path '("pkg-list.scm"))
 
@@ -246,8 +243,8 @@
                                         info)))))
            => result))))
 
-(define (list-bundle-packages ops inventory inventory?)
-  (concatenate (map cdr (construct-package-map ops inventory inventory?))))
+(define (bundle-packages bundle)
+  (concatenate (map cdr (bundle-package-map bundle))))
 
 (define (construct-package-map ops inventory inventory?)
   (define (snarf-packages elt)

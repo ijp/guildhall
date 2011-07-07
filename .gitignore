@@ -1,0 +1,11 @@
+/INSTALL
+/Makefile
+/Makefile.in
+/autom4te.cache
+/aclocal.m4
+/build-aux
+/config.cache
+/config.status
+/config.log
+/configure
+/env

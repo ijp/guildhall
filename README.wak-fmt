@@ -1,0 +1,8 @@
+This is the `wak' R6RS packaging of Alex Shinn's formatting combinator library.
+
+The code and documentation has been retrieved from this URL:
+
+<http://synthcode.com/scheme/fmt/fmt-0.7.tar.gz>
+
+For version, description, dependencies and other metadata please refer
+to the file `pkg-list.scm'.

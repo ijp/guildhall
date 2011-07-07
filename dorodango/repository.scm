@@ -1,6 +1,6 @@
 ;;; repository.sls --- Dorodango repositories
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -45,7 +45,7 @@
           (spells filesys)
           (spells logging)
           (wak fmt)
-          (ocelotl net uri)
+          (web uri)
           (ocelotl net http)
           (ocelotl net http-client)
           (dorodango private utils)
@@ -101,9 +101,20 @@
 
 ;;; HTTP support
 
+(define (relative-uri path rel)
+  (build-uri (uri-scheme rel)
+             #:userinfo (uri-host rel)
+             #:host (uri-host rel)
+             #:port (uri-host rel)
+             #:path (encode-and-join-uri-path
+                     (append (split-and-decode-uri-path (uri-path rel))
+                             (split-and-decode-uri-path path)))))
+
 (define (make-http-repository name uri-string)
-  (let* ((base-uri (uri-with-directory-path (object->uri uri-string)))
-         (available-uri (merge-uris (string->uri "available.scm") base-uri))
+  (let* ((base-uri (uri-with-directory-path
+                    (or (string->uri uri-string)
+                        (error "bad URI string" uri-string))))
+         (available-uri (relative-uri (string->uri "available.scm") base-uri))
          (available-filename "available.scm"))
     (make-repository
      name
@@ -121,8 +132,7 @@
           (if (file-exists? destination)
               destination
               (http-download destination
-                             (merge-uris (make-uri #f #f location #f #f)
-                                         base-uri)))))))))
+                             (relative-uri location base-uri)))))))))
 
 (define (http-download destination uri)
   (message "Fetching " (uri->string uri))

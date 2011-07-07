@@ -1,6 +1,6 @@
 ;;; utils.sls --- Utilities for dorodango
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -64,7 +64,7 @@
           (spells filesys)
           (spells logging)
           (ocelotl wt-tree)
-          (ocelotl net uri))
+          (web uri))
 
 (define-syntax define-guarantor
   (syntax-rules ()
@@ -196,17 +196,21 @@
 
 ;;++ Also in irclogs; need to consolidate
 (define (uri-with-directory-path uri)
-  (let ((path (uri-path uri)))
-    (make-uri (uri-scheme uri)
-              (uri-authority uri)
-              (if (null? path)
-                  '("")
-                  (let ((last-elt (last path)))
-                    (if (string=? last-elt "")
-                        path
-                        (append path (list "")))))
-              (uri-query uri)
-              (uri-fragment uri))))
+  (let ((path (split-and-decode-uri-path (uri-path uri))))
+    (build-uri (uri-scheme uri)
+               #:userinfo (uri-userinfo uri)
+               #:host (uri-host uri)
+               #:port (uri-port uri)
+               #:path
+               (encode-and-join-uri-path
+                (if (null? path)
+                    '("")
+                    (let ((last-elt (last path)))
+                      (if (string=? last-elt "")
+                          path
+                          (append path (list ""))))))
+               #:query (uri-query uri)
+               #:fragment (uri-fragment uri))))
 
 (define-syntax in-hashtable
   (syntax-rules ()

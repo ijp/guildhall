@@ -46,8 +46,9 @@
           (spells logging)
           (wak fmt)
           (web uri)
-          (ocelotl net http)
-          (ocelotl net http-client)
+          (web http)
+          (web request)
+          (web response)
           (dorodango private utils)
           (dorodango ui))
 
@@ -134,6 +135,7 @@
               (http-download destination
                              (relative-uri location base-uri)))))))))
 
+;; FIXME: implement me!!
 (define (http-download destination uri)
   (message "Fetching " (uri->string uri))
   (call-with-http-response 'GET uri '() ""

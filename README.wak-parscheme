@@ -1,0 +1,10 @@
+This is the `wak' R6RS packaging of Taylor R. Campbell's parscheme
+libraries.
+
+The code and documentation has been retrieved on 2010-05-04 from this
+darcs repository:
+
+<http://mumble.net/~campbell/darcs/parscheme>
+
+For version, description, dependencies and other metadata please refer
+to the file `pkg-list.scm'.

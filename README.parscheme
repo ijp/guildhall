@@ -1,0 +1,45 @@
+* Parscheme version 0.0 (beta)                          -*- outline -*-
+
+This is Parscheme, a library for writing parsers in portable Scheme.
+
+This file is written by Taylor R. Campbell and placed in the Public
+Domain.  All warranties are disclaimed.
+
+This code is in a preliminary state, and only lightly tested.  It is
+not very fast, and there are certain space safety guarantees that it
+should but does not yet make.
+
+Parscheme can be loaded into into the following Scheme systems:
+
+- Scheme48:
+
+  Load s48-interfaces.scm and s48-packages.scm into the config package.
+
+** Portability
+
+At present, this code runs only in Scheme48, but because it is written
+in a portable manner, porting it to other Schemes should be easy.
+Although the code relies on some non-standard extensions, these have
+all been very carefully isolated, and most of the non-R5RS dependencies
+are SRFIs.  In particular, this collection uses
+
+  SRFI 1 (List Library),
+  SRFi 9 (Defining Record Types),
+  SRFI 14 (Character-Set Library), and
+  SRFI 45 (Primitives for Expressing Iterative Lazy Algorithms),
+
+all of which except for SRFI 45 are widely supported.  SRFI 45 is not
+an onerous burden, however; it would suffice to define
+
+  (define-syntax lazy
+    (syntax-rules ()
+      ((LAZY promise)
+       (DELAY (FORCE promise))))),
+
+if space safety is not a concern.  If space safety is a concern, then
+there is an implementation from lazy.scm, and there is also the
+reference implementation available on the web.
+
+** Documentation
+
+To be written.

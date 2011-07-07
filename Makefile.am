@@ -1,36 +1,36 @@
 moddir=$(prefix)/share/guile/site
 
 SOURCES =					\
-	dorodango/actions.sls \
-	dorodango/bundle.sls \
-	dorodango/config.sls \
-	dorodango/database.sls \
-	dorodango/database/dependencies.sls \
-	dorodango/destination.sls \
-	dorodango/hooks.sls \
-	dorodango/inventory.sls \
-	dorodango/inventory/mapping.sls \
-	dorodango/package.sls \
-	dorodango/private/utils.sls \
-	dorodango/private/zip.sls \
-	dorodango/repository.sls \
-	dorodango/solver.sls \
-	dorodango/solver/choice.sls \
-	dorodango/solver/dummy-db.sls \
-	dorodango/solver/expression.sls \
-	dorodango/solver/internals.sls \
-	dorodango/solver/logging.sls \
-	dorodango/solver/promotions.sls \
-	dorodango/solver/search-graph.sls \
-	dorodango/solver/universe.sls \
-	dorodango/ui.sls \
-	dorodango/ui/cmdline.sls \
-	dorodango/ui/cmdline/base.sls \
-	dorodango/ui/cmdline/dependencies.sls \
-	dorodango/ui/cmdline/help.sls \
-	dorodango/ui/formatters.sls
+	dorodango/actions.scm \
+	dorodango/bundle.scm \
+	dorodango/config.scm \
+	dorodango/database.scm \
+	dorodango/database/dependencies.scm \
+	dorodango/destination.scm \
+	dorodango/hooks.scm \
+	dorodango/inventory.scm \
+	dorodango/inventory/mapping.scm \
+	dorodango/package.scm \
+	dorodango/private/utils.scm \
+	dorodango/private/zip.scm \
+	dorodango/repository.scm \
+	dorodango/solver.scm \
+	dorodango/solver/choice.scm \
+	dorodango/solver/dummy-db.scm \
+	dorodango/solver/expression.scm \
+	dorodango/solver/internals.scm \
+	dorodango/solver/logging.scm \
+	dorodango/solver/promotions.scm \
+	dorodango/solver/search-graph.scm \
+	dorodango/solver/universe.scm \
+	dorodango/ui.scm \
+	dorodango/ui/cmdline.scm \
+	dorodango/ui/cmdline/base.scm \
+	dorodango/ui/cmdline/dependencies.scm \
+	dorodango/ui/cmdline/help.scm \
+	dorodango/ui/formatters.scm
 
-GOBJECTS = $(SOURCES:%.sls=%.go)
+GOBJECTS = $(SOURCES:%.scm=%.go)
 
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES) $(GOBJECTS)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
@@ -38,6 +38,6 @@ EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 CLEANFILES = $(GOBJECTS)
 
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
-SUFFIXES = .sls .go
-.sls.go:
+SUFFIXES = .scm .go
+.scm.go:
 	$(top_builddir)/env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$<"

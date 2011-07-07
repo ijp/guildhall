@@ -1,6 +1,6 @@
 ;;; zip.sls --- zip utilities for dorodango
 
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -30,6 +30,7 @@
           (only (srfi :13) string-null?)
           (wak foof-loop)
           (spells string-utils)
+          #;
           (prefix (weinholt compression zip) zip:)
           (dorodango inventory))
 

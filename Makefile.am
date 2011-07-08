@@ -64,6 +64,12 @@ SOURCES =					\
 	wak/private/let-optionals.scm \
 	wak/riastreams.scm \
 	wak/syn-param.scm \
+	wak/trc-testing.scm \
+	wak/trc-testing/display-condition.scm \
+	wak/trc-testing/limited-write.scm \
+	wak/trc-testing/parameters.scm \
+	wak/trc-testing/port-tracker.scm \
+	wak/trc-testing/restart.scm \
 	\
 	dorodango/actions.scm \
 	dorodango/bundle.scm \

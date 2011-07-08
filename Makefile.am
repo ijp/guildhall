@@ -38,6 +38,7 @@ SOURCES =					\
 	spells/syntax-utils.scm \
 	spells/sysutils.scm \
 	spells/sysutils/compat.scm \
+	spells/test-runner.scm \
 	spells/time-lib.scm \
 	spells/tracing.scm \
 	spells/tracing/compat.scm \

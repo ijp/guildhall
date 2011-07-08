@@ -112,3 +112,18 @@ GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go
 .scm.go:
 	$(top_builddir)/env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$<"
+
+
+TESTS = \
+	tests/actions.scm \
+	tests/bundle.scm \
+	tests/database.scm \
+	tests/expression.scm \
+	tests/hooks.scm \
+	tests/inventory.scm \
+	tests/package.scm \
+	tests/solver.scm \
+	tests/tests.scm \
+	tests/utils.scm
+
+TESTS_ENVIRONMENT=$(top_builddir)/env guile --no-auto-compile -s 

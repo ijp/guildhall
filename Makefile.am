@@ -6,57 +6,38 @@ SOURCES =					\
 	spells/algebraic-types/helpers.scm \
 	spells/alist.scm \
 	spells/args-fold.scm \
-	spells/array-search.scm \
-	spells/ascii.scm \
-	spells/assert.scm \
-	spells/awk.scm \
-	spells/awk/helpers.scm \
-	spells/awk/range-tests.scm \
 	spells/cells.scm \
 	spells/condition.scm \
 	spells/define-values.scm \
-	spells/delimited-control.scm \
 	spells/delimited-readers.scm \
-	spells/engines.scm \
-	spells/engines/timer.scm \
 	spells/error.scm \
-	spells/field-readers.scm \
 	spells/filesys.scm \
 	spells/filesys/compat.scm \
 	spells/finite-types.scm \
-	spells/format.scm \
 	spells/gc.scm \
 	spells/gc/compat.scm \
 	spells/hash-utils.scm \
 	spells/include.scm \
 	spells/include/compat.scm \
 	spells/include/helpers.scm \
-	spells/list-utils.scm \
 	spells/logging.scm \
 	spells/match.scm \
 	spells/misc.scm \
 	spells/misc/compat.scm \
-	spells/network.scm \
-	spells/network/compat.scm \
-	spells/network/utils.scm \
 	spells/operations.scm \
 	spells/opt-args.scm \
 	spells/pathname.scm \
 	spells/pathname/os-string.scm \
 	spells/ports.scm \
-	spells/pretty-print.scm \
 	spells/procedure-annotations.scm \
 	spells/process.scm \
 	spells/process/compat.scm \
-	spells/queue.scm \
 	spells/record-types.scm \
 	spells/record-types/expand-drt.scm \
 	spells/string-utils.scm \
 	spells/syntax-utils.scm \
 	spells/sysutils.scm \
 	spells/sysutils/compat.scm \
-	spells/table.scm \
-	spells/table/compat.scm \
 	spells/time-lib.scm \
 	spells/tracing.scm \
 	spells/tracing/compat.scm \

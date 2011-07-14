@@ -71,6 +71,14 @@ SOURCES =					\
 	wak/trc-testing/parameters.scm \
 	wak/trc-testing/port-tracker.scm \
 	wak/trc-testing/restart.scm \
+	weinholt/compression/bitstream.scm \
+	weinholt/compression/huffman.scm \
+	weinholt/compression/inflate.scm \
+	weinholt/compression/sliding-buffer.scm \
+	weinholt/compression/zip.scm \
+	weinholt/compression/zip/extra.scm \
+	weinholt/crypto/crc.scm \
+	weinholt/struct/pack.scm \
 	\
 	dorodango/actions.scm \
 	dorodango/bundle.scm \

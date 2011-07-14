@@ -30,7 +30,6 @@
           (only (srfi :13) string-null?)
           (wak foof-loop)
           (spells string-utils)
-          #;
           (prefix (weinholt compression zip) zip:)
           (dorodango inventory))
 

@@ -123,15 +123,14 @@ SUFFIXES = .scm .go
 
 
 TESTS = \
-	tests/actions.scm \
-	tests/bundle.scm \
-	tests/database.scm \
-	tests/expression.scm \
-	tests/hooks.scm \
+	tests/utils.scm \
 	tests/inventory.scm \
+	tests/expression.scm \
 	tests/package.scm \
+	tests/bundle.scm \
+	tests/hooks.scm \
+	tests/database.scm \
 	tests/solver.scm \
-	tests/tests.scm \
-	tests/utils.scm
+	tests/actions.scm
 
 TESTS_ENVIRONMENT=$(top_builddir)/env guile --no-auto-compile -s 

@@ -1,5 +1,5 @@
 (package (multi-core (0))
-  (libraries (sls -> "multi")))
+  (libraries (scm -> "multi")))
 
 (package (multi-tools (0))
   (programs (("programs" "multi.sps") -> "multi")))

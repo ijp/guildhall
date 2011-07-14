@@ -1,4 +1,0 @@
-#!/bin/sh
-
-export PLTCOLLECTS=":$R6RS_LIBRARY_PATH"
-exec plt-r6rs -- "$@"

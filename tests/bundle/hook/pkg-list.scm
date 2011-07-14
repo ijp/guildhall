@@ -8,7 +8,7 @@
                     (export)
                     (import (rnrs base)))
                  port)))
-      (agent 'install-file 'libraries "test.sls" ",test.tmp")
+      (agent 'install-file 'libraries "test.scm" ",test.tmp")
       (delete-file ",test.tmp"))))
 
 (package (hook-crash (0))

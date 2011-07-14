@@ -1,5 +1,6 @@
 ;;; database.scm --- Tests for the package database
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -77,13 +78,6 @@
 (define package:hook (make-package 'hook '((0))))
 (define package:hook-crash (make-package 'hook-crash '((0))))
 
-(define r6rs-script-wrappers
-  '("r6rs-script"
-    "r6rs-script.guile"
-    "r6rs-script.ikarus"
-    "r6rs-script.mzscheme"
-    "r6rs-script.ypsilon"))
-
 (define-test-case db-tests locking ((setup (assert-clear-stage))
                                     (teardown (clear-stage)))
   (let ((db-1 (open-test-database '()))
@@ -112,20 +106,19 @@
       ;; Test installation correctness
       (test-eqv #t (database-item? item))
       (test-eqv #t (database-item-installed? item))
-      (test-equal '(libraries ("foo" "a.sls"))
+      (test-equal '(libraries ("foo" "a.scm"))
         (inventory->tree
          (package-category-inventory (database-item-package item)
                                      'libraries)))
-      (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
-                    ("share"
+      (test-equal `(("share"
                      ("libr6rs-foo" ("programs" "foo"))
-                     ("r6rs-libs" ("foo" "a.sls"))))
+                     ("r6rs-libs" ("foo" "a.scm"))))
         (directory->tree dest-dir))
 
       ;; Test removal
       (test-eqv #t (database-remove! db 'foo))
-      (test-equal `(("bin" ,@r6rs-script-wrappers))
-        (directory->tree dest-dir))
+      (test-equal '()
+                  (directory->tree dest-dir))
       (close-database db))
     (let* ((db (open-test-database '()))
            (item (database-lookup db 'foo '((0)))))
@@ -190,20 +183,18 @@
       (test-eqv #t (database-unpack! db package:foo))
       (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
-    (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
-                  ("share"
+    (test-equal `(("share"
                    ("libr6rs-foo" ("programs" "foo"))
                    ("r6rs-libs"
-                    ("bar" "b.sls")
-                    ("foo" "a.sls"))))
+                    ("bar" "b.scm")
+                    ("foo" "a.scm"))))
       (directory->tree dest-dir))
     (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
-    (test-equal `(("bin" "foo" ,@r6rs-script-wrappers)
-                  ("share"
+    (test-equal `(("share"
                    ("libr6rs-foo" ("programs" "foo"))
-                   ("r6rs-libs" ("foo" "a.sls"))))
+                   ("r6rs-libs" ("foo" "a.scm"))))
       (directory->tree dest-dir))))
 
 (define-test-case db-tests setup ((setup (assert-clear-stage))
@@ -212,7 +203,7 @@
     (define (test-inventories db)
       (let ((item (database-lookup db 'hook 'installed)))
         (test-eqv #t (database-item? item))
-        (test-equal '(libraries "test.sls")
+        (test-equal '(libraries "test.scm")
           (inventory->tree
            (package-category-inventory (database-item-package item)
                                        'libraries)))))
@@ -220,8 +211,7 @@
       (test-eqv #t (database-unpack! db package:hook))
       (database-setup! db 'hook)
       (test-inventories db)
-      (test-equal `(("bin" ,@r6rs-script-wrappers)
-                    ("share" ("r6rs-libs" "test.sls")))
+      (test-equal `(("share" ("r6rs-libs" "test.scm")))
         (directory->tree dest-dir))
       (close-database db))
     (call-with-database (open-test-database '())

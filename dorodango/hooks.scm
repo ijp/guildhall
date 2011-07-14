@@ -55,6 +55,7 @@
           (only (spells misc) unspecific and=>)
           (spells logging)
           (dorodango private utils)
+          (dorodango build-info)
           (dorodango inventory)
           (dorodango package)
           (dorodango destination))
@@ -80,10 +81,7 @@
 (define null-package (make-package 'null '((0))))
 
 (define (spawn-hook-runner destination)
-  (let ((r6rs-script (car (destination-pathnames destination
-                                                 null-package
-                                                 'programs
-                                                 "r6rs-script")))
+  (let ((r6rs-script *script-interpreter*)
         (hook-runner (find-file (make-pathname #f
                                                '("dorodango" "private")
                                                "hook-runner.sps")

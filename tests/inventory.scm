@@ -194,18 +194,18 @@
 
 (define-test-case inventory-tests.map rule-2 ()
   (test-mapper
-      '(a "texinfo.sls"
-          ("texinfo" "x.sls"))
-      '(b ("scheme" "y.sls") "other")
+      '(a "texinfo.scm"
+          ("texinfo" "x.scm"))
+      '(b ("scheme" "y.scm") "other")
     (evaluate-inventory-mapping-rules
-     '((("scheme" "texinfo.sls") -> "texinfo.sls")
+     '((("scheme" "texinfo.scm") -> "texinfo.scm")
        (("scheme" "texinfo") -> "texinfo"))
      (lambda (name) #f))
     '(a)
     '(b ("scheme"
-         ("texinfo" "x.sls")
-         "texinfo.sls"
-         "y.sls")
+         ("texinfo" "x.scm")
+         "texinfo.scm"
+         "y.scm")
         "other")))
 
 (define-test-case inventory-tests.map rule-3 ()
@@ -221,25 +221,25 @@
 (define-test-case inventory-tests.map rule-star ()
   (test-mapper
       '(a ("star"
-           ("foo" "z.sls" "y.sls")
-           ("net" ("private" "foo.sls"))
-           "x.sls")
-          "top.sls")
+           ("foo" "z.scm" "y.scm")
+           ("net" ("private" "foo.scm"))
+           "x.scm")
+          "top.scm")
       '(b ("private") ("foo"))
     (evaluate-inventory-mapping-rules
      '((* -> "star")
        (("private" "net") -> ("star" "net" "private")))
      (lambda (name)
        (and (eq? name '*) (make-recursive-inventory-mapper list))))
-    '(a "top.sls")
-    '(b "x.sls"
-        ("private" ("net" "foo.sls"))
-        ("foo" "y.sls" "z.sls"))))
+    '(a "top.scm")
+    '(b "x.scm"
+        ("private" ("net" "foo.scm"))
+        ("foo" "y.scm" "z.scm"))))
 
 (define-test-case inventory-tests.map rule-foo ()
   (test-mapper
-      '(a ("bar" "foo.sls")
-          ("the-x" "a.sls"))
+      '(a ("bar" "foo.scm")
+          ("the-x" "a.scm"))
       '(b ("bar" ("c" "d")) "other" ("baz" "y"))
     (evaluate-inventory-mapping-rules
      '((foo -> ())
@@ -247,24 +247,24 @@
      (letrec ((foo-mapper
                (make-inventory-mapper
                 (lambda (filename)
-                  (and (string=? filename "bar.sls")
-                       '("foo.sls")))
+                  (and (string=? filename "bar.scm")
+                       '("foo.scm")))
                 (lambda (filename)
                   (values (list filename) foo-mapper)))))
        (lambda (name)
          (and (eq? name 'foo) foo-mapper))))
     '(a)
-    '(b ("x" "a.sls")
-        ("bar" "bar.sls" ("c" "d"))
+    '(b ("x" "a.scm")
+        ("bar" "bar.scm" ("c" "d"))
         "other"
         ("baz" "y"))))
 
 (define-test-case inventory-tests.map regex-rule-1 ()
   (test-mapper
       '(a ("srfi"
-           "%3a1.sls"
-           ("private" "include.sls")
-           ("%3a1" "lists.sls" "srfi-1.scm")))
+           "%3a1.scm"
+           ("private" "include.scm")
+           ("%3a1" "lists.scm" "srfi-1.scm")))
       '(b "pkg-list.scm")
     (evaluate-inventory-mapping-rules
      '(((: "%3a" (+ digit) (* any)) -> "srfi")
@@ -272,26 +272,26 @@
      (lambda (name) #f))
     '(a)
     '(b "pkg-list.scm"
-        ("%3a1" "lists.sls" "srfi-1.scm")
-        ("private" "include.sls")
-        "%3a1.sls")))
+        ("%3a1" "lists.scm" "srfi-1.scm")
+        ("private" "include.scm")
+        "%3a1.scm")))
 
 (define-test-case inventory-tests.map exclude ()
   (test-mapper
-    '(a "awk.sls")
+    '(a "awk.scm")
     '(b ("spells"
-         ("foreign" "compat.ypsilon.sls")
-         "foreign.sls"))
+         ("foreign" "compat.ypsilon.scm")
+         "foreign.scm"))
     (evaluate-inventory-mapping-rules
      '((exclude ("spells" "foreign")
-                ("spells" "foreign.sls"))
-       (("spells" "awk.sls") -> "awk.sls"))
+                ("spells" "foreign.scm"))
+       (("spells" "awk.scm") -> "awk.scm"))
      (lambda (name) #f))
     '(a)
     '(b ("spells"
-         "awk.sls"
-         ("foreign" "compat.ypsilon.sls")
-         "foreign.sls"))))
+         "awk.scm"
+         ("foreign" "compat.ypsilon.scm")
+         "foreign.scm"))))
 
 (run-test-suite inventory-tests)
 

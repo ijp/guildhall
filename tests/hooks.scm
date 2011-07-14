@@ -1,6 +1,6 @@
 ;;; hooks.scm --- Test suite for the hook mechanism
 
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -58,14 +58,14 @@
           (dest-pathname (car (destination-pathnames destination
                                                      package:null
                                                      'libraries
-                                                     "test-library.sls")))
+                                                     "test-library.scm")))
           (test-datum '(mic check (1 2 3)))
           (test-pathname (pathname-join test-dir ",test.tmp")))
       (test-eqv #t (hook-runner? runner))
       (call-with-port (open-output-file (->namestring test-pathname))
         (lambda (port)
           (write test-datum port)))
-      (test-equal '((libraries "test-library.sls"))
+      (test-equal '((libraries "test-library.scm"))
         (map inventory->tree
              (run-hook runner
                        package:null
@@ -74,7 +74,7 @@
                           (lambda (agent)
                             (agent 'install-file
                                    'libraries
-                                   "test-library.sls"
+                                   "test-library.scm"
                                    ,(->namestring test-pathname))))
                        (lambda ()
                          (assertion-violation 'hooks-tests

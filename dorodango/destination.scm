@@ -62,6 +62,7 @@
           (spells process) ;just needed for `chmod'
           (spells sysutils) ;ditto
           (dorodango private utils)
+          (dorodango build-info)
           (dorodango package))
 
 (define-record-type* destination
@@ -123,8 +124,6 @@
             '("bin")))
        (man . ,(make-man-page-handler prefix))))))
 
-(define script-interpreter-pathname '(("bin") "r6rs-script"))
-
 (define (string-replace s replacements)
   (loop next-replacement ((for replacement (in-list replacements))
                           (with s s))
@@ -150,54 +149,9 @@
          (for result (listing (string-replace line substitutions))))
     => result))
 
-(define (fhs-script-interpreter destination implementation)
-  (let ((filename
-         (or (find-file (make-pathname
-                         #f
-                         (list "dorodango" "private" "data")
-                         (string-append "r6rs-script."
-                                        (symbol->string implementation)))
-                        (library-search-paths))
-             (error 'fhs-script-interpreter
-                    "unable to find FHS script interpreter for implementation"
-                    implementation)))
-        (substitutions
-         `(("@R6RS_LIBRARY_PATH@"
-            . ,(->namestring
-                (pathname-join (destination-prefix destination)
-                               (make-pathname #f fhs-libraries-template #f)))))))
-    (call-with-input-file (->namestring filename)
-      (lambda (port)
-        (fmt-join/suffix dsp (get-lines/replace port substitutions) "\n")))))
-
-(define supported-implementations '(ikarus ypsilon mzscheme guile))
-
 (define (fhs-destination-setup destination options)
-  (define (implementation-pathname pathname implementation)
-    (pathname-add-type pathname (symbol->string implementation)))
-  (let ((implementation (or (assq-ref options 'implementation)
-                            (scheme-implementation)))
-        (interpreter-pathname (pathname-join (destination-prefix destination)
-                                             script-interpreter-pathname)))
-    (log/fhs 'info
-             (cat "initializing destination `" (destination-name destination)
-                  "' in " (dsp-pathname (destination-prefix destination))
-                  " for " implementation))
-    (create-directory* (pathname-with-file interpreter-pathname #f))
-    ;; Put the scripts into their place
-    (loop ((for implementation (in-list supported-implementations)))
-      (let ((pathname (implementation-pathname interpreter-pathname implementation)))
-        (call-with-output-file/atomic pathname
-          (lambda (port)
-            (fmt port (fhs-script-interpreter destination implementation))))
-        (chmod "+x" pathname)))
-    ;; Create implementation-choosing symlink
-    (delete-file interpreter-pathname) ;++ make the link creation atomic
-    (create-symbolic-link
-     (implementation-pathname
-      (make-pathname #f '() (pathname-file interpreter-pathname))
-      implementation)
-     interpreter-pathname)))
+  ; Nothing to do!
+  #t)
 
 (define fhs-libraries-template '("share" "r6rs-libs"))
 
@@ -281,8 +235,7 @@
     (cat "#!/bin/sh\n"
          "# Shell wrapper for package " (package->string package " ") "\n"
          "\n"
-         "exec " (->namestring (pathname-join prefix script-interpreter-pathname))
-         " " (->namestring program-pathname) " \"$@\"\n")))
+         "exec " *script-interpreter* " " (->namestring program-pathname) " \"$@\"\n")))
 
 (define (destination-pathname prefix template package pathname)
   (pathname-join

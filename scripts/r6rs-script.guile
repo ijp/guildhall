@@ -1,4 +1,0 @@
-#!/bin/sh
-
-export GUILE_LOAD_PATH="$R6RS_LIBRARY_PATH"
-exec guile -x .guile.sls -x .sls -s "$@"

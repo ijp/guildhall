@@ -1,6 +1,6 @@
 ;;; actions.scm --- Tests for the action library
 
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -65,7 +65,7 @@
   (let ((bundle-dir (pathname-join (this-directory) '(("bundle"))))
         (bundle-filename (pathname-with-file test-dir '("test-bundle-1" "zip"))))
     (test-equal '(root ("test-bundle-1"
-                        "core.sls"
+                        "core.scm"
                         "pkg-list.scm"
                         ("programs" "multi.sps")))
       (run-create-bundle bundle-filename
@@ -78,9 +78,9 @@
   (let ((bundle-dir (pathname-join (this-directory) '(("bundle"))))
         (bundle-filename (pathname-with-file test-dir '("test-bundle-2" "zip"))))
     (test-equal '(root ("test-bundle-2"
-                        ("bar" "b.sls" "pkg-list.scm")
+                        ("bar" "b.scm" "pkg-list.scm")
                         ("foo"
-                         ("libraries" "a.sls")
+                         ("libraries" "a.scm")
                          "pkg-list.scm"
                          ("programs" "foo.sps"))))
       (run-create-bundle bundle-filename

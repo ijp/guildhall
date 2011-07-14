@@ -7,6 +7,7 @@ AM_INIT_AUTOMAKE([color-tests -Wall -Wno-portability])
 AM_SILENT_RULES([yes])
 
 GUILE_PROGS
+AC_SUBST(GUILE)
 
 if $GUILE_TOOLS | grep -q compile; then
    # everything cool
@@ -16,6 +17,7 @@ else
 fi
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([dorodango/build-info.scm])
 AC_CONFIG_FILES([env], [chmod +x env])
 
 AC_OUTPUT

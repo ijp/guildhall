@@ -82,6 +82,7 @@ SOURCES =					\
 	\
 	dorodango/actions.scm \
 	dorodango/bundle.scm \
+	dorodango/build-info.scm \
 	dorodango/config.scm \
 	dorodango/database.scm \
 	dorodango/database/dependencies.scm \
@@ -116,7 +117,7 @@ GOBJECTS = $(SOURCES:%.scm=%.go)
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES) $(GOBJECTS)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 
-CLEANFILES = $(GOBJECTS)
+CLEANFILES = $(GOBJECTS) build-info.scm
 
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go

@@ -1,4 +1,4 @@
-;;; dependencies.sls --- Package database <-> solver integration
+;;; dependencies.scm --- Package database <-> solver integration
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

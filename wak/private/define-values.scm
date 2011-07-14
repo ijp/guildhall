@@ -1,4 +1,4 @@
-;;; define-values.sls --- define-values syntax.
+;;; define-values.scm --- define-values syntax.
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

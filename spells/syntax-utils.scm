@@ -1,4 +1,4 @@
-;;; syntax-utils.sls --- Helpers for syntax-case
+;;; syntax-utils.scm --- Helpers for syntax-case
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

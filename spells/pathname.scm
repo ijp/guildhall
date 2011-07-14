@@ -1,5 +1,5 @@
 #!r6rs
-;;; pathname.sls --- Portable Pathname Abstraction
+;;; pathname.scm --- Portable Pathname Abstraction
 
 ;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

@@ -1,4 +1,4 @@
-;;; alist.sls --- R6RS library providing alist utilities.
+;;; alist.scm --- R6RS library providing alist utilities.
 
 ;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 

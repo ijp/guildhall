@@ -1,4 +1,4 @@
-;;; cells.sls --- Implementation of the cells datatype in terms of records
+;;; cells.scm --- Implementation of the cells datatype in terms of records
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -44,4 +44,4 @@
     cell?
     (value cell-ref cell-set!)))
 
-;;; cells.sls ends here
+;;; cells.scm ends here

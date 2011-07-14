@@ -1,4 +1,4 @@
-;;; hash-utils.sls --- 
+;;; hash-utils.scm --- 
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

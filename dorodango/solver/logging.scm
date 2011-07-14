@@ -1,4 +1,4 @@
-;;; logging.sls --- Dependency solver, logging utilities
+;;; logging.scm --- Dependency solver, logging utilities
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

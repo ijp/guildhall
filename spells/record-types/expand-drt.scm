@@ -1,4 +1,4 @@
-;;; expand-drt.sls --- Macro expanders for `define-record-type*'
+;;; expand-drt.scm --- Macro expanders for `define-record-type*'
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

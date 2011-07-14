@@ -1,4 +1,4 @@
-;;; config.sls --- Representation of configuration file data
+;;; config.scm --- Representation of configuration file data
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

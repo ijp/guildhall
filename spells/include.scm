@@ -1,5 +1,5 @@
 #!r6rs
-;;; include.sls --- Include scheme source code.
+;;; include.scm --- Include scheme source code.
 
 ;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

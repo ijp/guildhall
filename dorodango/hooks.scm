@@ -1,4 +1,4 @@
-;;; hooks.sls --- Hook runner frontend
+;;; hooks.scm --- Hook runner frontend
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

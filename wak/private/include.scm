@@ -1,4 +1,4 @@
-;;; include.sls --- `include' macros
+;;; include.scm --- `include' macros
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

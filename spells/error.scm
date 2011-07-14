@@ -1,4 +1,4 @@
-;;; error.sls --- Error handling utilities.
+;;; error.scm --- Error handling utilities.
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

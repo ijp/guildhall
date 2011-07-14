@@ -1,4 +1,4 @@
-;;; universe.sls --- Dependency solver, universe public interface
+;;; universe.scm --- Dependency solver, universe public interface
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

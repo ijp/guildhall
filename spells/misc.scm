@@ -1,4 +1,4 @@
-;;; misc.sls --- Misc stuff.
+;;; misc.scm --- Misc stuff.
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

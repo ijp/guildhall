@@ -1,4 +1,4 @@
-;;; package.sls --- 
+;;; package.scm --- 
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

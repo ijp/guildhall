@@ -1,4 +1,4 @@
-;;; condition.sls --- Extra condition types
+;;; condition.scm --- Extra condition types
 
 ;; Copyright (C) 2008, 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

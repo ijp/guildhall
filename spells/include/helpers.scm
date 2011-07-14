@@ -1,4 +1,4 @@
-;;; helpers.sls --- Helper procedures for (spells include)
+;;; helpers.scm --- Helper procedures for (spells include)
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

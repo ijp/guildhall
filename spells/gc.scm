@@ -1,5 +1,5 @@
 #!r6rs
-;;; gc.sls --- Interface to the implementation's GC
+;;; gc.scm --- Interface to the implementation's GC
 
 ;; Copyright (C) 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

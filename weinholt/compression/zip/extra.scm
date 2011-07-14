@@ -15,8 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #!r6rs
 
-;; Guile-dependent hooks for (weinholt compression zip). See
-;; extra.sls for more information. Based on the hooks for Ikarus.
+;; Guile-dependent hooks for (weinholt compression zip).  Based on the
+;; hooks for Ikarus.
 
 (library (weinholt compression zip extra (0 0 20100411))
   (export call-with-adorned-output-file get-file-attributes)

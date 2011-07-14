@@ -1,5 +1,5 @@
 #!r6rs
-;;; finite-types.sls --- Scheme48-style finite types
+;;; finite-types.scm --- Scheme48-style finite types
 
 ;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 

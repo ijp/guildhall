@@ -1,4 +1,4 @@
-;;; base.sls --- command-line UI base library
+;;; base.scm --- command-line UI base library
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

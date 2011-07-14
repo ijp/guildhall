@@ -1,4 +1,4 @@
-;;; mapping.sls --- Applying mappings to inventories
+;;; mapping.scm --- Applying mappings to inventories
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

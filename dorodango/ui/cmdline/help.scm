@@ -1,4 +1,4 @@
-;;; help.sls --- commandline help rendering
+;;; help.scm --- commandline help rendering
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

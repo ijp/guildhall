@@ -1,4 +1,4 @@
-;;; os-string.sls --- Operating-system string abstraction.
+;;; os-string.scm --- Operating-system string abstraction.
 
 ;; Copyright (C) 2008-2009 Andreas Rottmann <a.rottmann@gmx.at>
 

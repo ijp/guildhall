@@ -1,4 +1,4 @@
-;;; guile.mzscheme.sls --- include compatibility for Guile
+;;; compat.scm --- include compatibility for Guile
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

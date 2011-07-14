@@ -1,4 +1,4 @@
-;;; record-types.sls --- Record types.
+;;; record-types.scm --- Record types.
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

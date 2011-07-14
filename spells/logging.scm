@@ -1,4 +1,4 @@
-;;; logging.sls --- Logging library.
+;;; logging.scm --- Logging library.
 
 ;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

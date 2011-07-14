@@ -1,4 +1,4 @@
-;;; c.sls -- fmt-c for R6RS
+;;; c.scm -- fmt-c for R6RS
 ;;
 ;; Based on fmt-c-mzscheme.scm, which is
 ;; Copyright (c) 2007 Alex Shinn.  All rights reserved.

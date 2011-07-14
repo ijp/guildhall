@@ -1,4 +1,4 @@
-;;; dummy-db.sls --- Dependency solver, dummy database
+;;; dummy-db.scm --- Dependency solver, dummy database
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

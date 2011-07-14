@@ -1,4 +1,4 @@
-;;; promotion-set.sls --- Dependency solver, promotion set
+;;; promotion-set.scm --- Dependency solver, promotion set
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann
 ;; Copyright (C) 2009 Daniel Burrows

@@ -1,4 +1,4 @@
-;;; inventory.sls --- Tree data structure modeling a hierarchical namespace
+;;; inventory.scm --- Tree data structure modeling a hierarchical namespace
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

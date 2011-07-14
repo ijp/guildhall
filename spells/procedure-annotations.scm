@@ -1,4 +1,4 @@
-;;; procedure-annotations.sls --- Attach data to procedures.
+;;; procedure-annotations.scm --- Attach data to procedures.
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

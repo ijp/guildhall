@@ -1,5 +1,5 @@
 #!r6rs
-;;; process.sls --- OS process interface.
+;;; process.scm --- OS process interface.
 
 ;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 

@@ -1,4 +1,4 @@
-;;; args-fold.sls --- Slightly extended variant of SRFI 37
+;;; args-fold.scm --- Slightly extended variant of SRFI 37
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (c) 2002 Anthony Carrico

@@ -1,4 +1,4 @@
-;;; compat.guile.sls --- Misc functions, Guile compatibility
+;;; compat.scm --- Misc functions, Guile compatibility
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

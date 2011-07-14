@@ -1,4 +1,4 @@
-;;; choice.sls --- Dependency solver, choice datastructures
+;;; choice.scm --- Dependency solver, choice datastructures
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann
 ;; Copyright (C) 2009 Daniel Burrows

@@ -1,4 +1,4 @@
-;;; delimited-readers.sls --- Read delimited strings.
+;;; delimited-readers.scm --- Read delimited strings.
 
 ;; Based on code snarfed from scsh, see the file AUTHORS for copyright
 ;; information.

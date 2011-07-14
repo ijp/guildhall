@@ -1,4 +1,4 @@
-;;; let-optionals.sls --- Optional arguments
+;;; let-optionals.scm --- Optional arguments
 
 ;; Copyright (c) 2001 Olin Shivers
 

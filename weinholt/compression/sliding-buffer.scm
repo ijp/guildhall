@@ -1,4 +1,4 @@
-;;; sliding-buffer.sls --- A circular buffer attached to a data sink
+;;; sliding-buffer.scm --- A circular buffer attached to a data sink
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (C) 2010 Göran Weinholt <goran@weinholt.se>

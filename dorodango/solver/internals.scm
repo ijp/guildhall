@@ -1,4 +1,4 @@
-;;; internals.sls --- Dependency solver, internal library
+;;; internals.scm --- Dependency solver, internal library
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

@@ -1,4 +1,4 @@
-;;; compat.sls --- include compatibility
+;;; compat.scm --- include compatibility
 
 ;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
 

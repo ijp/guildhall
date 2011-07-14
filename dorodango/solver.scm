@@ -1,4 +1,4 @@
-;;; solver.sls --- Dependency solver, algorithm
+;;; solver.scm --- Dependency solver, algorithm
 
 ;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (C) 2009 Daniel Burrows

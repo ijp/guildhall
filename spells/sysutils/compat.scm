@@ -1,4 +1,4 @@
-;;; compat.guile.sls --- Guile sysutils compatibility
+;;; compat.scm --- Guile sysutils compatibility
 
 ;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

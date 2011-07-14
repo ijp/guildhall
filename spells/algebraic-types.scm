@@ -1,5 +1,5 @@
 #!r6rs
-;;; algebraic-types.sls --- EOPL-style algebraic datatypes
+;;; algebraic-types.scm --- EOPL-style algebraic datatypes
 
 ;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

@@ -1,4 +1,4 @@
-;;; cmdline.sls --- Command-line UI library
+;;; cmdline.scm --- Command-line UI library
 
 ;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 

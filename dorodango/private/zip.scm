@@ -1,4 +1,4 @@
-;;; zip.sls --- zip utilities for dorodango
+;;; zip.scm --- zip utilities for dorodango
 
 ;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

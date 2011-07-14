@@ -1,5 +1,5 @@
 #!r6rs
-;;; zipper.sls --- Huet's "Zipper" data structure
+;;; zipper.scm --- Huet's "Zipper" data structure
 
 ;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

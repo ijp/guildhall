@@ -1,4 +1,4 @@
-;;; compat.guile.sls --- filesys compat library for Guile.
+;;; compat.scm --- filesys compat library for Guile.
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

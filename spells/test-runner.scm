@@ -1,4 +1,4 @@
-;;; run.sls --- Utilities for running testcases
+;;; run.scm --- Utilities for running testcases
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

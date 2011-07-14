@@ -1,4 +1,4 @@
-;;; utils.sls --- Utilities for dorodango
+;;; utils.scm --- Utilities for dorodango
 
 ;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

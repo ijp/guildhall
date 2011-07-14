@@ -1,5 +1,5 @@
 #!r6rs
-;;; stexidoc.sls --- stexidoc extractors
+;;; stexidoc.scm --- stexidoc extractors
 
 ;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

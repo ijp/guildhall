@@ -1,4 +1,4 @@
-;;; compat.guile.sls --- GC-interacting procedures for Guile
+;;; compat.scm --- GC-interacting procedures for Guile
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

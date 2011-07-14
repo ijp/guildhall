@@ -1,4 +1,4 @@
-;;; time-lib.sls --- Time library.
+;;; time-lib.scm --- Time library.
 
 ;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

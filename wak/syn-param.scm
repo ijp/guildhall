@@ -1,4 +1,4 @@
-;;; syn-param.sls --- Operators with Extended Parameter Syntax
+;;; syn-param.scm --- Operators with Extended Parameter Syntax
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

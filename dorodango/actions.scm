@@ -1,4 +1,4 @@
-;;; actions.sls --- Dorodango actions
+;;; actions.scm --- Dorodango actions
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

@@ -1,4 +1,4 @@
-;;; opt-args.sls --- Optional arguments
+;;; opt-args.scm --- Optional arguments
 
 ;; Copyright (C) 2001-2011, several authors -- see below.
 

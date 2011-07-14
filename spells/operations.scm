@@ -1,5 +1,5 @@
 #!r6rs
-;;; operations.sls --- T-like operations.
+;;; operations.scm --- T-like operations.
 
 ;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

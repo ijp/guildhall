@@ -1,4 +1,4 @@
-;;; search-graph.sls --- Dependency solver, search graph
+;;; search-graph.scm --- Dependency solver, search graph
 
 ;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 

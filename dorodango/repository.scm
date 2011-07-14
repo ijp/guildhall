@@ -1,4 +1,4 @@
-;;; repository.sls --- Dorodango repositories
+;;; repository.scm --- Dorodango repositories
 
 ;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 

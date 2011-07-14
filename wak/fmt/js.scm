@@ -1,5 +1,5 @@
 #!r6rs
-;;; fmt-js.sls -- fmt-js for R6RS
+;;; fmt-js.scm -- fmt-js for R6RS
 ;;
 ;; Copyright (c) 2011 Alex Shinn.  All rights reserved.
 ;; BSD-style license: http://synthcode.com/license.txt

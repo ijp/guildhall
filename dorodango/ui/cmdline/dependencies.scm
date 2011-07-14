@@ -1,4 +1,4 @@
-;;; dependencies.sls --- dependency resolution UI
+;;; dependencies.scm --- dependency resolution UI
 
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 

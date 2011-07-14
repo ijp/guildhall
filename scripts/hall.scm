@@ -1,8 +1,10 @@
-;;; doro.sps --- Dorodango package manager
+;;; hall.scm --- Dorodango for Guile
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
+;; Author: Andy Wingo <wingo@pobox.com>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -24,7 +26,8 @@
 ;;; Code:
 #!r6rs
 
-(import (rnrs)
-        (dorodango ui cmdline))
+(define-module (scripts hall)
+  #:use-module (dorodango ui cmdline))
 
-(run-cmdline-ui (command-line))
+(define (main . args)
+  (run-cmdline-ui (cons "guild hall" args)))

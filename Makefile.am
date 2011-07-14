@@ -107,7 +107,9 @@ SOURCES =					\
 	dorodango/ui/cmdline/base.scm \
 	dorodango/ui/cmdline/dependencies.scm \
 	dorodango/ui/cmdline/help.scm \
-	dorodango/ui/formatters.scm
+	dorodango/ui/formatters.scm \
+	\
+	scripts/hall.scm
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 

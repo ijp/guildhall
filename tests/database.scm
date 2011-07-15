@@ -110,7 +110,8 @@
         (inventory->tree
          (package-category-inventory (database-item-package item)
                                      'libraries)))
-      (test-equal `(("share"
+      (test-equal `(("bin" "foo")
+                    ("share"
                      ("libr6rs-foo" ("programs" "foo"))
                      ("r6rs-libs" ("foo" "a.scm"))))
         (directory->tree dest-dir))
@@ -183,7 +184,8 @@
       (test-eqv #t (database-unpack! db package:foo))
       (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
-    (test-equal `(("share"
+    (test-equal `(("bin" "foo")
+                  ("share"
                    ("libr6rs-foo" ("programs" "foo"))
                    ("r6rs-libs"
                     ("bar" "b.scm")
@@ -192,7 +194,8 @@
     (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
-    (test-equal `(("share"
+    (test-equal `(("bin" "foo")
+                  ("share"
                    ("libr6rs-foo" ("programs" "foo"))
                    ("r6rs-libs" ("foo" "a.scm"))))
       (directory->tree dest-dir))))

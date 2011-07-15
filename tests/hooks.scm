@@ -147,7 +147,7 @@
      (handlers ,(lambda (entry)
                   (default-log-formatter entry (current-output-port)))))))
 
-(run-test-suite hooks-tests)
+(exit (run-test-suite hooks-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing (installation-hook 1))

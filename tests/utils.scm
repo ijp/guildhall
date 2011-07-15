@@ -27,7 +27,7 @@
     (test-eqv #f
       (create-lock-file lock-file))))
 
-(run-test-suite utils-tests)
+(exit (run-test-suite utils-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing)

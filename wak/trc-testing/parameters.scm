@@ -4,6 +4,7 @@
 ;;; Adaption for R6RS by Andreas Rottmann, originally written by
 ;;; Taylor Campbell.
 
+;;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;;; Copyright (c) 2009, 2010, Andreas Rottmann
 ;;; Copyright (c) 2007, Taylor R. Campbell
 
@@ -100,7 +101,9 @@
                        (record-test-failures failures)
                        (if (not (eq? (test-verbosity) 'quiet))
                            (report-test-suite passages failures)))
-                (report-test-suite passages failures)))))))
+                (begin
+                  (report-test-suite passages failures)
+                  (length failures))))))))
 
   ;; Move to (spells error)?
   (define (warn message . irritants)

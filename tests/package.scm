@@ -142,7 +142,7 @@
               (homepage "http://www.example.com/bar/")))))
 
 
-(run-test-suite package-tests)
+(exit (run-test-suite package-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing (test-satisfied 2))

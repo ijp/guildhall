@@ -293,7 +293,7 @@
          ("foreign" "compat.ypsilon.scm")
          "foreign.scm"))))
 
-(run-test-suite inventory-tests)
+(exit (run-test-suite inventory-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing foof-loop (test-mapper 2))

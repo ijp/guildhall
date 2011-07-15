@@ -261,7 +261,7 @@
          (default-log-formatter entry (current-output-port)))))))
 
 (set-test-debug-errors?! #t)
-(run-test-suite db-tests)
+(exit (run-test-suite db-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (foof-loop trc-testing)

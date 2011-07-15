@@ -89,7 +89,7 @@
 
 (set-test-debug-errors?! #t)
 
-(run-test-suite actions-tests)
+(exit (run-test-suite actions-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing)

@@ -1,5 +1,6 @@
 ;;; expression.scm --- Tests for the expression DAG
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -48,4 +49,4 @@
     (expression/set-value! v2 #t)
     (test-eqv #t (expression/value v1-and-v2))))
 
-(run-test-suite expression-tests)
+(exit (run-test-suite expression-tests))

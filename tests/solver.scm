@@ -1,5 +1,6 @@
 ;;; solver.scm --- Dependency solver unit tests
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 ;; Copyright (C) 2009 Daniel Burrows
 
@@ -186,7 +187,7 @@
                           `((threshold trace)
                             (handlers ,simple-log-formatter))))
 
-(run-test-suite solver-tests)
+(exit (run-test-suite solver-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing as-match (test-solutions 1))

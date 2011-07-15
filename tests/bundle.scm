@@ -1,5 +1,6 @@
 ;;; bundle.scm --- Bundle unit tests
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -68,7 +69,7 @@
   (let ((bundle (open-input-bundle (pathname-join (this-directory) "bundle.zip"))))
     (test-bundle-contents bundle)))
 
-(run-test-suite bundle-tests)
+(exit (run-test-suite bundle-tests))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (trc-testing)

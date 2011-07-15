@@ -46,8 +46,7 @@
           (spells logging)
           (wak fmt)
           (web uri)
-          (web http)
-          (web request)
+          (web client)
           (web response)
           (dorodango private utils)
           (dorodango ui))
@@ -135,23 +134,23 @@
               (http-download destination
                              (relative-uri location base-uri)))))))))
 
-;; FIXME: implement me!!
 (define (http-download destination uri)
   (message "Fetching " (uri->string uri))
-  (call-with-http-response 'GET uri '() ""
-    (lambda (response response-port)
-      (case (http-response/status-type response)
-        ((success)
+  (call-with-values (lambda ()
+                      (http-get uri #:decode-body? #f))
+    (lambda (response body)
+      (case (response-code response)
+        ((200)
          (call-with-output-file/atomic destination 'block
-           (lambda (port)
-             (copy-port response-port port)
-             destination)))
+                                       (lambda (port)
+                                         (put-bytevector port body)
+                                         destination)))
         ;;++ handle redirects
         (else
          (log/repo 'warning
                    (cat "unable to download `" (uri->string uri) "': "
-                        (http-response/status-code response) " "
-                        (http-response/reason response)))
+                        (response-code response) " "
+                        (response-reason-phrase response)))
          #f)))))
 
 

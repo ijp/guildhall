@@ -202,13 +202,15 @@
                #:host (uri-host uri)
                #:port (uri-port uri)
                #:path
-               (encode-and-join-uri-path
-                (if (null? path)
-                    '("")
-                    (let ((last-elt (last path)))
-                      (if (string=? last-elt "")
-                          path
-                          (append path (list ""))))))
+               (string-append
+                "/"
+                (encode-and-join-uri-path
+                 (if (null? path)
+                     '("")
+                     (let ((last-elt (last path)))
+                       (if (string=? last-elt "")
+                           path
+                           (append path (list "")))))))
                #:query (uri-query uri)
                #:fragment (uri-fragment uri))))
 

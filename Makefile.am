@@ -195,6 +195,8 @@ TESTS = \
 	tests/actions.scm
 
 TESTDATA = \
+	tests/bundle.zip \
+	tests/repository/discrepancy.zip \
 	tests/bundle/unsatisfied-depends/pkg-list.scm \
 	tests/bundle/bar/b.scm \
 	tests/bundle/bar/pkg-list.scm \

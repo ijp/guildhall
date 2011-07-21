@@ -1,5 +1,6 @@
 ;;; help.scm --- commandline help rendering
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -29,7 +30,9 @@
           dsp-version
           dsp-command-listing)
   (import (rnrs)
+          (srfi :13 strings)
           (srfi :14 char-sets)
+          (system base lalr)
           (only (srfi :13) string-fold-right string-map)
           (spells operations)
           (spells args-fold)
@@ -37,8 +40,6 @@
           (spells alist)
           (spells match)
           (spells tracing) ;debug
-          (wak parscheme parser-combinators)
-          (wak parscheme text-parser-combinators)
           (guildhall private utils)
           (guildhall ui cmdline base))
 
@@ -270,56 +271,62 @@
 
 ;;; Synopsis line parser
 
-(define synopsis-char-set:verbatim
-  (char-set-union char-set:lower-case (char-set #\-)))
+(define token-delimiters
+  (char-set-complement
+   (char-set-union char-set:letter+digit (char-set #\- #\_))))
 
-(define synopsis-char-set:meta-var
-  (char-set-union char-set:upper-case (char-set #\-)))
-
-(define-parser synopsis-parser:verbatim
-  (parser:string:at-least 1
-    (parser:char-in-set synopsis-char-set:verbatim)))
-
-(define-parser synopsis-parser:meta-var
-  (*parser (metavar (parser:string:at-least 1
-                      (parser:char-in-set synopsis-char-set:meta-var)))
-    (parser:return `(meta-var ,metavar))))
-
-(define-parser synopsis-parser:token
-  (parser:sequence
-   synopsis-parser:lws*
-   (parser:choice synopsis-parser:verbatim
-                  synopsis-parser:meta-var
-                  synopsis-parser:optional-token
-                  synopsis-parser:ellipsis)))
-
-(define-parser synopsis-parser:ellipsis
-  (*parser ((parser:string= "..."))
-    (parser:return 'ellipsis)))
-
-(define-parser synopsis-parser:optional-token
-  (*parser
-      ((parser:char= #\[))
-      (token synopsis-parser:tokens)
-      (synopsis-parser:lws*)
-      ((parser:char= #\]))
-    (parser:return `(optional ,token))))
-
-(define-parser synopsis-parser:tokens
-  (parser:list:repeated
-   (parser:sequence synopsis-parser:token)))
-
-(define-parser synopsis-parser:lws*
-  (parser:noise:repeated (parser:char-in-set (char-set #\space))))
+(define (synopsis-tokenizer str)
+  (let ((i 0) (len (string-length str)))
+    (define (peek)
+      (and (< i len)
+           (string-ref str i)))
+    (define (advance!)
+      (set! i (+ i 1)))
+    (lambda ()
+      (let lp ()
+        (let ((c (peek)))
+          (cond
+           ((not c) '*eoi*)
+           ((char-whitespace? c) (advance!) (lp))
+           ((eqv? c #\[)
+            (set! i (+ 1 i))
+            (make-lexical-token 'left-bracket i #f))
+           ((eqv? c #\])
+            (set! i (+ 1 i))
+            (make-lexical-token 'right-bracket i #f))
+           ((string-prefix? "..." str 0 3 i)
+            (set! i (+ 3 i))
+            (make-lexical-token 'ellipsis i #f))
+           (else
+            (let* ((end (or (string-index str token-delimiters i) len))
+                   (tok (substring str i end)))
+              (set! i end)
+              (cond
+               ((string-null? tok)
+                (error "bad char in string" (substring str i)))
+               ((string-index tok char-set:upper-case)
+                (make-lexical-token 'meta-var i tok))
+               (else
+                (make-lexical-token 'literal i tok)))))))))))
 
 (define (parse-synopsis synopsis)
-  (parse-string synopsis-parser:tokens
-                synopsis
-                #f
-                (lambda (tokens context stream)
-                  tokens)
-                (lambda (perror context stream)
-                  (assertion-violation 'parse-synopsis "parser error" perror))))
+  ((lalr-parser
+    ;; terminal (i.e. input) token types
+    (left-bracket right-bracket ellipsis meta-var literal)
+
+    (Tokens (TokenList *eoi*) : $1)
+
+    (TokenList (Token TokenList) : (cons $1 $2)
+               (Token) : (list $1))
+
+    (Token (literal) : $1
+           (meta-var) : `(meta-var ,$1)
+           (ellipsis) : 'ellipsis
+           (Optional) : $1)
+
+    (Optional (left-bracket TokenList right-bracket) : `(optional ,$2)))
+   (synopsis-tokenizer synopsis)
+   error))
 
 
 

@@ -9,8 +9,8 @@
 (library (wak fmt js)
  (export js-expr js-function js-var js-comment js-array js-object js=== js>>>)
  (import (rnrs base)
-         (wak private include)
+         (only (guile) include-from-path)
          (wak fmt)
          (wak fmt c))
  
- (include-file ((wak fmt private) fmt-js)))
+ (include-from-path "wak/fmt/private/fmt-js"))

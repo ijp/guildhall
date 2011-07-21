@@ -19,6 +19,6 @@
     with-extended-parameter-operators
     with-extended-parameter-operators*)
   (import (rnrs)
-          (wak private include))
+          (only (guile) include-from-path))
 
-  (include-file ((wak syn-param private) syn-param)))
+  (include-from-path "wak/syn-param/private/syn-param"))

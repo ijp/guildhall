@@ -48,8 +48,8 @@
           (srfi :1 lists)
           (except (srfi :13 strings) string-hash)
           (wak private let-optionals)
-          (wak private include))
-
+          (only (guile) include-from-path))
+  
   (define (make-eq?-table) (make-hash-table eq?))
   
   (define (error . args)
@@ -58,7 +58,7 @@
   (define call-with-output-string call-with-string-output-port)
   (define read-line get-line)
   
-  (include-file ((wak fmt private) mantissa))
-  (include-file ((wak fmt private) fmt))
-  (include-file ((wak fmt private) fmt-pretty))
-  (include-file ((wak fmt private) fmt-column)))
+  (include-from-path "wak/fmt/private/mantissa")
+  (include-from-path "wak/fmt/private/fmt")
+  (include-from-path "wak/fmt/private/fmt-pretty")
+  (include-from-path "wak/fmt/private/fmt-column"))

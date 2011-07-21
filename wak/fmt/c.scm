@@ -55,9 +55,9 @@
                 string-pad
                 string-prefix?
                 string-suffix?)
-         (wak private include)
+         (only (guile) include-from-path)
          (wak fmt))
 
- (include-file ((wak fmt private) fmt-c))
+ (include-from-path "wak/fmt/private/fmt-c")
 
  )

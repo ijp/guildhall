@@ -13,9 +13,9 @@
           fmt-colored fmt-red fmt-blue fmt-green fmt-cyan fmt-yellow
           fmt-magenta fmt-black fmt-white fmt-bold fmt-underline)
   (import (rnrs)
-          (wak fmt)
-          (wak private include))
-
+          (only (guile) include-from-path)
+          (wak fmt))
+  
   (define arithmetic-shift bitwise-arithmetic-shift)
   
-  (include-file ((wak fmt private) fmt-color)))
+  (include-from-path "wak/fmt/private/fmt-color"))

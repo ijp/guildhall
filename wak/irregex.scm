@@ -46,10 +46,11 @@
     (rnrs mutable-strings)
     (rnrs mutable-pairs)
     (rnrs r5rs)
-    (wak private include))
+    (only (guile) include-from-path))
+  
 
   (define (error . args)
     (apply assertion-violation "irregex" args))
 
-  (include-file ((wak irregex private) irregex-r6rs))
-  (include-file ((wak irregex private) irregex-utils)))
+  (include-from-path "wak/irregex/private/irregex-r6rs")
+  (include-from-path "wak/irregex/private/irregex-utils"))

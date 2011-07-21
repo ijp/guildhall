@@ -23,10 +23,10 @@
           (rnrs unicode)
           (srfi :14 char-sets)
           (srfi :45 lazy)
-          (wak private include)
+          (only (guile) include-from-path)
           (wak riastreams)
           (wak parscheme matcher-combinators))
 
-  (include-file ((wak parscheme private) mattext)))
+  (include-from-path "wak/parscheme/private/mattext"))
 
 ;;(put 'stream-lambda 'scheme-indentation 1)

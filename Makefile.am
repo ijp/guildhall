@@ -1,4 +1,5 @@
-moddir=$(prefix)/share/guile/site
+moddir=$(datadir)/guile/site/$(GUILE_EFFECTIVE_VERSION)
+ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
 SOURCES =					\
 	ocelotl/wt-tree.scm \
@@ -114,8 +115,18 @@ SOURCES =					\
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
-nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES) $(GOBJECTS)
+nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+
+nobase_ccache_DATA = $(GOBJECTS)
+
+# Make sure source files are installed first, so that the mtime of
+# installed compiled files is greater than that of installed source
+# files.  See
+# <http://lists.gnu.org/archive/html/guile-devel/2010-07/msg00125.html>
+# for details.
+guile_install_go_files = install-nobase_ccacheDATA
+$(guile_install_go_files): install-nobase_modDATA
 
 CLEANFILES = $(GOBJECTS) build-info.scm
 

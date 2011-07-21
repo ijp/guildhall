@@ -35,8 +35,8 @@
           dummy-db->universe)
   (import (rnrs)
           (only (srfi :1) append-map filter-map delete-duplicates)
+          (ice-9 streams)
           (wak foof-loop)
-          (wak riastreams)
           (spells record-types)
           (guildhall solver internals))
 

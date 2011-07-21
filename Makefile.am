@@ -58,7 +58,6 @@ SOURCES =					\
 	wak/private/include/helper.scm \
 	wak/private/include/utils.scm \
 	wak/private/let-optionals.scm \
-	wak/riastreams.scm \
 	wak/syn-param.scm \
 	wak/trc-testing.scm \
 	wak/trc-testing/display-condition.scm \
@@ -137,7 +136,6 @@ NOCOMP_SOURCES = \
 	wak/parscheme/private/matcomb.scm \
 	wak/parscheme/private/s48-interfaces.scm \
 	wak/parscheme/private/lazy.scm \
-	wak/riastreams/private/stream.scm \
 	spells/private/ascii.scm \
 	spells/private/misc.scm \
 	spells/private/condition.scm \

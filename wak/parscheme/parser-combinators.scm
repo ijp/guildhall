@@ -1,4 +1,4 @@
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; This program is free software. It comes without any warranty, to the
 ;; extent permitted by applicable law. You can redistribute it and/or
@@ -80,8 +80,8 @@
           (srfi :8 receive)
           (srfi :9 records)
           (srfi :45 lazy)
+          (ice-9 streams)
           (wak private include)
-          (wak riastreams)
           (wak parscheme parse-errors)
           (wak parscheme matcher-combinators))
 

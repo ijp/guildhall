@@ -1,4 +1,4 @@
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; This program is free software. It comes without any warranty, to the
 ;; extent permitted by applicable law. You can redistribute it and/or
@@ -49,7 +49,7 @@
           (rnrs io simple)
           (except (srfi :1 lists) for-each map)
           (srfi :45 lazy)
-          (wak private include)
-          (wak riastreams))
+          (ice-9 streams)
+          (wak private include))
 
   (include-file/downcase ((wak parscheme private) matcomb)))

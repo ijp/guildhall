@@ -1,6 +1,6 @@
 ;;; foof-loop.scm --- 
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -55,12 +55,14 @@
     in-string-reverse
     in-port
     in-file
+    in-stream
     )
   (import
     (rnrs)
     (only (rnrs mutable-pairs) set-cdr!)
     (srfi :8 receive)
     (srfi :45 lazy)
+    (ice-9 streams)
     (wak syn-param)
     (wak private include))
 
@@ -85,4 +87,19 @@
 
   (include-file/downcase ((wak foof-loop private) foof-loop))
 
+  (define-syntax in-stream
+    (syntax-rules ()
+      ((_ (elt-var stream-var) (stream-expr) cont . env)
+       (cont
+        ()                                    ;Outer bindings
+        ((stream-var stream-expr              ;Loop variables
+                     (stream-cdr stream-var)))
+        ()                                    ;Entry bindings
+        ((stream-null? stream-var))           ;Termination conditions
+        (((elt-var) (stream-car stream-var))) ;Body bindings
+        ()                                    ;Final bindings
+        . env))
+      ;; Optional stream variable is optional
+      ((_ (elt-var) (stream-expr) cont . env)
+       (in-stream (elt-var stream) (stream-expr) cont . env))))
 )

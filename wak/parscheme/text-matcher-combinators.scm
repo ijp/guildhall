@@ -24,7 +24,7 @@
           (srfi :14 char-sets)
           (srfi :45 lazy)
           (only (guile) include-from-path)
-          (wak riastreams)
+          (ice-9 streams)
           (wak parscheme matcher-combinators))
 
   (include-from-path "wak/parscheme/private/mattext"))

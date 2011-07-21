@@ -50,7 +50,7 @@
           (only (rnrs mutable-pairs) set-cdr!)
           (only (srfi :1) append-reverse)
           (srfi :8 receive)
-          (wak riastreams)
+          (ice-9 streams)
           (wak foof-loop)
           (wak private include))
   

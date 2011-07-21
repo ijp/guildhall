@@ -42,7 +42,6 @@
   (import (rnrs)
           (wak fmt)
           (wak foof-loop)
-          (wak riastreams)
           (spells alist)
           (spells logging)
           (guildhall ocelotl wt-tree)

@@ -45,7 +45,6 @@
           (spells misc)
           (spells alist)
           (spells logging)
-          (wak riastreams)
           (wak fmt)
           (wak foof-loop)
           (guildhall ocelotl wt-tree)

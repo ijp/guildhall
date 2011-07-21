@@ -43,7 +43,7 @@
           (srfi :14 char-sets)
           (srfi :45 lazy)
           (wak private include)
-          (wak riastreams)
+          (ice-9 streams)
           (wak parscheme parser-combinators))
 
   (include-file/downcase ((wak parscheme private) partext)))

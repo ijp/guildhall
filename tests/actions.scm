@@ -27,10 +27,10 @@
         (spells filesys)
         (wak trc-testing)
         (spells test-runner environment)
-        (dorodango private utils)
-        (dorodango private zip)
-        (dorodango inventory)
-        (dorodango actions))
+        (guildhall private utils)
+        (guildhall private zip)
+        (guildhall inventory)
+        (guildhall actions))
 
 (define-test-suite actions-tests
   "Action library")

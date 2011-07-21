@@ -25,7 +25,7 @@
 
 (import (rnrs)
         (wak trc-testing)
-        (dorodango solver expression))
+        (guildhall solver expression))
 
 (define-test-suite expression-tests
   "Dynamically updateable expression DAG")

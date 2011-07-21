@@ -32,9 +32,9 @@
         (spells filesys)
         (spells process)
         (spells sysutils)
-        (only (dorodango private utils) rm-rf)
-        (dorodango package)
-        (dorodango actions))
+        (only (guildhall private utils) rm-rf)
+        (guildhall package)
+        (guildhall actions))
 
 (define bundle-base (make-pathname '(back) '() #f))
 

@@ -35,8 +35,8 @@
         (spells filesys)
         (spells process)
         (only (spells misc) scheme-implementation)
-        (dorodango private utils)
-        (dorodango ui cmdline))
+        (guildhall private utils)
+        (guildhall ui cmdline))
 
 (define verbose? (make-parameter #t))
 (define dry-run? (make-parameter #f))

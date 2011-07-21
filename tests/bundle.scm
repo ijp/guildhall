@@ -27,8 +27,8 @@
         (wak trc-testing)
         (spells test-runner environment)
         (spells pathname)
-        (dorodango package)
-        (dorodango bundle))
+        (guildhall package)
+        (guildhall bundle))
 
 
 (define (symbol<? s1 s2)

@@ -27,11 +27,11 @@
         (spells filesys)
         (wak trc-testing)
         (spells logging)
-        (dorodango private utils)
-        (dorodango inventory)
-        (dorodango package)
-        (dorodango destination)
-        (dorodango hooks))
+        (guildhall private utils)
+        (guildhall inventory)
+        (guildhall package)
+        (guildhall destination)
+        (guildhall hooks))
 
 (define debug-output? #f)
 

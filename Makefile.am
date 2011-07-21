@@ -81,35 +81,35 @@ SOURCES =					\
 	weinholt/crypto/crc.scm \
 	weinholt/struct/pack.scm \
 	\
-	dorodango/actions.scm \
-	dorodango/bundle.scm \
-	dorodango/build-info.scm \
-	dorodango/config.scm \
-	dorodango/database.scm \
-	dorodango/database/dependencies.scm \
-	dorodango/destination.scm \
-	dorodango/hooks.scm \
-	dorodango/inventory.scm \
-	dorodango/inventory/mapping.scm \
-	dorodango/package.scm \
-	dorodango/private/utils.scm \
-	dorodango/private/zip.scm \
-	dorodango/repository.scm \
-	dorodango/solver.scm \
-	dorodango/solver/choice.scm \
-	dorodango/solver/dummy-db.scm \
-	dorodango/solver/expression.scm \
-	dorodango/solver/internals.scm \
-	dorodango/solver/logging.scm \
-	dorodango/solver/promotions.scm \
-	dorodango/solver/search-graph.scm \
-	dorodango/solver/universe.scm \
-	dorodango/ui.scm \
-	dorodango/ui/cmdline.scm \
-	dorodango/ui/cmdline/base.scm \
-	dorodango/ui/cmdline/dependencies.scm \
-	dorodango/ui/cmdline/help.scm \
-	dorodango/ui/formatters.scm \
+	guildhall/actions.scm \
+	guildhall/bundle.scm \
+	guildhall/build-info.scm \
+	guildhall/config.scm \
+	guildhall/database.scm \
+	guildhall/database/dependencies.scm \
+	guildhall/destination.scm \
+	guildhall/hooks.scm \
+	guildhall/inventory.scm \
+	guildhall/inventory/mapping.scm \
+	guildhall/package.scm \
+	guildhall/private/utils.scm \
+	guildhall/private/zip.scm \
+	guildhall/repository.scm \
+	guildhall/solver.scm \
+	guildhall/solver/choice.scm \
+	guildhall/solver/dummy-db.scm \
+	guildhall/solver/expression.scm \
+	guildhall/solver/internals.scm \
+	guildhall/solver/logging.scm \
+	guildhall/solver/promotions.scm \
+	guildhall/solver/search-graph.scm \
+	guildhall/solver/universe.scm \
+	guildhall/ui.scm \
+	guildhall/ui/cmdline.scm \
+	guildhall/ui/cmdline/base.scm \
+	guildhall/ui/cmdline/dependencies.scm \
+	guildhall/ui/cmdline/help.scm \
+	guildhall/ui/formatters.scm \
 	\
 	scripts/hall.scm
 
@@ -159,7 +159,7 @@ NOCOMP_SOURCES = \
 	spells/private/xvector.scm \
 	spells/private/skip-char-set.scm \
 	spells/test-runner/environment.scm \
-	dorodango/private/hook-runner.sps
+	guildhall/private/hook-runner.sps
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 

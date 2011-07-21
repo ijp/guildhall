@@ -41,13 +41,13 @@
         (spells match)
         (spells args-fold)
         (spells record-types)
-        (only (dorodango private utils)
+        (only (guildhall private utils)
               in-hashtable
               location->pathname
               pathname->location
               pathname-add-type)
-        (dorodango bundle)
-        (dorodango package))
+        (guildhall bundle)
+        (guildhall package))
 
 
 ;;; Archive

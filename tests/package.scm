@@ -24,7 +24,7 @@
 (import (rnrs)
         (only (srfi :1) append-map)
         (wak trc-testing)
-        (dorodango package))
+        (guildhall package))
 
 (define-test-suite package-tests
   "Package datastructures")

@@ -1,9 +1,7 @@
-;;; hall.scm --- Dorodango for Guile
+;;; build-info.scm --- Information detected at build-time  -*- scheme -*-
 
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
-;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 ;; Author: Andy Wingo <wingo@pobox.com>
 
 ;; This program is free software; you can redistribute it and/or
@@ -21,13 +19,13 @@
 
 ;;; Commentary:
 
-;; This is the command-line interface to dorodango.
-
 ;;; Code:
 #!r6rs
 
-(define-module (scripts hall)
-  #:use-module (guildhall ui cmdline))
-
-(define (main . args)
-  (run-cmdline-ui (cons "guild hall" args)))
+(library (guildhall build-info)
+  (export *script-interpreter*
+          *prefix*)
+  (import (rnrs base))
+  
+  (define *script-interpreter* "@GUILE@")
+  (define *prefix* "@prefix@"))

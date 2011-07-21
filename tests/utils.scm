@@ -3,7 +3,7 @@
         (wak trc-testing)
         (spells filesys)
         (spells pathname)
-        (dorodango private utils))
+        (guildhall private utils))
 
 
 (define-test-suite utils-tests

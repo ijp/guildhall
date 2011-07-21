@@ -27,8 +27,8 @@
         (spells misc)
         (wak foof-loop)
         (wak trc-testing)
-        (dorodango inventory)
-        (dorodango inventory mapping))
+        (guildhall inventory)
+        (guildhall inventory mapping))
 
 ;;; Utilities
 

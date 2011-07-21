@@ -29,10 +29,10 @@
 ;;; Code:
 
 (import (rnrs)
-        (dorodango solver)
-        (dorodango solver dummy-db)
-        (dorodango solver universe)
-        (dorodango solver logging)
+        (guildhall solver)
+        (guildhall solver dummy-db)
+        (guildhall solver universe)
+        (guildhall solver logging)
         (spells match)
         (wak fmt)
         (wak trc-testing)

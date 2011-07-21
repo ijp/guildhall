@@ -113,10 +113,71 @@ SOURCES =					\
 	\
 	scripts/hall.scm
 
+# These files are `include'd by other files.  Given up-to-date .go
+# files, installing them is not strictly necessary.  However it is
+# always nice to have source, so that's what we do.
+#
+NOCOMP_SOURCES = \
+	wak/foof-loop/private/test-foof-loop.scm \
+	wak/foof-loop/private/foof-loop.scm \
+	wak/foof-loop/private/nested-foof-loop.scm \
+	wak/irregex/private/irregex-utils.scm \
+	wak/irregex/private/irregex-r6rs.scm \
+	wak/irregex/private/test-irregex.scm \
+	wak/fmt/private/fmt-c.scm \
+	wak/fmt/private/fmt-pretty.scm \
+	wak/fmt/private/test-fmt-c.scm \
+	wak/fmt/private/test-fmt.scm \
+	wak/fmt/private/fmt-color.scm \
+	wak/fmt/private/test-round.scm \
+	wak/fmt/private/fmt-unicode.scm \
+	wak/fmt/private/mantissa.scm \
+	wak/fmt/private/fmt-js.scm \
+	wak/fmt/private/test-fmt-js.scm \
+	wak/fmt/private/fmt-column.scm \
+	wak/fmt/private/fmt.scm \
+	wak/syn-param/private/syn-param.scm \
+	wak/trc-testing/private/test.scm \
+	wak/parscheme/private/stream.scm \
+	wak/parscheme/private/s48-packages.scm \
+	wak/parscheme/private/test.scm \
+	wak/parscheme/private/perror.scm \
+	wak/parscheme/private/partext.scm \
+	wak/parscheme/private/parcomb.scm \
+	wak/parscheme/private/mattext.scm \
+	wak/parscheme/private/matcomb.scm \
+	wak/parscheme/private/s48-interfaces.scm \
+	wak/parscheme/private/lazy.scm \
+	wak/riastreams/private/stream.scm \
+	spells/private/ascii.scm \
+	spells/private/misc.scm \
+	spells/private/condition.scm \
+	spells/private/stexidoc.scm \
+	spells/private/format.scm \
+	spells/private/assert.scm \
+	spells/private/gc.scm \
+	spells/private/xvector.scm \
+	spells/private/skip-char-set.scm \
+	spells/test-runner/environment.scm
+
+TESTDATA = \
+	tests/bundle/unsatisfied-depends/pkg-list.scm \
+	tests/bundle/bar/b.scm \
+	tests/bundle/bar/pkg-list.scm \
+	tests/bundle/hook/pkg-list.scm \
+	tests/bundle/multi/core.scm \
+	tests/bundle/multi/pkg-list.scm \
+	tests/bundle/foo/libraries/a.scm \
+	tests/bundle/foo/pkg-list.scm \
+	tests/bundle/file-conflict-foo/libraries/a.scm \
+	tests/bundle/file-conflict-foo/pkg-list.scm \
+	tests/repository/available.scm \
+	tests/repository/discrepancy/pkg-list.scm
+
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
-EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES) $(TESTDATA)
 
 nobase_ccache_DATA = $(GOBJECTS)
 

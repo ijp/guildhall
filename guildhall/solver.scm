@@ -48,7 +48,7 @@
           (wak riastreams)
           (wak fmt)
           (wak foof-loop)
-          (ocelotl wt-tree)
+          (guildhall ocelotl wt-tree)
           (guildhall private utils)
           (guildhall solver logging)
           (guildhall solver choice)

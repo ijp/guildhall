@@ -119,7 +119,7 @@
           (spells hash-utils)
           (spells record-types)
           (spells tracing)
-          (ocelotl wt-tree)
+          (guildhall ocelotl wt-tree)
           (only (guildhall private utils)
                 define-guarantor))
 

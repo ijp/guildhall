@@ -45,7 +45,7 @@
           (wak riastreams)
           (spells alist)
           (spells logging)
-          (ocelotl wt-tree)
+          (guildhall ocelotl wt-tree)
           (guildhall private utils)
           (guildhall solver universe)
           (guildhall solver choice))

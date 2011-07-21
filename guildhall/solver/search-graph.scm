@@ -107,7 +107,7 @@
           (srfi :67 compare-procedures)
           (wak foof-loop)
           (wak fmt)
-          (ocelotl wt-tree)
+          (guildhall ocelotl wt-tree)
           (spells record-types)
           (spells xvector)
           (spells tracing)

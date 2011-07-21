@@ -99,7 +99,7 @@
           (spells record-types)
           (spells misc)
           (spells tracing)
-          (ocelotl wt-tree)
+          (guildhall ocelotl wt-tree)
           (guildhall private utils)
           (guildhall solver universe))
 

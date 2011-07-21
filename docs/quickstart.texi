@@ -1,37 +1,40 @@
 @node Quickstart
 @section Quickstart
 
-For the unpatient, this section presents the minium you need to know
-to use dorodango for installing software.
+For the impatient, this section presents the minium you need to know
+to instal software from the Guildhall.
 
 @subheading Configuration
 
-So, you've successfully installed dorodango, and were able to get the
-help message via @command{doro --help}? Then it's time to tell dorodango
-where it can find software (@pxref{Packages}) to install. Create the
-file @file{~/.config/dorodango/config.scm} and add this line:
+So, you've successfully installed the Guildhall, and were able to get
+the help message via @command{guild hall --help}? Then it's time to
+tell the guildhall where it can find software (@pxref{Packages}) to
+install. Create the file @file{~/.config/dorodango/config.scm} and add
+this line:
 
 @lisp
 (repository experimental "http://rotty.yi.org/doro/experimental")
 @end lisp
 
-This tells dorodango the location of the author's experimental
-repository, and gives it the name @samp{experimental}. You could add
-further repositories with different names and locations, and dorodango
-will consider them all when installing packages.
+This tells the Guildhall the location of the Andreas Rottmann's
+experimental repository, and gives it the name
+@samp{experimental}. You could add further repositories with different
+names and locations, and the Guildhall will consider them all when
+installing packages.
 
 @subheading Updating the package database
 
-This is all configuration that is needed; if you now run @command{doro
-update}, you should see something like the following:
+This is all configuration that is needed; if you now run
+@command{guild hall update}, you should see something like the
+following:
 
 @verbatim
 Fetching http://rotty.yi.org/doro/experimental/available.scm
 Loading available information for repository `experimental'
 @end verbatim
 
-Now dorodango has obtained the information of available packages from
-the repository. You can verify that by running @command{doro list
+Now the guildhall has obtained the information of available packages
+from the repository. You can verify that by running @command{doro list
 --all}, which should produce output resembling the following:
 
 @verbatim
@@ -46,11 +49,11 @@ The rightmost columns indicates the package state (@samp{u} means
 
 @subheading Installing software
 
-You can now install any of the listed packages, using @command{doro
-install @var{package-name}}:
+You can now install any of the listed packages, using @command{guild
+hall install @var{package-name}}:
 
 @verbatim
-% doro install spells
+% guild hall install spells
 The following NEW packages will be installed:
   spells srfi{a}
 Do you want to continue? [Y/n] 
@@ -60,32 +63,33 @@ Fetching http://rotty.yi.org/doro/experimental/spells_0-20091204.zip
 Installing spells (0-20091204) ...
 @end verbatim
 
-As demonstrated in the above verbatim, dorodango knows that the package
-@samp{spells} depends on @samp{srfi}, and will automatically install
-that package as well.
+As demonstrated in the above verbatim, the Guildhall knows that the
+package @samp{spells} depends on @samp{srfi}, and will automatically
+install that package as well.
 
 @subheading Other important commands
 
-Now you you know how to achieve the primary task of dorodango:
+Now you you know how to achieve the primary task of the Guildhall:
 installing software. There are a few other things you probably want to
 do at times:
 
 @table @command
-@item doro upgrade
+@item guild hall upgrade
 Attempts to upgrade each package to the newest available version.
 
-@item doro remove
+@item guild hall remove
 Allows you to remove packages from your system.
 @end table
 
 @subheading Getting help
 
-For each command, you can invoke @command{doro @var{command} --help}, and it will
-show you what options and argument that command requires:
+For each command, you can invoke @command{guild hall @var{command}
+--help}, and it will show you what options and argument that command
+requires:
 
 @verbatim
-% doro remove --help
-Usage: doro remove PACKAGE...
+% guild hall remove --help
+Usage: guild hall remove PACKAGE...
   Remove packages.
 
 Options:

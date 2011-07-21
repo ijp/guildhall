@@ -1,10 +1,11 @@
 @node Reference
 @chapter Reference
 
-@command{doro} is a command-line interface for downloading, installing and
-inspecting packages containing R6RS libraries and programs.
+@command{guild hall} is a command-line interface for downloading,
+installing and inspecting packages containing R6RS libraries and
+programs.
 
-@command{doro} accepts, besides global options, a command and
+@command{guild hall} accepts, besides global options, a command and
 command-specific options. Each command is geared to a particuliar
 task, for example installing, removing or upgrading packages.
 
@@ -12,7 +13,7 @@ The following subsections document the available commands, grouped by
 related tasks.
 
 @menu
-* Global Options:: These must go directly after @command{doro}
+* Global Options:: These must go directly after @command{guild hall}
 * Command Reference:: All of the commands
 * Configuration File:: Configuration file syntax
 @end menu
@@ -24,19 +25,19 @@ related tasks.
 @item --no-config
 
 Do not read any configuration file. This option can be used to ensure
-that @command{doro} will just use built-in defaults.
+that @command{guild hall} will just use built-in defaults.
 
 @item --config=@var{file}
 @itemx -c
 
 Use configuration file @var{file}, instead of the default
-one. @xref{Configuration File} for configuration file syntax.
+one. @xref{Configuration File}, for configuration file syntax.
 
 @item --prefix=@var{prefix}
 
 Use an FHS destination located below the directory @var{prefix}. This
 option has the same effect as adding an FHS destination to the
-configuration file and using it for this invocation of @command{doro}.
+configuration file and using it for this invocation of @command{guild hall}.
 
 @item --non-interactive
 @itemx -n
@@ -203,9 +204,9 @@ Create a bundle from the directories given as arguments.
 @itemx -o @var{filename}
 
 Output the bundle to @var{filename}. When this option is not given,
-dorodango will try to name the bundle based on the package contained
-in it. Should the bundle contain multiple packages, this option is
-mandatory.
+the Guildhall will try to name the bundle based on the package
+contained in it. Should the bundle contain multiple packages, this
+option is mandatory.
 
 @item --directory=@var{directory}
 @itemx -d @var{directory}
@@ -244,7 +245,7 @@ exists.
 
 @item --deep
 Create a symbolic link for every file. Without this option,
-@command{doro} will create symbolic links to directories when this
+@command{guild hall} will create symbolic links to directories when this
 doesn't change the created symlink tree.
 
 @item --include=@var{packages}
@@ -261,8 +262,8 @@ comma- or space-seperated list @var{packages}.
 @node Configuration File
 @section Configuration File
 
-The configuration file stores permanent settings for dorodango, and
-can be selected with the @option{--config} option, @pxref{Global
+The configuration file stores permanent settings for the Guildhall,
+and can be selected with the @option{--config} option, @pxref{Global
 Options}. It's syntax is S-expression-based clauses. In the following,
 we will dissect an example configuration file; note however, that for
 most users, a much simpler configuration will suffice
@@ -314,7 +315,7 @@ one can use an @code{fhs} destination to install to @file{/usr/local},
 and have files ending up in familiar locations.
 
 In the configuration file, destinations are given a name so they can
-be referred to by @command{doro}'s @option{--destination}
+be referred to by @command{guild hall}'s @option{--destination}
 option. @xref{Global Options}.
 
 Unless specified otherwise via the @code{repositories} sub-clause, all
@@ -323,7 +324,7 @@ will be used with this destination. A repository must be declared before
 being referenced in a destination's @code{repositories} clause.
 
 The @code{database} sub-clause allows to define the location of the
-package database on disk; if it is left out, dorodango will use a
+package database on disk; if it is left out, the Guildhall will use a
 default location, based on the destination's prefix.
 
 @subsection Defaults
@@ -331,14 +332,14 @@ default location, based on the destination's prefix.
 @anchor{default-implementation}
 
 The @code{default-implementation} clause specifies the Scheme
-implementation to use by default when setting up new destinations.  The
-implementation associated with a destination will be used by R6RS
+implementation to use by default when setting up new destinations.
+The implementation associated with a destination will be used by R6RS
 programs installed into that destinationq.  One can explicitly
-initialize a destination using the @command{doro init} command, thus
-overriding the default.
+initialize a destination using the @command{guild hall init} command,
+thus overriding the default.
 
-If @code{default-implementation} is not specified, dorodango will use
-a built-in default (@code{ikarus} at the time of writing).
+If @code{default-implementation} is not specified, the Guildhall will
+use a built-in default (@code{ikarus} at the time of writing).
 
 Using the @code{default-destination} clause one can specify which
 configured destination will be used when none is explicitly specified

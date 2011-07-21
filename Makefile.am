@@ -216,3 +216,13 @@ TESTDATA = \
 EXTRA_DIST += $(TESTS) $(TESTDATA)
 
 TESTS_ENVIRONMENT=$(top_builddir)/env guile --no-auto-compile -s 
+
+info_TEXINFOS = docs/guildhall.texi
+guildhall_TEXINFOS = \
+	docs/installation.texi \
+	docs/quickstart.texi \
+	docs/overview.texi \
+	docs/reference.texi \
+	docs/packaging.texi
+
+EXTRA_DIST += $(guildhall_TEXINFOS)

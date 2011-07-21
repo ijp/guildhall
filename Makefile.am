@@ -158,7 +158,8 @@ NOCOMP_SOURCES = \
 	spells/private/gc.scm \
 	spells/private/xvector.scm \
 	spells/private/skip-char-set.scm \
-	spells/test-runner/environment.scm
+	spells/test-runner/environment.scm \
+	dorodango/private/hook-runner.sps
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 

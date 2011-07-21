@@ -11,3 +11,7 @@
 /configure
 /env
 /guildhall/build-info.scm
+/docs/.dirstamp
+/docs/guildhall.info
+/docs/stamp-vti
+/docs/version.texi

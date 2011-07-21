@@ -3,7 +3,7 @@ dnl -*- Autoconf -*-
 AC_INIT(guile-guildhall, 0.1.0)
 AC_CONFIG_SRCDIR(scripts/hall.scm)
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([color-tests -Wall -Wno-portability])
+AM_INIT_AUTOMAKE([color-tests -Wall -Wno-portability no-dist-gzip dist-bzip2])
 AM_SILENT_RULES([yes])
 
 GUILE_PROGS

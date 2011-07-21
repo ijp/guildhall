@@ -43,9 +43,7 @@ SOURCES =					\
 	spells/xvector.scm \
 	spells/zipper-tree.scm \
 	wak/fmt.scm \
-	wak/fmt/c.scm \
 	wak/fmt/color.scm \
-	wak/fmt/js.scm \
 	wak/foof-loop.scm \
 	wak/foof-loop/nested.scm \
 	wak/irregex.scm \
@@ -121,16 +119,12 @@ NOCOMP_SOURCES = \
 	wak/irregex/private/irregex-utils.scm \
 	wak/irregex/private/irregex-r6rs.scm \
 	wak/irregex/private/test-irregex.scm \
-	wak/fmt/private/fmt-c.scm \
 	wak/fmt/private/fmt-pretty.scm \
-	wak/fmt/private/test-fmt-c.scm \
 	wak/fmt/private/test-fmt.scm \
 	wak/fmt/private/fmt-color.scm \
 	wak/fmt/private/test-round.scm \
 	wak/fmt/private/fmt-unicode.scm \
 	wak/fmt/private/mantissa.scm \
-	wak/fmt/private/fmt-js.scm \
-	wak/fmt/private/test-fmt-js.scm \
 	wak/fmt/private/fmt-column.scm \
 	wak/fmt/private/fmt.scm \
 	wak/syn-param/private/syn-param.scm \

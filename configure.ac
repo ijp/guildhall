@@ -8,8 +8,6 @@ AM_SILENT_RULES([yes])
 
 GUILE_PROGS
 AC_SUBST(GUILE)
-GUILE_EFFECTIVE_VERSION=`$GUILE -c '(display (effective-version))'`
-AC_SUBST(GUILE_EFFECTIVE_VERSION)
 
 if $GUILE_TOOLS | grep -q compile; then
    # everything cool
@@ -17,6 +15,9 @@ if $GUILE_TOOLS | grep -q compile; then
 else
    AC_MSG_ERROR([Guile 2.0 required.])
 fi
+
+GUILE_EFFECTIVE_VERSION=`$GUILE -c '(display (effective-version))'`
+AC_SUBST(GUILE_EFFECTIVE_VERSION)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([dorodango/build-info.scm])

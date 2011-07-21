@@ -160,24 +160,10 @@ NOCOMP_SOURCES = \
 	spells/private/skip-char-set.scm \
 	spells/test-runner/environment.scm
 
-TESTDATA = \
-	tests/bundle/unsatisfied-depends/pkg-list.scm \
-	tests/bundle/bar/b.scm \
-	tests/bundle/bar/pkg-list.scm \
-	tests/bundle/hook/pkg-list.scm \
-	tests/bundle/multi/core.scm \
-	tests/bundle/multi/pkg-list.scm \
-	tests/bundle/foo/libraries/a.scm \
-	tests/bundle/foo/pkg-list.scm \
-	tests/bundle/file-conflict-foo/libraries/a.scm \
-	tests/bundle/file-conflict-foo/pkg-list.scm \
-	tests/repository/available.scm \
-	tests/repository/discrepancy/pkg-list.scm
-
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
-EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES) $(TESTDATA)
+EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 
 nobase_ccache_DATA = $(GOBJECTS)
 
@@ -207,5 +193,21 @@ TESTS = \
 	tests/database.scm \
 	tests/solver.scm \
 	tests/actions.scm
+
+TESTDATA = \
+	tests/bundle/unsatisfied-depends/pkg-list.scm \
+	tests/bundle/bar/b.scm \
+	tests/bundle/bar/pkg-list.scm \
+	tests/bundle/hook/pkg-list.scm \
+	tests/bundle/multi/core.scm \
+	tests/bundle/multi/pkg-list.scm \
+	tests/bundle/foo/libraries/a.scm \
+	tests/bundle/foo/pkg-list.scm \
+	tests/bundle/file-conflict-foo/libraries/a.scm \
+	tests/bundle/file-conflict-foo/pkg-list.scm \
+	tests/repository/available.scm \
+	tests/repository/discrepancy/pkg-list.scm
+
+EXTRA_DIST += $(TESTS) $(TESTDATA)
 
 TESTS_ENVIRONMENT=$(top_builddir)/env guile --no-auto-compile -s 

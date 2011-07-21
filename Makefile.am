@@ -18,9 +18,6 @@ SOURCES =					\
 	spells/gc.scm \
 	spells/gc/compat.scm \
 	spells/hash-utils.scm \
-	spells/include.scm \
-	spells/include/compat.scm \
-	spells/include/helpers.scm \
 	spells/logging.scm \
 	spells/match.scm \
 	spells/misc.scm \

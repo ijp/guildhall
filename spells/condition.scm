@@ -1,6 +1,6 @@
 ;;; condition.scm --- Extra condition types
 
-;; Copyright (C) 2008, 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2008, 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -29,6 +29,6 @@
   (import (rnrs)
           (wak foof-loop)
           (wak fmt)
-          (spells include))
+          (only (guile) include-from-path))
   
-  (include-file ((spells private) condition)))
+  (include-from-path "spells/private/condition"))

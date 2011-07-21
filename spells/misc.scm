@@ -1,6 +1,6 @@
 ;;; misc.scm --- Misc stuff.
 
-;; Copyright (C) 2009 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -32,7 +32,7 @@
           (rnrs io simple)
           (rnrs sorting)
           (rnrs hashtables)
-          (spells include)
+          (only (guile) include-from-path)
           (spells misc compat))
 
-  (include-file ((spells private) misc)))
+  (include-from-path "spells/private/misc"))

@@ -39,7 +39,7 @@
           (rnrs arithmetic bitwise)
           (srfi :8 receive)
           (srfi :9 records)
-          (spells include)
+          (only (guile) include-from-path)
           (only (spells error) make-error-signaller))
 
   (define error (make-error-signaller "(spells xvector)"))
@@ -48,7 +48,7 @@
     (bitwise-bit-field integer position (+ position size)))
   (define integer-length bitwise-length)
 
-  (include-file ((spells private) xvector))
+  (include-from-path "spells/private/xvector")
 
 ;;@defun make-xvector
 ;;@defunx xvector? object

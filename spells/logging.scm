@@ -43,8 +43,7 @@
           (spells alist)
           (spells match)
           (spells opt-args)
-          (spells record-types)
-          (spells include))
+          (spells record-types))
   
 ;;@extractors (import (spells private stexidoc)) spells-extractors
 

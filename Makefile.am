@@ -46,11 +46,6 @@ SOURCES =					\
 	wak/foof-loop.scm \
 	wak/foof-loop/nested.scm \
 	wak/irregex.scm \
-	wak/parscheme/matcher-combinators.scm \
-	wak/parscheme/parse-errors.scm \
-	wak/parscheme/parser-combinators.scm \
-	wak/parscheme/text-matcher-combinators.scm \
-	wak/parscheme/text-parser-combinators.scm \
 	wak/private/define-values.scm \
 	wak/private/include.scm \
 	wak/private/include/compat.scm \
@@ -126,16 +121,6 @@ NOCOMP_SOURCES = \
 	wak/fmt/private/fmt.scm \
 	wak/syn-param/private/syn-param.scm \
 	wak/trc-testing/private/test.scm \
-	wak/parscheme/private/stream.scm \
-	wak/parscheme/private/s48-packages.scm \
-	wak/parscheme/private/test.scm \
-	wak/parscheme/private/perror.scm \
-	wak/parscheme/private/partext.scm \
-	wak/parscheme/private/parcomb.scm \
-	wak/parscheme/private/mattext.scm \
-	wak/parscheme/private/matcomb.scm \
-	wak/parscheme/private/s48-interfaces.scm \
-	wak/parscheme/private/lazy.scm \
 	spells/private/ascii.scm \
 	spells/private/misc.scm \
 	spells/private/condition.scm \

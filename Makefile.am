@@ -203,8 +203,10 @@ TESTDATA = \
 	tests/bundle/hook/pkg-list.scm \
 	tests/bundle/multi/core.scm \
 	tests/bundle/multi/pkg-list.scm \
+	tests/bundle/multi/programs/multi.sps \
 	tests/bundle/foo/libraries/a.scm \
 	tests/bundle/foo/pkg-list.scm \
+	tests/bundle/foo/programs/foo.sps \
 	tests/bundle/file-conflict-foo/libraries/a.scm \
 	tests/bundle/file-conflict-foo/pkg-list.scm \
 	tests/repository/available.scm \

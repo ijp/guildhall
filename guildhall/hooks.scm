@@ -51,7 +51,6 @@
           (spells filesys)
           (spells process)
           (ice-9 match)
-          (spells ports)
           (spells logging)
           (guildhall private utils)
           (guildhall build-info)

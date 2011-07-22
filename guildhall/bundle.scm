@@ -46,7 +46,6 @@
           (only (spells record-types)
                 define-functional-fields)
           (ice-9 match)
-          (spells ports)
           (spells pathname)
           (spells filesys)
           (spells operations)

@@ -14,7 +14,6 @@ SOURCES =					\
 	spells/operations.scm \
 	spells/pathname.scm \
 	spells/pathname/os-string.scm \
-	spells/ports.scm \
 	spells/procedure-annotations.scm \
 	spells/process.scm \
 	spells/process/compat.scm \

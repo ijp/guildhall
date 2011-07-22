@@ -28,8 +28,6 @@
           create-directory*
           delete-file
           rename-file
-          copy-file
-          install-file
           create-symbolic-link
           create-hard-link
           create-temp-file
@@ -79,7 +77,6 @@
           (only (spells process) get-process-id)
           (spells string-utils)
           (spells pathname)
-          (spells ports)
           (spells time-lib)
           (prefix (guile) guile:))
 
@@ -604,19 +601,6 @@
               #f))))
     ((pathname dir-list)
      (find-file pathname dir-list #f))))
-
-;;@ Vanilla file installation procedure that simply copies the
-;; file, creating any needed directory.
-(define (install-file src dest)
-  (create-directory* dest)
-  (copy-file src dest))
-
-(define (copy-file src-pathname dst-pathname)
-  (call-with-port (open-file-input-port (->namestring src-pathname))
-    (lambda (in-port)
-      (call-with-output-file/atomic dst-pathname 'block #f
-        (lambda (out-port)
-          (copy-port in-port out-port))))))
 
 ;;@ Call @var{proc}, with the a file input port corresponding to @1,
 ;;with a working directory as specified by the directory part of @1.

@@ -41,7 +41,6 @@
           (srfi :67 compare-procedures)
           (spells hash-utils)
           (spells record-types)
-          (spells tracing)
           (only (guile) assq-ref or-map and=>)
           (spells logging)
           (guildhall ext fmt)

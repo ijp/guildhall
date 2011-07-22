@@ -110,7 +110,6 @@
           (guildhall ext wt-tree)
           (spells record-types)
           (spells xvector)
-          (spells tracing)
           (guildhall private utils)
           (guildhall solver expression)
           (guildhall solver logging)

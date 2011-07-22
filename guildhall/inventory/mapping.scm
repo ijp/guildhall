@@ -45,7 +45,6 @@
           (only (guile) and=> or-map)
           (spells record-types)
           (ice-9 match)
-          (spells tracing) ;debug
           (guildhall inventory))
 
 

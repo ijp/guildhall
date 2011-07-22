@@ -49,7 +49,6 @@
           (spells filesys)
           (spells args-fold)
           (spells logging)
-          (spells tracing)
           (only (spells record-types) define-record-type*)
           (guildhall private utils)
           (guildhall inventory)

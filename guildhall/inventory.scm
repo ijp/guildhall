@@ -65,7 +65,6 @@
           (srfi :2 and-let*)
           (srfi :8 receive)
           (guildhall ext foof-loop)
-          (spells tracing)
           (spells zipper-tree))
 
 

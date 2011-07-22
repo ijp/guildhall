@@ -3,7 +3,6 @@
 (library (spells algebraic-types helpers)
   (export expand-datatype-dispatcher)
   (import (for (rnrs) run (meta -1))
-          (spells tracing)
           (spells string-utils)
           (spells syntax-utils))
 

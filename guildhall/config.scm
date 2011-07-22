@@ -50,7 +50,6 @@
           (ice-9 match)
           (spells record-types)
           (spells pathname)
-          (spells tracing)
           (guildhall private utils)
           (guildhall destination)
           (guildhall repository))

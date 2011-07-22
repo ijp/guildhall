@@ -34,7 +34,6 @@
           (spells record-types)
           (spells xvector)
           (ice-9 match)
-          (spells tracing) ;debug
           (guildhall private utils)
           (guildhall package)
           (guildhall solver)

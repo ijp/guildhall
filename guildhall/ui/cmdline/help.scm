@@ -39,7 +39,6 @@
           (guildhall ext fmt)
           (only (guile) assq-ref)
           (ice-9 match)
-          (spells tracing) ;debug
           (guildhall private utils)
           (guildhall ui cmdline base))
 

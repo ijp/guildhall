@@ -109,7 +109,6 @@
           (ice-9 match)
           (spells condition)
           (spells algebraic-types)
-          (spells tracing) ;++debug
           (guildhall private utils)
           (guildhall inventory))
 

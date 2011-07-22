@@ -50,7 +50,6 @@
           (spells filesys)
           (spells operations)
           (spells logging)
-          (spells tracing)
           (guildhall private utils)
           (guildhall private zip)
           (guildhall package)

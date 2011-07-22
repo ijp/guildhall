@@ -118,7 +118,6 @@
           (guildhall ext define-values)
           (spells hash-utils)
           (spells record-types)
-          (spells tracing)
           (guildhall ext wt-tree)
           (only (guildhall private utils)
                 define-guarantor))

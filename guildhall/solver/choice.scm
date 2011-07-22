@@ -97,7 +97,6 @@
           (spells hash-utils)
           (spells record-types)
           (only (guile) and=>)
-          (spells tracing)
           (guildhall ext wt-tree)
           (guildhall private utils)
           (guildhall solver universe))

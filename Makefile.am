@@ -20,8 +20,6 @@ SOURCES =					\
 	spells/string-utils.scm \
 	spells/syntax-utils.scm \
 	spells/sysutils.scm \
-	spells/tracing.scm \
-	spells/tracing/compat.scm \
 	spells/xvector.scm \
 	spells/zipper-tree.scm \
 	guildhall/ext/fmt.scm \

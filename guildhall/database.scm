@@ -97,7 +97,6 @@
           (only (spells record-types)
                 define-functional-fields)
           (spells logging)
-          (spells tracing)
           (guildhall private utils)
           (guildhall inventory)
           (guildhall bundle)

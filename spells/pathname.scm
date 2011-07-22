@@ -78,7 +78,6 @@
           (spells record-types)
           (spells operations)
           (ice-9 match)
-          (spells tracing)
           (spells string-utils))
 
 ;;@extractors (import (spells private stexidoc)) spells-extractors

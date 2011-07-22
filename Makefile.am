@@ -12,7 +12,6 @@ SOURCES =					\
 	spells/hash-utils.scm \
 	spells/logging.scm \
 	spells/operations.scm \
-	spells/opt-args.scm \
 	spells/pathname.scm \
 	spells/pathname/os-string.scm \
 	spells/ports.scm \

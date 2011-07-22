@@ -40,9 +40,8 @@
           (except (srfi :1 lists) map for-each)
           (srfi :19 time)
           (srfi :39 parameters)
-          (only (guile) assq-ref)
+          (only (guile) assq-ref define*)
           (ice-9 match)
-          (spells opt-args)
           (spells record-types))
   
 ;;@extractors (import (spells private stexidoc)) spells-extractors
@@ -124,7 +123,7 @@
   (%make-log-handler proc threshold filters)
   ())
 
-(define* (make-log-handler proc (threshold #f) (filters '()))
+(define* (make-log-handler proc #:optional (threshold #f) (filters '()))
   (%make-log-handler proc (numeric-level threshold) filters))
 
 ;;@ Log entry object.
@@ -325,7 +324,7 @@
 ;; without threshold and filters, using @ref{default-log-formatter} to
 ;; format the log entry.
 ;;
-(define* (set-logger-properties! logger
+(define* (set-logger-properties! logger #:optional
                                  (properties (default-logger-properties))
                                  (procedures '()))
   

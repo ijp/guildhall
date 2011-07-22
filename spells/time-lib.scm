@@ -23,12 +23,12 @@
           date-down-from)
   (import
     (rnrs base)
-    (srfi :19 time)
-    (spells opt-args))
+    (only (guile) define*)
+    (srfi :19 time))
 
   (define *posix-epoch* (date->time-utc (make-date 0 0 0 0 1 1 1970 0)))
 
-  (define* (posix-timestamp->time-utc timestamp (nanoseconds 0))
+  (define* (posix-timestamp->time-utc timestamp #:optional (nanoseconds 0))
     (add-duration *posix-epoch* (make-time time-duration nanoseconds timestamp)))
 
   (define (time-utc->posix-timestamp time-utc)

@@ -66,6 +66,7 @@
                   (->namestring x->namestring)))
   (import (rnrs base)
           (only (rnrs hashtables) string-hash symbol-hash)
+          (only (guile) define*)
           (except (srfi :1 lists) map for-each)
           (srfi :8 receive)
           (srfi :9 records)
@@ -75,7 +76,6 @@
           (srfi :39 parameters)
           (spells hash-utils)
           (spells record-types)
-          (spells opt-args)
           (spells operations)
           (ice-9 match)
           (spells tracing)
@@ -169,7 +169,7 @@
 ;; return it.  In any other case, signal an error.
 ;;
 ;; @emph{FIXME}: Document how pairs are parsed.
-(define* (->pathname object (fs-type (local-file-system-type)))
+(define* (->pathname object #:optional (fs-type (local-file-system-type)))
   (define (lose)
     (assertion-violation '->pathname "cannot coerce to a pathname" object))
   (cond ((symbol?    object) (make-pathname #f '() object))
@@ -194,7 +194,7 @@
 ;; Parse @1, which may be a string or a symbol, as file component,
 ;; according to the optional file system type @2, which defaults to
 ;; the local file system type.
-(define* (->file object (fs-type (local-file-system-type)))
+(define* (->file object #:optional (fs-type (local-file-system-type)))
   (fs-type/parse-file-namestring
    fs-type
    (%->string object
@@ -217,7 +217,7 @@
 ;; symbols. @var{version} is a non-negative integer representing the
 ;; file's version, or the symbol @code{newest} representing the most
 ;; recent version of the file.
-(define* (make-file name type (version #f))
+(define* (make-file name type #:optional (version #f))
   (define (lose)
     (assertion-violation 'make-file "Invalid file name specifier" name))
   (really-make-file (%->string name lose) (make-file/type type) version))
@@ -555,7 +555,8 @@
 ;;@ Parse @1 and return a pathname representing it.
 ;; Use @2's namestring parser to parse @1.
 ;; If @2 is not supplied, it defaults to the local file system."
-(define* (parse-namestring namestring (fs-type (local-file-system-type)))
+(define* (parse-namestring namestring #:optional
+                           (fs-type (local-file-system-type)))
   (fs-type/parse-namestring fs-type namestring))
 
 ;;@ Coerce @1 into a namestring.
@@ -563,7 +564,7 @@
 ;; If @1 is a pathname, convert it according to @2.
 ;; Otherwise, raise an @code{&assertion} condition.
 ;; If @2 is not supplied, it defaults to the local file system type."
-(define* (->namestring object (fs-type (local-file-system-type)))
+(define* (->namestring object #:optional (fs-type (local-file-system-type)))
   ;++ What if it's a symbol?  Use (MAKE-PATHNAME NIL NIL object)?
   (cond ((string? object)
          (fs-type/canonicalize-namestring fs-type object))
@@ -580,24 +581,26 @@
 
 ;;@ Return a string for @1's origin according to @2.
 ;; If @2 is not supplied, it defaults to the local file system type.
-(define* (origin-namestring pathname (fs-type (local-file-system-type)))
+(define* (origin-namestring pathname #:optional
+                            (fs-type (local-file-system-type)))
   (fs-type/origin-namestring fs-type (->pathname pathname)))
 
 ;;@ Return a string for @1's directory according to @2.
 ;; If @2 is not supplied, it defaults to the local file system type.
-(define* (directory-namestring pathname (fs-type (local-file-system-type)))
+(define* (directory-namestring pathname #:optional
+                               (fs-type (local-file-system-type)))
   (fs-type/directory-namestring fs-type (->pathname pathname)))
 
 ;;@ Return a string for @1's file according to @2.
 ;; If @2 is not supplied, it defaults to the local file system type.
-(define* (file-namestring pathname (fs-type (local-file-system-type)))
+(define* (file-namestring pathname #:optional
+                          (fs-type (local-file-system-type)))
   (fs-type/file-namestring fs-type (->pathname pathname)))
 
 ;;@ Return a string naming @var{pathname} relative to @var{relative},
 ;; according to @var{fs-type}.  If @var{fs-type} is not supplied, it
 ;; defaults to the local file system type."
-(define* (enough-namestring pathname
-                            relative
+(define* (enough-namestring pathname relative #:optional
                             (fs-type (local-file-system-type)))
   (fs-type/pathname->namestring (enough-pathname pathname relative) fs-type))
 

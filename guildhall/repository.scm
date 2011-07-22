@@ -37,8 +37,7 @@
   (import (except (rnrs) delete-file file-exists?)
           (only (srfi :13) string-map string-prefix?)
           (srfi :14 char-sets)
-          (only (guile) or-map)
-          (only (spells opt-args) :optional)
+          (only (guile) or-map define*)
           (spells operations)
           (spells ports)
           (spells pathname)
@@ -169,9 +168,9 @@
      (and (string-prefix? "http://" uri-string)
           (make-http-repository name uri-string)))))
 
-(define (uri-string->repository uri-string . name)
+(define* (uri-string->repository uri-string #:optional name)
   (or-map (lambda (constructor)
-            (constructor (:optional name #f) uri-string))
+            (constructor name uri-string))
           supported-repository-types))
 
 

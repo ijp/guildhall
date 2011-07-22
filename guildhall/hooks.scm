@@ -50,7 +50,7 @@
           (spells pathname)
           (spells filesys)
           (spells process)
-          (spells match)
+          (ice-9 match)
           (spells ports)
           (only (spells misc) unspecific and=>)
           (spells logging)

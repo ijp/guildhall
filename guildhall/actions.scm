@@ -41,7 +41,7 @@
           (srfi :45 lazy)
           (only (spells misc) unspecific)
           (only (guile) assq-ref)
-          (spells match)
+          (ice-9 match)
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
           (guildhall ext fmt)

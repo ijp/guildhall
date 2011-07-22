@@ -107,7 +107,7 @@
           (spells record-types)
           (only (guile) assq-ref)
           (spells misc)
-          (spells match)
+          (ice-9 match)
           (spells condition)
           (spells algebraic-types)
           (spells tracing) ;++debug

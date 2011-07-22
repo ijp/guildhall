@@ -33,7 +33,7 @@
           (only (srfi :13) string-null? string-prefix?)
           (guildhall ext fmt)
           (guildhall ext foof-loop)
-          (spells match)
+          (ice-9 match)
           (guildhall private utils)
           (guildhall inventory)
           (guildhall package)

@@ -44,7 +44,7 @@
           (guildhall ext irregex)
           (only (spells misc) and=> or-map)
           (spells record-types)
-          (spells match)
+          (ice-9 match)
           (spells tracing) ;debug
           (guildhall inventory))
 

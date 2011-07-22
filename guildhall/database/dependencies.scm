@@ -40,7 +40,7 @@
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
           (spells record-types)
-          (spells match)
+          (ice-9 match)
           (spells tracing) ;debug
           (guildhall database)
           (prefix (guildhall package)

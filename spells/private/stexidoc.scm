@@ -19,7 +19,7 @@
   (export spells-extractors
           foreign-extractors)
   (import (rnrs)
-          (spells match)
+          (ice-9 match)
           (stexidoc extract)
           (stexidoc reader))
 

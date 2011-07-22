@@ -11,7 +11,6 @@ SOURCES =					\
 	spells/finite-types.scm \
 	spells/hash-utils.scm \
 	spells/logging.scm \
-	spells/match.scm \
 	spells/misc.scm \
 	spells/misc/compat.scm \
 	spells/operations.scm \

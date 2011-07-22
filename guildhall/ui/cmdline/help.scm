@@ -38,7 +38,7 @@
           (spells args-fold)
           (guildhall ext fmt)
           (only (guile) assq-ref)
-          (spells match)
+          (ice-9 match)
           (spells tracing) ;debug
           (guildhall private utils)
           (guildhall ui cmdline base))

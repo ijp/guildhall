@@ -51,7 +51,7 @@
                 and=>
                 scheme-implementation)
           (only (guile) assq-ref)
-          (spells match)
+          (ice-9 match)
           (spells record-types)
           (spells pathname)
           (spells tracing)

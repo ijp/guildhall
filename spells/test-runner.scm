@@ -30,7 +30,7 @@
           (srfi :8 receive)
           (spells misc)
           (srfi :39 parameters)
-          (spells match)
+          (ice-9 match)
           (spells filesys)
           (spells pathname)
           (spells condition)

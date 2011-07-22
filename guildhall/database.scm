@@ -93,7 +93,7 @@
           (spells pathname)
           (spells filesys)
           (guildhall ext fmt)
-          (spells match)
+          (ice-9 match)
           (only (spells record-types)
                 define-functional-fields)
           (spells logging)

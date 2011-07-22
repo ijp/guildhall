@@ -44,7 +44,7 @@
           (guildhall ext define-values)
           (only (guile) assq-ref acons variable-ref)
           (only (spells misc) and=> unspecific)
-          (spells match)
+          (ice-9 match)
           (spells operations)
           (spells pathname)
           (spells filesys)

@@ -77,7 +77,7 @@
           (spells record-types)
           (spells opt-args)
           (spells operations)
-          (spells match)
+          (ice-9 match)
           (spells tracing)
           (spells string-utils)
           (spells pathname os-string))

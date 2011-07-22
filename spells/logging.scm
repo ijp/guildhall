@@ -41,7 +41,7 @@
           (srfi :19 time)
           (srfi :39 parameters)
           (only (guile) assq-ref)
-          (spells match)
+          (ice-9 match)
           (spells opt-args)
           (spells record-types))
   

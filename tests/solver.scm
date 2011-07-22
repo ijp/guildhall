@@ -33,7 +33,7 @@
         (guildhall solver dummy-db)
         (guildhall solver universe)
         (guildhall solver logging)
-        (spells match)
+        (ice-9 match)
         (guildhall ext fmt)
         (guildhall ext trc-testing)
         (spells logging))

@@ -33,7 +33,7 @@
           (spells finite-types)
           (spells record-types)
           (spells xvector)
-          (spells match)
+          (ice-9 match)
           (spells tracing) ;debug
           (only (spells misc) topological-sort)
           (guildhall private utils)

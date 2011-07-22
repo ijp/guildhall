@@ -11,7 +11,23 @@
   (import (rnrs base)
           (rnrs lists)
           (srfi :98 os-environment-variables)
-          (spells sysutils compat))
+          (spells filesys)
+          (only (guile)
+                uname
+                utsname:machine
+                utsname:sysname
+                getenv
+                string-split))
+
+  (define (find-exec-path prog)
+    (let ((paths (string-split (getenv "PATH") #\:)))
+      (find-file prog paths file-executable?)))
+
+  (define (host-info)
+    (let ((uts (uname)))
+      (values (utsname:machine uts)
+              "unknown"
+              (utsname:sysname uts))))
 
   (define lookup-environment-variable get-environment-variable)
   (define current-process-environment get-environment-variables)

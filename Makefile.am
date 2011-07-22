@@ -7,7 +7,6 @@ SOURCES =					\
 	spells/algebraic-types/helpers.scm \
 	spells/args-fold.scm \
 	spells/condition.scm \
-	spells/delimited-readers.scm \
 	spells/error.scm \
 	spells/filesys.scm \
 	spells/filesys/compat.scm \
@@ -115,7 +114,6 @@ NOCOMP_SOURCES = \
 	spells/private/assert.scm \
 	spells/private/gc.scm \
 	spells/private/xvector.scm \
-	spells/private/skip-char-set.scm \
 	spells/test-runner/environment.scm \
 	guildhall/private/hook-runner.sps
 

@@ -50,7 +50,7 @@
           (except (srfi :1 lists) map for-each)
           (srfi :13 strings)
           (spells pathname)
-          (spells delimited-readers)
+          (only (ice-9 rdelim) read-line)
           (spells process compat))
 
 ;; The following documents the interface provided by the `(spells

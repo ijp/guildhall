@@ -45,7 +45,7 @@
           (only (srfi :13)
                 string-null?
                 string-trim-both)
-          (spells define-values)
+          (guildhall ext define-values)
           (spells operations)
           (only (guile) assq-ref acons
                 variable-ref make-variable variable-set!)

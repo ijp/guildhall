@@ -7,7 +7,6 @@ SOURCES =					\
 	spells/algebraic-types/helpers.scm \
 	spells/args-fold.scm \
 	spells/condition.scm \
-	spells/define-values.scm \
 	spells/delimited-readers.scm \
 	spells/error.scm \
 	spells/filesys.scm \

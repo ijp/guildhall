@@ -50,7 +50,7 @@
           match-letrec)
   (import (rnrs base)
           (rnrs mutable-pairs)
-          (spells define-values))
+          (guildhall ext define-values))
 
 (define-syntax match-syntax-error
   (syntax-rules ()

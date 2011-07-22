@@ -20,7 +20,7 @@
   (export annotate-procedure
           procedure-annotation)
   (import (rnrs base)
-          (spells define-values))
+          (guildhall ext define-values))
 
   ;; Naive, portable implementation
   (define-values (annotate-procedure procedure-annotation)

@@ -115,7 +115,7 @@
           (rnrs control)
           (rnrs arithmetic fixnums)
           (srfi :67 compare-procedures)
-          (spells define-values)
+          (guildhall ext define-values)
           (spells hash-utils)
           (spells record-types)
           (spells tracing)

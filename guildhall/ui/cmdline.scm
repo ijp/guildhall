@@ -41,7 +41,7 @@
           (guildhall ext fmt)
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
-          (spells define-values)
+          (guildhall ext define-values)
           (only (guile) assq-ref acons variable-ref)
           (only (spells misc) and=> unspecific)
           (spells match)

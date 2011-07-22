@@ -173,12 +173,12 @@
 ;;@ Open a package database.
 (define open-database
   (case-lambda
-    ((directory destination repositories implementation cache-dir)
+    ((directory destination repositories cache-dir)
      (log/db 'debug "opening database in " (dsp-pathname directory) " ...")
      (let* ((directory (pathname-as-directory directory))
             (status-directory (status-subdirectory directory)))
        (unless (file-exists? status-directory)
-         (setup-destination destination `((implementation . ,implementation)))
+         (setup-destination destination '())
          (create-directory* status-directory))
        (lock-database-directory directory)
        (receive (pkg-table file-table)
@@ -196,12 +196,11 @@
              (create-directory* (database-cache-directory db repository)))
            (load-available-files! db repositories)
            db))))
-    ((directory destination repositories implementation)
+    ((directory destination repositories)
      (let ((directory (pathname-as-directory directory)))
        (open-database directory
                       destination
                       repositories
-                      implementation
                       (pathname-join directory '(("cache"))))))))
 
 (define (database-cache-directory db repo)

@@ -328,8 +328,7 @@
                                           (config-item-repositories item))))))
   (define (dsp-repository repo)
     (cat "- " (repository-name repo) ": " (repository-location repo) "\n"))
-  (cat "default-implementation: " (config-default-implementation config) "\n"
-       "destinations:\n"
+  (cat "destinations:\n"
        (fmt-indented "  " (fmt-join dsp-config-item (config-items config)))))
 
 (define-command config
@@ -356,14 +355,9 @@
         ;; no need to do anything
         (unspecific)))))
 
-(define-option implementation-option ("implementation" #\i) implementation
-  "use IMPLEMENTATION in destination"
-  (arg-setter 'implementation string->symbol))
-
 (define-command init
   (description "Initialize a destination.")
   (synopsis "init [OPTIONS] [DESTINATION]")
-  (options implementation-option)
   (handler init-command))
 
 
@@ -533,8 +527,6 @@
   (let* ((config (assq-ref options 'config))
          (destination (or (assq-ref options 'destination)
                           (config-default-name config)))
-         (implementation (or (assq-ref options 'implementation)
-                             (config-default-implementation config)))
          (repos (opt-ref/list options 'repositories))
          (item (if destination
                    (or (config-ref config destination)
@@ -546,7 +538,6 @@
       (open-database location
                      (config-item-destination item)
                      (append repos (config-item-repositories item))
-                     implementation
                      (config-item-cache-directory item)))))
 
 (define (call-with-database* options proc)
@@ -613,8 +604,7 @@
     (if prefix
         (make-prefix-config
          prefix
-         (config-item-repositories (config-default-item config))
-         (config-default-implementation config))
+         (config-item-repositories (config-default-item config)))
         config))
     (parameterize ((current-ui (make-cmdline-ui
                                 `((assume-yes? . ,(assq-ref vals 'assume-yes?))

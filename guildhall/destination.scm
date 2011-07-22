@@ -51,7 +51,7 @@
                 string-contains) 
           (srfi :45 lazy)
           (only (guile) assq-ref)
-          (only (spells misc) and=> scheme-implementation)
+          (only (spells misc) and=>)
           (guildhall ext fmt)
           (guildhall ext irregex)
           (guildhall ext foof-loop)

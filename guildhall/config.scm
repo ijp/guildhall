@@ -39,8 +39,7 @@
           config-item-destination
           config-item-database-location
           config-item-repositories
-          config-item-cache-directory
-          config-default-implementation)
+          config-item-cache-directory)
   (import (rnrs)
           (only (srfi :1) append-reverse)
           (srfi :8 receive)
@@ -48,8 +47,7 @@
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
           (only (spells misc)
-                and=>
-                scheme-implementation)
+                and=>)
           (only (guile) assq-ref)
           (ice-9 match)
           (spells record-types)
@@ -60,7 +58,7 @@
           (guildhall repository))
 
 (define-record-type (config %make-config config?)
-  (fields items default-implementation))
+  (fields items))
 
 (define-record-type config-item
   (fields destination database-location repositories cache-directory))
@@ -71,15 +69,13 @@
 (define (make-config default
                      destinations
                      database-locations
-                     repositories
-                     implementation)
+                     repositories)
   (define who 'make-config)
   (loop continue ((for destination (in-list destinations))
                   (with items '()))
     => (%make-config/validate who
                               default
-                              items
-                              implementation)
+                              items)
     (let ((name (destination-name destination)))
       (cond ((assq-ref database-locations name)
              => (lambda (location)
@@ -96,8 +92,7 @@
 
 (define (%make-config/validate who
                                default
-                               items
-                               implementation)
+                               items)
   (cond ((null? items)
          (lose who "no destinations defined"))
         (default
@@ -107,11 +102,10 @@
            (if (eq? default (car name.item))
                (%make-config (cons name.item
                                    (append-reverse (reverse processed)
-                                                   (cdr remaining)))
-                             implementation)
+                                                   (cdr remaining))))
                (continue))))
         (else
-         (%make-config items implementation))))
+         (%make-config items))))
 
 (define (public:config-items config)
   (map cdr (config-items config)))
@@ -127,23 +121,19 @@
 
 
 (define (default-config)
-  (make-prefix-config (default-prefix) (list) (default-implementation)))
+  (make-prefix-config (default-prefix) (list)))
 
 (define (default-prefix)
   (home-pathname ".local"))
 
-(define (default-implementation)
-  (scheme-implementation))
-
 (define (default-cache-directory)
   (home-pathname '((".cache" "guildhall"))))
 
-(define (make-prefix-config prefix repositories implementation)
+(define (make-prefix-config prefix repositories)
   (make-config 'default
                (list (make-fhs-destination 'default prefix))
                `((default  . ,(default-db-location prefix)))
-               repositories
-               implementation))
+               repositories))
 
 (define (default-db-location prefix)
   (pathname-join (pathname-as-directory prefix) '(("var" "lib" "guildhall"))))
@@ -153,16 +143,13 @@
   (loop continue ((for form (in-port port read))
                   (with default #f)
                   (with items '())
-                  (with repositories '())
-                  (with implementation #f))
+                  (with repositories '()))
     => (if (null? items)
            (make-prefix-config (default-prefix)
-                               repositories
-                               (or implementation (default-implementation)))
+                               repositories)
            (%make-config/validate who
                                   default
-                                  (reverse items)
-                                  (or implementation (default-implementation))))
+                                  (reverse items)))
     (define (parse-destination-options options)
       (loop continue ((for option (in-list options))
                       (with db-location #f)
@@ -189,8 +176,6 @@
     (match form
       (('default-destination (? symbol? name))
        (continue (=> default name)))
-      (('default-implementation (? symbol? name))
-       (continue (=> implementation name)))
       (('destination (? symbol? name) dest-spec . options)
        (let-values (((db-location configured-repos)
                      (parse-destination-options options))

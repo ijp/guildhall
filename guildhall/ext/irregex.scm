@@ -52,5 +52,5 @@
   (define (error . args)
     (apply assertion-violation "irregex" args))
 
-  (include-from-path "guildhall/ext/irregex/private/irregex-r6rs")
-  (include-from-path "guildhall/ext/irregex/private/irregex-utils"))
+  (include-from-path "guildhall/ext/inc/irregex-r6rs")
+  (include-from-path "guildhall/ext/inc/irregex-utils"))

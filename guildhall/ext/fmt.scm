@@ -58,7 +58,7 @@
   (define call-with-output-string call-with-string-output-port)
   (define read-line get-line)
   
-  (include-from-path "guildhall/ext/fmt/private/mantissa")
-  (include-from-path "guildhall/ext/fmt/private/fmt")
-  (include-from-path "guildhall/ext/fmt/private/fmt-pretty")
-  (include-from-path "guildhall/ext/fmt/private/fmt-column"))
+  (include-from-path "guildhall/ext/inc/mantissa")
+  (include-from-path "guildhall/ext/inc/fmt")
+  (include-from-path "guildhall/ext/inc/fmt-pretty")
+  (include-from-path "guildhall/ext/inc/fmt-column"))

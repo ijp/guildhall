@@ -100,21 +100,16 @@ SOURCES =					\
 # always nice to have source, so that's what we do.
 #
 NOCOMP_SOURCES = \
-	guildhall/ext/foof-loop/private/test-foof-loop.scm \
-	guildhall/ext/foof-loop/private/foof-loop.scm \
-	guildhall/ext/foof-loop/private/nested-foof-loop.scm \
-	guildhall/ext/foof-loop/private/syn-param.scm \
-	guildhall/ext/irregex/private/irregex-utils.scm \
-	guildhall/ext/irregex/private/irregex-r6rs.scm \
-	guildhall/ext/irregex/private/test-irregex.scm \
-	guildhall/ext/fmt/private/fmt-pretty.scm \
-	guildhall/ext/fmt/private/test-fmt.scm \
-	guildhall/ext/fmt/private/test-round.scm \
-	guildhall/ext/fmt/private/fmt-unicode.scm \
-	guildhall/ext/fmt/private/mantissa.scm \
-	guildhall/ext/fmt/private/fmt-column.scm \
-	guildhall/ext/fmt/private/fmt.scm \
-	guildhall/ext/trc-testing/private/test.scm \
+	guildhall/ext/inc/foof-loop.scm \
+	guildhall/ext/inc/nested-foof-loop.scm \
+	guildhall/ext/inc/syn-param.scm \
+	guildhall/ext/inc/irregex-utils.scm \
+	guildhall/ext/inc/irregex-r6rs.scm \
+	guildhall/ext/inc/fmt-pretty.scm \
+	guildhall/ext/inc/mantissa.scm \
+	guildhall/ext/inc/fmt-column.scm \
+	guildhall/ext/inc/fmt.scm \
+	guildhall/ext/inc/test.scm \
 	spells/private/ascii.scm \
 	spells/private/misc.scm \
 	spells/private/condition.scm \

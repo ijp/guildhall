@@ -65,8 +65,7 @@
   (define (error . args)
     (apply rnrs:error "trc-testing" args))
 
-  ;; Hack.  We shouldn't be messing in another module's path.
-  (include-from-path "guildhall/ext/foof-loop/private/syn-param")
-  (include-from-path "guildhall/ext/trc-testing/private/test")
+  (include-from-path "guildhall/ext/inc/syn-param")
+  (include-from-path "guildhall/ext/inc/test")
 
   )

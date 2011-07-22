@@ -84,8 +84,8 @@
     initial
     )
 
-  (include-from-path "guildhall/ext/foof-loop/private/syn-param")
-  (include-from-path "guildhall/ext/foof-loop/private/foof-loop")
+  (include-from-path "guildhall/ext/inc/syn-param")
+  (include-from-path "guildhall/ext/inc/foof-loop")
 
   (define-syntax in-stream
     (syntax-rules ()

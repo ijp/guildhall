@@ -12,7 +12,6 @@ SOURCES =					\
 	spells/hash-utils.scm \
 	spells/logging.scm \
 	spells/misc.scm \
-	spells/misc/compat.scm \
 	spells/operations.scm \
 	spells/opt-args.scm \
 	spells/pathname.scm \
@@ -102,12 +101,10 @@ NOCOMP_SOURCES = \
 	guildhall/ext/inc/fmt.scm \
 	guildhall/ext/inc/test.scm \
 	spells/private/ascii.scm \
-	spells/private/misc.scm \
 	spells/private/condition.scm \
 	spells/private/stexidoc.scm \
 	spells/private/format.scm \
 	spells/private/assert.scm \
-	spells/private/gc.scm \
 	spells/private/xvector.scm \
 	spells/test-runner/environment.scm \
 	guildhall/private/hook-runner.sps

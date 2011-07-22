@@ -46,8 +46,8 @@ SOURCES =					\
 	guildhall/ext/foof-loop.scm \
 	guildhall/ext/foof-loop/nested.scm \
 	guildhall/ext/irregex.scm \
-	guildhall/ext/private/define-values.scm \
-	guildhall/ext/private/let-optionals.scm \
+	guildhall/ext/define-values.scm \
+	guildhall/ext/let-optionals.scm \
 	guildhall/ext/trc-testing.scm \
 	guildhall/ext/trc-testing/display-condition.scm \
 	guildhall/ext/trc-testing/limited-write.scm \

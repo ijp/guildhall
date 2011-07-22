@@ -47,7 +47,7 @@
           (srfi :69 basic-hash-tables)
           (srfi :1 lists)
           (except (srfi :13 strings) string-hash)
-          (guildhall ext private let-optionals)
+          (guildhall ext let-optionals)
           (only (guile) include-from-path))
   
   (define (make-eq?-table) (make-hash-table eq?))

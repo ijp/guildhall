@@ -9,8 +9,6 @@ SOURCES =					\
 	spells/condition.scm \
 	spells/filesys.scm \
 	spells/finite-types.scm \
-	spells/gc.scm \
-	spells/gc/compat.scm \
 	spells/hash-utils.scm \
 	spells/logging.scm \
 	spells/match.scm \

@@ -44,11 +44,21 @@
           make-or-expression)
   (import (rnrs)
           (only (srfi :1) append-reverse count)
-          (only (spells gc) make-weak-cell weak-cell-ref)
+          (ice-9 weak-vector)
           (only (spells misc) unspecific)
           (spells operations)
           (guildhall ext foof-loop)
           (guildhall ext fmt))
+
+(define (make-weak-cell obj)
+  ;; Guile seems to have issues with `weak-vector', so we do it this
+  ;; way
+  (let ((result (make-weak-vector 1)))
+    (vector-set! result 0 obj)
+    result))
+
+(define (weak-cell-ref weak-cell)
+  (vector-ref weak-cell 0))
 
 
 ;;; Operations valid on all expressions

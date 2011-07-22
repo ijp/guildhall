@@ -63,9 +63,8 @@
     (only (guile) include-from-path)
     (srfi :8 receive)
     (srfi :45 lazy)
-    (ice-9 streams)
-    (guildhall ext private include))
-
+    (ice-9 streams))
+  
   (define-syntax define-aux
     (syntax-rules ()
       ((_ id ...)

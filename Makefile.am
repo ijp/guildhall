@@ -47,11 +47,6 @@ SOURCES =					\
 	guildhall/ext/foof-loop/nested.scm \
 	guildhall/ext/irregex.scm \
 	guildhall/ext/private/define-values.scm \
-	guildhall/ext/private/include.scm \
-	guildhall/ext/private/include/compat.scm \
-	guildhall/ext/private/include/filesys.scm \
-	guildhall/ext/private/include/helper.scm \
-	guildhall/ext/private/include/utils.scm \
 	guildhall/ext/private/let-optionals.scm \
 	guildhall/ext/trc-testing.scm \
 	guildhall/ext/trc-testing/display-condition.scm \

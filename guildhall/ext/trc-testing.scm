@@ -60,7 +60,6 @@
           (srfi :8 receive)
           (srfi :9 records)
           (guildhall ext private define-values)
-          (guildhall ext private include)
           (guildhall ext trc-testing parameters))
 
   (define (error . args)

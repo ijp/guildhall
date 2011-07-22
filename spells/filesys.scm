@@ -76,7 +76,6 @@
           (srfi :98 os-environment-variables)
           (spells string-utils)
           (spells pathname)
-          (spells time-lib)
           (prefix (guile) guile:))
 
   ;; First, (spells filesys compat) is inlined here.
@@ -174,6 +173,11 @@
   (define file-readable? (make-file-check guile:R_OK))
   (define file-writable? (make-file-check guile:W_OK))
   (define file-executable? (make-file-check guile:X_OK))
+
+  (define *posix-epoch* (date->time-utc (make-date 0 0 0 0 1 1 1970 0)))
+
+  (guile:define* (posix-timestamp->time-utc timestamp #:optional (nanoseconds 0))
+    (add-duration *posix-epoch* (make-time time-duration nanoseconds timestamp)))
 
   (define (file-modification-time pathname)
     (let ((st (guile:stat (->fn pathname))))

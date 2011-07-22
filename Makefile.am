@@ -20,7 +20,6 @@ SOURCES =					\
 	spells/string-utils.scm \
 	spells/syntax-utils.scm \
 	spells/sysutils.scm \
-	spells/time-lib.scm \
 	spells/tracing.scm \
 	spells/tracing/compat.scm \
 	spells/xvector.scm \

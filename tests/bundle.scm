@@ -25,10 +25,12 @@
 
 (import (rnrs)
         (guildhall ext trc-testing)
-        (spells test-runner environment)
         (spells pathname)
+        (only (guile) getenv)
         (guildhall package)
         (guildhall bundle))
+
+(define (this-directory) (or (getenv "srcdir") "."))
 
 
 (define (symbol<? s1 s2)

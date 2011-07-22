@@ -28,8 +28,8 @@
         (spells pathname)
         (spells filesys)
         (spells logging)
+        (only (guile) getenv)
         (guildhall ext trc-testing)
-        (spells test-runner environment)
         (guildhall private utils)
         (guildhall inventory)
         (guildhall package)
@@ -37,6 +37,8 @@
         (guildhall hooks)
         (guildhall repository)
         (guildhall database))
+
+(define (this-directory) (or (getenv "srcdir") "."))
 
 (define debug-output? #f)
 

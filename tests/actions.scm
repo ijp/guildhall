@@ -25,12 +25,14 @@
 (import (except (rnrs) delete-file file-exists?)
         (spells pathname)
         (spells filesys)
+        (only (guile) getenv)
         (guildhall ext trc-testing)
-        (spells test-runner environment)
         (guildhall private utils)
         (guildhall private zip)
         (guildhall inventory)
         (guildhall actions))
+
+(define (this-directory) (or (getenv "srcdir") "."))
 
 (define-test-suite actions-tests
   "Action library")

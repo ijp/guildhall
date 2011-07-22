@@ -20,7 +20,6 @@ SOURCES =					\
 	spells/string-utils.scm \
 	spells/syntax-utils.scm \
 	spells/sysutils.scm \
-	spells/test-runner.scm \
 	spells/time-lib.scm \
 	spells/tracing.scm \
 	spells/tracing/compat.scm \
@@ -96,7 +95,6 @@ NOCOMP_SOURCES = \
 	guildhall/ext/inc/test.scm \
 	spells/private/condition.scm \
 	spells/private/xvector.scm \
-	spells/test-runner/environment.scm \
 	guildhall/private/hook-runner.sps
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
@@ -153,7 +151,7 @@ TESTDATA = \
 
 EXTRA_DIST += $(TESTS) $(TESTDATA)
 
-TESTS_ENVIRONMENT=$(top_builddir)/env guile --no-auto-compile -s 
+TESTS_ENVIRONMENT=srcdir=$(abs_top_srcdir)/tests/ $(top_builddir)/env guile --no-auto-compile -s 
 
 info_TEXINFOS = docs/guildhall.texi
 guildhall_TEXINFOS = \

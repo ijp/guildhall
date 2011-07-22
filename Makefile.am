@@ -96,11 +96,7 @@ NOCOMP_SOURCES = \
 	guildhall/ext/inc/fmt-column.scm \
 	guildhall/ext/inc/fmt.scm \
 	guildhall/ext/inc/test.scm \
-	spells/private/ascii.scm \
 	spells/private/condition.scm \
-	spells/private/stexidoc.scm \
-	spells/private/format.scm \
-	spells/private/assert.scm \
 	spells/private/xvector.scm \
 	spells/test-runner/environment.scm \
 	guildhall/private/hook-runner.sps

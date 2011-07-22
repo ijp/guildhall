@@ -63,7 +63,7 @@
           (spells pathname)
           (spells filesys)
           (spells logging)
-          (guildhall ocelotl wt-tree)
+          (guildhall ext wt-tree)
           (web uri))
 
 (define-syntax define-guarantor

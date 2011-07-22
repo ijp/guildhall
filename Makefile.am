@@ -2,7 +2,7 @@ moddir=$(datadir)/guile/site/$(GUILE_EFFECTIVE_VERSION)
 ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
 SOURCES =					\
-	guildhall/ocelotl/wt-tree.scm \
+	guildhall/ext/wt-tree.scm \
 	spells/algebraic-types.scm \
 	spells/algebraic-types/helpers.scm \
 	spells/alist.scm \

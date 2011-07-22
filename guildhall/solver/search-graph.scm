@@ -107,7 +107,7 @@
           (srfi :67 compare-procedures)
           (guildhall ext foof-loop)
           (guildhall ext fmt)
-          (guildhall ocelotl wt-tree)
+          (guildhall ext wt-tree)
           (spells record-types)
           (spells xvector)
           (spells tracing)

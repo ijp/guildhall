@@ -52,7 +52,7 @@
           (guildhall ext foof-loop)
           (spells record-types)
           (spells xvector)
-          (guildhall ocelotl wt-tree)
+          (guildhall ext wt-tree)
           (guildhall private utils)
           (guildhall solver logging)
           (guildhall solver choice)

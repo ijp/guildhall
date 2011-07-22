@@ -47,7 +47,7 @@
           (spells logging)
           (guildhall ext fmt)
           (guildhall ext foof-loop)
-          (guildhall ocelotl wt-tree)
+          (guildhall ext wt-tree)
           (guildhall private utils)
           (guildhall solver logging)
           (guildhall solver choice)

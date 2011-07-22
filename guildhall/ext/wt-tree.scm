@@ -33,7 +33,7 @@
 ;;; Code:
 #!r6rs
 
-(library (guildhall ocelotl wt-tree)
+(library (guildhall ext wt-tree)
   (export make-wt-tree-type
           number-wt-type
           string-wt-type

@@ -11,7 +11,6 @@ SOURCES =					\
 	spells/finite-types.scm \
 	spells/hash-utils.scm \
 	spells/logging.scm \
-	spells/misc.scm \
 	spells/operations.scm \
 	spells/opt-args.scm \
 	spells/pathname.scm \

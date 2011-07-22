@@ -45,7 +45,6 @@
   (import (rnrs)
           (only (srfi :1) append-reverse count)
           (ice-9 weak-vector)
-          (only (spells misc) unspecific)
           (spells operations)
           (guildhall ext foof-loop)
           (guildhall ext fmt))
@@ -138,7 +137,7 @@
         (make-expression)))
 
 (define-operation (expression/changed expr new-value)
-  (unspecific))
+  (values))
 
 (define (make-expression-wrapper child)
   (join (object #f

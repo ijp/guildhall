@@ -42,8 +42,7 @@
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
           (guildhall ext define-values)
-          (only (guile) assq-ref acons variable-ref)
-          (only (spells misc) and=> unspecific)
+          (only (guile) assq-ref acons variable-ref and=>)
           (ice-9 match)
           (spells operations)
           (spells pathname)
@@ -353,7 +352,7 @@
                                  vals)
       (lambda (db)
         ;; no need to do anything
-        (unspecific)))))
+        (values)))))
 
 (define-command init
   (description "Initialize a destination.")
@@ -433,7 +432,7 @@
     (if output-filename
         (call-with-output-file/atomic output-filename do-scan)
         (do-scan (current-output-port)))
-    (unspecific)))
+    (values)))
 
 (define-command scan-bundles
   (description "Scan one or more directories for bundles.")

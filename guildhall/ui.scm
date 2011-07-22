@@ -33,7 +33,6 @@
           ui/prompt)
   (import (rnrs)
           (srfi :39 parameters)
-          (only (spells misc) unspecific)
           (spells operations))
 
 (define-operation (ui/message ui . formats))
@@ -43,7 +42,7 @@
 (define (make-null-ui)
   (object #f
     ((ui/message ui . formats)
-     (unspecific))
+     (values))
     ((ui/y-or-n ui default message . maybe-choose-yes)
      default)))
 

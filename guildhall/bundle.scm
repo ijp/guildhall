@@ -42,8 +42,7 @@
           (only (srfi :13) string-join string-suffix?)
           (guildhall ext foof-loop)
           (guildhall ext fmt)
-          (only (guile) assq-ref)
-          (spells misc)
+          (only (guile) assq-ref or-map)
           (only (spells record-types)
                 define-functional-fields)
           (ice-9 match)
@@ -65,7 +64,7 @@
 (define-operation (bundle/identifier object))
 (define-operation (bundle/extract-entry object entry dest-port))
 (define-operation (bundle/close object)
-  (unspecific))
+  (values))
 
 (define (close-bundle bundle)
   (bundle/close (bundle-ops bundle)))

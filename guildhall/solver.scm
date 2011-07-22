@@ -42,8 +42,7 @@
           (spells hash-utils)
           (spells record-types)
           (spells tracing)
-          (spells misc)
-          (only (guile) assq-ref)
+          (only (guile) assq-ref or-map and=>)
           (spells logging)
           (guildhall ext fmt)
           (guildhall ext foof-loop)
@@ -651,7 +650,7 @@
     (define (assign-step-tier step-num tier)
       (let ((step (search-graph-step graph step-num)))
         (cond ((tier=? (step-tier step) tier)
-               (unspecific))
+               (values))
               ((and (step-blessed-solution? step)
                     (tier>=? tier already-generated-tier))
                (log/trace "Step " step-num "is a blessed solution"

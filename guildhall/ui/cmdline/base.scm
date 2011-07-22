@@ -48,9 +48,9 @@
           (guildhall ext define-values)
           (spells operations)
           (only (guile) assq-ref acons
-                variable-ref make-variable variable-set!)
+                variable-ref make-variable variable-set!
+                and=>)
           (spells args-fold)
-          (only (spells misc) and=> unspecific)
           (spells record-types)
           (guildhall ext foof-loop)
           (guildhall ext fmt)

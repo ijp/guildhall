@@ -94,10 +94,9 @@
           (srfi :67 compare-procedures)
           (guildhall ext fmt)
           (guildhall ext foof-loop)
-          (only (spells misc) unspecific)
           (spells hash-utils)
           (spells record-types)
-          (spells misc)
+          (only (guile) and=>)
           (spells tracing)
           (guildhall ext wt-tree)
           (guildhall private utils)
@@ -518,7 +517,7 @@
                        (proc choice datum))
                      #f
                      table)
-  (unspecific))
+  (values))
 
 )
 

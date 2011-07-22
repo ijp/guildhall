@@ -37,7 +37,7 @@
   (import (except (rnrs) delete-file file-exists?)
           (only (srfi :13) string-map string-prefix?)
           (srfi :14 char-sets)
-          (only (spells misc) or-map)
+          (only (guile) or-map)
           (only (spells opt-args) :optional)
           (spells operations)
           (spells ports)

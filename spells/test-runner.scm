@@ -28,7 +28,7 @@
           (rnrs programs)
           (only (srfi :1 lists) span)
           (srfi :8 receive)
-          (spells misc)
+          (only (guile) and=>)
           (srfi :39 parameters)
           (ice-9 match)
           (spells filesys)

@@ -24,7 +24,7 @@
 
 (import (rnrs)
         (srfi :8 receive)
-        (spells misc)
+        (only (guile) and=>)
         (guildhall ext foof-loop)
         (guildhall ext trc-testing)
         (guildhall inventory)

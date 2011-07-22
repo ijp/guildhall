@@ -42,7 +42,7 @@
           (srfi :8 receive)
           (guildhall ext foof-loop)
           (guildhall ext irregex)
-          (only (spells misc) and=> or-map)
+          (only (guile) and=> or-map)
           (spells record-types)
           (ice-9 match)
           (spells tracing) ;debug

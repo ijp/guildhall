@@ -39,7 +39,6 @@
           (srfi :8 receive)
           (only (srfi :13) string-suffix?)
           (srfi :45 lazy)
-          (only (spells misc) unspecific)
           (only (guile) assq-ref)
           (ice-9 match)
           (guildhall ext foof-loop)
@@ -175,9 +174,7 @@
            (fatal (cat "`" (->namestring program-path)
                        "' was terminated by signal " signal)))
           ((= status expected-status)
-           (if (null? results)
-               (unspecific)
-               (apply values results)))
+           (apply values results))
           (else
            (fatal (cat "`" (->namestring program-path)
                        "' returned with unexpected status " status))))))

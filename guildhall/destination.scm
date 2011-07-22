@@ -50,8 +50,7 @@
                 string-concatenate-reverse
                 string-contains) 
           (srfi :45 lazy)
-          (only (guile) assq-ref)
-          (only (spells misc) and=>)
+          (only (guile) assq-ref and=>)
           (guildhall ext fmt)
           (guildhall ext irregex)
           (guildhall ext foof-loop)

@@ -30,8 +30,6 @@
         (spells logging)
         (guildhall ext trc-testing)
         (spells test-runner environment)
-        (only (spells misc)
-              scheme-implementation)
         (guildhall private utils)
         (guildhall inventory)
         (guildhall package)
@@ -57,8 +55,7 @@
              (pathname-join test-dir "db")
              (make-fhs-destination 'test
                                    (merge-pathnames dest-dir (working-directory)))
-             repositories
-             (scheme-implementation))))
+             repositories)))
     (database-add-bundle! db (pathname-join (this-directory) "bundle"))
     db))
 

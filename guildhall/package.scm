@@ -105,8 +105,7 @@
           (guildhall ext foof-loop)
           (only (spells string-utils) string-split)
           (spells record-types)
-          (only (guile) assq-ref)
-          (spells misc)
+          (only (guile) assq-ref and-map or-map and=>)
           (ice-9 match)
           (spells condition)
           (spells algebraic-types)
@@ -504,7 +503,7 @@
                         "invalid value for property"
                         name value))))
         (else
-         (unspecific))))
+         (values))))
 
 
 ;;; Conditions

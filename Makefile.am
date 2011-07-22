@@ -8,7 +8,6 @@ SOURCES =					\
 	spells/args-fold.scm \
 	spells/condition.scm \
 	spells/filesys.scm \
-	spells/filesys/compat.scm \
 	spells/finite-types.scm \
 	spells/gc.scm \
 	spells/gc/compat.scm \

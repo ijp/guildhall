@@ -47,7 +47,7 @@
                 string-trim-both)
           (spells define-values)
           (spells operations)
-          (spells alist)
+          (only (guile) assq-ref acons)
           (spells args-fold)
           (spells cells)
           (only (spells misc) and=> unspecific)
@@ -119,7 +119,8 @@
                   (prompt-again)))))))
 
 (define (make-cmdline-ui options)
-  (let-assq options (assume-yes? non-interactive?)
+  (let ((assume-yes? (assq-ref options 'assume-yes?))
+        (non-interactive? (assq-ref options 'non-interactive?)))
     (object #f
       ((ui/message ui . formats)
        (apply cmdline/message formats))

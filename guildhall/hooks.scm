@@ -46,7 +46,7 @@
           (srfi :8 receive)
           (guildhall ext foof-loop)
           (guildhall ext fmt)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells pathname)
           (spells filesys)
           (spells process)

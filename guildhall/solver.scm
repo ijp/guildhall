@@ -43,7 +43,7 @@
           (spells record-types)
           (spells tracing)
           (spells misc)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells logging)
           (guildhall ext fmt)
           (guildhall ext foof-loop)

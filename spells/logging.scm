@@ -40,7 +40,7 @@
           (except (srfi :1 lists) map for-each)
           (srfi :19 time)
           (srfi :39 parameters)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells match)
           (spells opt-args)
           (spells record-types))

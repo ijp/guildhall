@@ -42,7 +42,7 @@
   (import (rnrs)
           (guildhall ext fmt)
           (guildhall ext foof-loop)
-          (spells alist)
+          (only (guile) assv-ref)
           (spells logging)
           (guildhall ext wt-tree)
           (guildhall private utils)

@@ -58,7 +58,7 @@
           (guildhall ext foof-loop)
           (guildhall ext fmt)
           (only (spells misc) and=>)
-          (spells alist)
+          (only (guile) assq-ref acons)
           (spells xvector)
           (spells pathname)
           (spells filesys)

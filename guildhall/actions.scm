@@ -40,7 +40,7 @@
           (only (srfi :13) string-suffix?)
           (srfi :45 lazy)
           (only (spells misc) unspecific)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells match)
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)

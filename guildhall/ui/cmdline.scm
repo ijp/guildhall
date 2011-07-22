@@ -42,7 +42,7 @@
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
           (spells define-values)
-          (spells alist)
+          (only (guile) assq-ref acons)
           (only (spells misc) and=> unspecific)
           (spells cells)
           (spells match)
@@ -436,7 +436,7 @@
                                package
                                'location
                                (list (pathname->location bundle-pathname))))))))))
-  (let-assq vals (output-filename)
+  (let ((output-filename (assq-ref vals 'output-filename)))
     (if output-filename
         (call-with-output-file/atomic output-filename do-scan)
         (do-scan (current-output-port)))
@@ -721,5 +721,5 @@
 )
 
 ;; Local Variables:
-;; scheme-indent-styles: (foof-loop (let-assq 2) as-match (let-logger-properties 1))
+;; scheme-indent-styles: (foof-loop as-match (let-logger-properties 1))
 ;; End:

@@ -42,7 +42,7 @@
           (only (srfi :13) string-join string-suffix?)
           (guildhall ext foof-loop)
           (guildhall ext fmt)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells misc)
           (only (spells record-types)
                 define-functional-fields)

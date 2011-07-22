@@ -89,7 +89,7 @@
           (srfi :67 compare-procedures)
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells pathname)
           (spells filesys)
           (guildhall ext fmt)

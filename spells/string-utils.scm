@@ -30,7 +30,7 @@
           (srfi :13 strings)
           (srfi :14 char-sets)
           (srfi :26 cut)
-          (spells alist))
+          (only (guile) assq-ref))
 
 
   ;;@defun string-split string splitter

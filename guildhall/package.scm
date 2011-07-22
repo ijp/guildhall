@@ -105,7 +105,7 @@
           (guildhall ext foof-loop)
           (only (spells string-utils) string-split)
           (spells record-types)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells misc)
           (spells match)
           (spells condition)

@@ -50,7 +50,7 @@
           (only (spells misc)
                 and=>
                 scheme-implementation)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells match)
           (spells record-types)
           (spells pathname)

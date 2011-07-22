@@ -37,7 +37,7 @@
           (spells operations)
           (spells args-fold)
           (guildhall ext fmt)
-          (spells alist)
+          (only (guile) assq-ref)
           (spells match)
           (spells tracing) ;debug
           (guildhall private utils)
@@ -351,7 +351,6 @@
 
 ;; Local Variables:
 ;; scheme-indent-styles: (as-match
-;;                        (let-assq 2)
 ;;                        (fmt-let 2)
 ;;                        (object 1)
 ;;                        (dsp-section 1)

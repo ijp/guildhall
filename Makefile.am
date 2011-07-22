@@ -5,7 +5,6 @@ SOURCES =					\
 	guildhall/ext/wt-tree.scm \
 	spells/algebraic-types.scm \
 	spells/algebraic-types/helpers.scm \
-	spells/alist.scm \
 	spells/args-fold.scm \
 	spells/cells.scm \
 	spells/condition.scm \

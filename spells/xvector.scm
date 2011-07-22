@@ -34,15 +34,15 @@
           xvector-walk
           xvector->list
           list->xvector)
-  (import (except (rnrs base) error)
+  (import (rename (rnrs base) (error rnrs:error))
           (rnrs control)
           (rnrs arithmetic bitwise)
           (srfi :8 receive)
           (srfi :9 records)
-          (only (guile) include-from-path)
-          (only (spells error) make-error-signaller))
-
-  (define error (make-error-signaller "(spells xvector)"))
+          (only (guile) include-from-path))
+  
+  (define (error . args)
+    (apply rnrs:error "(spells xvector)" args))
   (define arithmetic-shift bitwise-arithmetic-shift)
   (define (extract-bit-field size position integer)
     (bitwise-bit-field integer position (+ position size)))

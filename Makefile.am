@@ -7,7 +7,6 @@ SOURCES =					\
 	spells/algebraic-types/helpers.scm \
 	spells/args-fold.scm \
 	spells/condition.scm \
-	spells/error.scm \
 	spells/filesys.scm \
 	spells/filesys/compat.scm \
 	spells/finite-types.scm \

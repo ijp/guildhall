@@ -23,13 +23,13 @@
 ;; the tree (they are sort of like Morse codes). LZ77 makes it
 ;; possible to copy parts of the recently decompressed data.
 
-(library (weinholt compression inflate (1 0 20101007))
+(library (guildhall weinholt compression inflate (1 0 20101007))
   (export inflate make-inflater)
   (import (rnrs)
           (only (srfi :1 lists) iota)
-          (weinholt compression bitstream (1))
-          (weinholt compression huffman (0 (>= 1)))
-          (weinholt compression sliding-buffer))
+          (guildhall weinholt compression bitstream (1))
+          (guildhall weinholt compression huffman (0 (>= 1)))
+          (guildhall weinholt compression sliding-buffer))
 
   (define-syntax trace
     (syntax-rules ()

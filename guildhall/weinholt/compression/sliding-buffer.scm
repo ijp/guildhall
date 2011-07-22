@@ -29,7 +29,7 @@
 ;;; Code:
 #!r6rs
 
-(library (weinholt compression sliding-buffer)
+(library (guildhall weinholt compression sliding-buffer)
   (export make-sliding-buffer
           sliding-buffer?
           sliding-buffer-init!

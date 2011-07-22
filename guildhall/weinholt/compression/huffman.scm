@@ -21,7 +21,7 @@
 ;; Version (0 1): Added canonical-codes->lookup-table that builds a
 ;; two-level lookup table.
 
-(library (weinholt compression huffman (0 1 20101006))
+(library (guildhall weinholt compression huffman (0 1 20101006))
   (export reconstruct-codes
           canonical-codes->simple-lookup-table
           canonical-codes->lookup-table
@@ -29,7 +29,7 @@
   (import (except (rnrs) fxreverse-bit-field)
           #;(only (srfi :13 strings) string-pad)
           #;(only (srfi :1 lists) iota)
-          (weinholt compression bitstream (1)))
+          (guildhall weinholt compression bitstream (1)))
 
   (define-syntax trace
     (syntax-rules ()

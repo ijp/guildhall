@@ -85,7 +85,7 @@
 ;; (1 0 20090906) - Added crc-64 and the -width procedure. The -update
 ;; procedure uses fixnums if (> (fixnum-width) (crc-width)).
 
-(library (weinholt crypto crc (1 1 20101117))
+(library (guildhall weinholt crypto crc (1 1 20101117))
   (export define-crc)
   (import (rnrs)
           (for (only (srfi :1 lists) iota) expand))

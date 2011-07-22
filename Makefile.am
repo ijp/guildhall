@@ -34,14 +34,14 @@ SOURCES =					\
 	guildhall/ext/trc-testing/parameters.scm \
 	guildhall/ext/trc-testing/port-tracker.scm \
 	guildhall/ext/trc-testing/restart.scm \
-	weinholt/compression/bitstream.scm \
-	weinholt/compression/huffman.scm \
-	weinholt/compression/inflate.scm \
-	weinholt/compression/sliding-buffer.scm \
-	weinholt/compression/zip.scm \
-	weinholt/compression/zip/extra.scm \
-	weinholt/crypto/crc.scm \
-	weinholt/struct/pack.scm \
+	guildhall/weinholt/compression/bitstream.scm \
+	guildhall/weinholt/compression/huffman.scm \
+	guildhall/weinholt/compression/inflate.scm \
+	guildhall/weinholt/compression/sliding-buffer.scm \
+	guildhall/weinholt/compression/zip.scm \
+	guildhall/weinholt/compression/zip/extra.scm \
+	guildhall/weinholt/crypto/crc.scm \
+	guildhall/weinholt/struct/pack.scm \
 	\
 	guildhall/actions.scm \
 	guildhall/bundle.scm \

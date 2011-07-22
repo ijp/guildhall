@@ -30,7 +30,7 @@
           (only (srfi :13) string-null?)
           (guildhall ext foof-loop)
           (guildhall spells string-utils)
-          (prefix (weinholt compression zip) zip:)
+          (prefix (guildhall weinholt compression zip) zip:)
           (guildhall inventory))
 
 ;; This should be made more robust; if there are inconsistencies in

@@ -22,7 +22,7 @@
 ;; Future work: zip64, split files, encryption, various compression
 ;; algorithms.
 
-(library (weinholt compression zip (0 0 20101007))
+(library (guildhall weinholt compression zip (0 0 20101007))
   (export supported-compression-method?
           compression-stored
           compression-shrunk
@@ -90,10 +90,10 @@
           (only (srfi :13 strings) string-prefix? string-suffix?
                 string-contains)
           (srfi :19 time)
-          (weinholt struct pack (1 (>= 3)))
-          (weinholt crypto crc (1 (>= 0)))
-          (weinholt compression inflate (1))
-          (weinholt compression zip extra (0 (>= 0))))
+          (guildhall weinholt struct pack (1 (>= 3)))
+          (guildhall weinholt crypto crc (1 (>= 0)))
+          (guildhall weinholt compression inflate (1))
+          (guildhall weinholt compression zip extra (0 (>= 0))))
 
   (define-crc crc-32)
 

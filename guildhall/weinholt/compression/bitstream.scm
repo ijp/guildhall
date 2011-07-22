@@ -17,7 +17,7 @@
 
 ;; Read bits from binary input ports.
 
-(library (weinholt compression bitstream (1 0 20101007))
+(library (guildhall weinholt compression bitstream (1 0 20101007))
   (export make-bit-reader
           get-bits lookahead-bits align-bit-reader
           get-bit-reader-buffer)

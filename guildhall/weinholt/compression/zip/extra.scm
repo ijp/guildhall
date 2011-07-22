@@ -15,10 +15,10 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #!r6rs
 
-;; Guile-dependent hooks for (weinholt compression zip).  Based on the
+;; Guile-dependent hooks for (guildhall weinholt compression zip).  Based on the
 ;; hooks for Ikarus.
 
-(library (weinholt compression zip extra (0 0 20100411))
+(library (guildhall weinholt compression zip extra (0 0 20100411))
   (export call-with-adorned-output-file get-file-attributes)
   (import (rnrs)
           (only (srfi :1 lists) drop-right)
@@ -27,7 +27,7 @@
           (only (guile) string-split mkdir stat stat:type
                 stat:mtime stat:ctime access? X_OK chmod)
           (srfi :19 time)
-          (weinholt struct pack))
+          (guildhall weinholt struct pack))
 
   (define os-dos 0)
   (define os-unix 3)

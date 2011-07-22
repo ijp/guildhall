@@ -1,6 +1,6 @@
 ;;; nested-foof-loop.scm --- 
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -49,6 +49,7 @@
   (import (rnrs)
           (only (rnrs mutable-pairs) set-cdr!)
           (only (srfi :1) append-reverse)
+          (only (guile) include-from-path)
           (srfi :8 receive)
           (ice-9 streams)
           (wak foof-loop)
@@ -65,4 +66,5 @@
 
   (define-aux parallel nested)
 
+  (include-from-path "wak/foof-loop/private/syn-param")
   (include-file/downcase ((wak foof-loop private) nested-foof-loop)))

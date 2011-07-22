@@ -1,4 +1,4 @@
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -54,18 +54,20 @@
 
   (import (except (rnrs base) error)
           (rename (rnrs base) (error rnrs:error))
+          (only (guile) include-from-path)
           (rnrs lists)
           (rnrs mutable-pairs)
           (srfi :8 receive)
           (srfi :9 records)
           (wak private define-values)
           (wak private include)
-          (wak syn-param)
           (wak trc-testing parameters))
 
   (define (error . args)
     (apply rnrs:error "trc-testing" args))
 
+  ;; Hack.  We shouldn't be messing in another module's path.
+  (include-from-path "wak/foof-loop/private/syn-param.scm")
   (include-file/downcase ((wak trc-testing private) test))
 
   )

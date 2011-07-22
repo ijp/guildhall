@@ -53,7 +53,6 @@ SOURCES =					\
 	wak/private/include/helper.scm \
 	wak/private/include/utils.scm \
 	wak/private/let-optionals.scm \
-	wak/syn-param.scm \
 	wak/trc-testing.scm \
 	wak/trc-testing/display-condition.scm \
 	wak/trc-testing/limited-write.scm \
@@ -109,6 +108,7 @@ NOCOMP_SOURCES = \
 	wak/foof-loop/private/test-foof-loop.scm \
 	wak/foof-loop/private/foof-loop.scm \
 	wak/foof-loop/private/nested-foof-loop.scm \
+	wak/foof-loop/private/syn-param.scm \
 	wak/irregex/private/irregex-utils.scm \
 	wak/irregex/private/irregex-r6rs.scm \
 	wak/irregex/private/test-irregex.scm \
@@ -119,7 +119,6 @@ NOCOMP_SOURCES = \
 	wak/fmt/private/mantissa.scm \
 	wak/fmt/private/fmt-column.scm \
 	wak/fmt/private/fmt.scm \
-	wak/syn-param/private/syn-param.scm \
 	wak/trc-testing/private/test.scm \
 	spells/private/ascii.scm \
 	spells/private/misc.scm \

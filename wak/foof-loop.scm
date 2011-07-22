@@ -60,10 +60,10 @@
   (import
     (rnrs)
     (only (rnrs mutable-pairs) set-cdr!)
+    (only (guile) include-from-path)
     (srfi :8 receive)
     (srfi :45 lazy)
     (ice-9 streams)
-    (wak syn-param)
     (wak private include))
 
   (define-syntax define-aux
@@ -85,6 +85,7 @@
     initial
     )
 
+  (include-from-path "wak/foof-loop/private/syn-param")
   (include-file/downcase ((wak foof-loop private) foof-loop))
 
   (define-syntax in-stream

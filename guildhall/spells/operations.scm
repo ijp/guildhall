@@ -12,7 +12,7 @@
 ;; program. If not, see <http://www.debian.org/misc/bsd.license>.
 
 ;;@ A generic dispatch system similiar to operations in T.
-(library (spells operations)
+(library (guildhall spells operations)
   (export object
           operation
           define-operation

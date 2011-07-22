@@ -29,7 +29,7 @@
           (srfi :8 receive)
           (only (srfi :13) string-null?)
           (guildhall ext foof-loop)
-          (spells string-utils)
+          (guildhall spells string-utils)
           (prefix (weinholt compression zip) zip:)
           (guildhall inventory))
 

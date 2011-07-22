@@ -43,7 +43,7 @@
           (guildhall ext foof-loop)
           (guildhall ext irregex)
           (only (guile) and=> or-map)
-          (spells record-types)
+          (guildhall spells record-types)
           (ice-9 match)
           (guildhall inventory))
 

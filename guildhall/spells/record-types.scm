@@ -15,12 +15,12 @@
 ;;; Code:
 #!r6rs
 
-(library (spells record-types)
+(library (guildhall spells record-types)
   (export define-record-type*
           define-functional-fields
           define-record-discloser)
   (import (rnrs)
-          (for (spells record-types expand-drt) expand))
+          (for (guildhall spells record-types expand-drt) expand))
 
   (define-syntax define-record-type*
     expand-define-record-type*)

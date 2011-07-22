@@ -19,7 +19,7 @@
 ;; a disjoint data type for asynchronous processes, procedures to
 ;; spawn them and wait for their termination as well as several
 ;; utilities built upon these primitives.
-(library (spells process)
+(library (guildhall spells process)
   (export process?
           process-id
           process-input
@@ -49,11 +49,11 @@
           (srfi :8 receive)
           (except (srfi :1 lists) map for-each)
           (srfi :13 strings)
-          (spells pathname)
+          (guildhall spells pathname)
           (only (ice-9 rdelim) read-line)
-          (spells process compat))
+          (guildhall spells process compat))
 
-;; The following documents the interface provided by the `(spells
+;; The following documents the interface provided by the `(guildhall spells
 ;; process compat)' library.
 
 ;;;@subsection Process data type

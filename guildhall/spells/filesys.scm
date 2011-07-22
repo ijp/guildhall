@@ -20,9 +20,9 @@
 
 ;;@ File system interface.
 ;;
-;; This library accepts pathnames, for which @pxref{(spells
+;; This library accepts pathnames, for which @pxref{(guildhall spells
 ;; pathname)}.
-(library (spells filesys)
+(library (guildhall spells filesys)
   (export file-exists?
           create-directory
           create-directory*
@@ -74,11 +74,11 @@
           (only (srfi :13) string-contains string-unfold)
           (srfi :27)
           (srfi :98 os-environment-variables)
-          (spells string-utils)
-          (spells pathname)
+          (guildhall spells string-utils)
+          (guildhall spells pathname)
           (prefix (guile) guile:))
 
-  ;; First, (spells filesys compat) is inlined here.
+  ;; First, (guildhall spells filesys compat) is inlined here.
   (define ->fn ->namestring)
 
   (define i/o-error-constructors
@@ -641,7 +641,7 @@
 ;; argument, which may either be a pathname, or a procedure of one
 ;; argument.  If it is a pathname, the pathname's file name component
 ;; is treated as a textual template which may contain placeholders as
-;; used with @ref{(spells string-utils)
+;; used with @ref{(guildhall spells string-utils)
 ;; string-substitute,,string-substitute}.  The following subsitutions
 ;; are available:
 ;;

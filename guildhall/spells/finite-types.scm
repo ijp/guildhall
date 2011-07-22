@@ -17,7 +17,7 @@
 ;;; Code:
 
 ;;@ Types with a finite number of instances.
-(library (spells finite-types)
+(library (guildhall spells finite-types)
   (export define-enumerated-type
           define-finite-type
           finite-type-case)
@@ -30,7 +30,7 @@
 ;; @i{(This section was derived from work copyrighted @copyright{}
 ;; 1993--2005 by Richard Kelsey, Jonathan Rees, and Mike Sperber.)}
 
-;; The library @code{(spells finite-types)} has two macros for
+;; The library @code{(guildhall spells finite-types)} has two macros for
 ;; defining @dfn{finite} or @dfn{enumerated record types}.  These are
 ;; record types for which there is a fixed set of instances, all of
 ;; which are created at the same time as the record type itself..

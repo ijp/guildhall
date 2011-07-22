@@ -23,10 +23,10 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (spells pathname)
-        (spells filesys)
+        (guildhall spells pathname)
+        (guildhall spells filesys)
         (guildhall ext trc-testing)
-        (spells logging)
+        (guildhall spells logging)
         (guildhall private utils)
         (guildhall inventory)
         (guildhall package)

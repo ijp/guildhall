@@ -18,7 +18,7 @@
 ;;@ This library provides procedures implementing a flexible logging
 ;; system, for example useful for error reporting and logging debug
 ;; messages.
-(library (spells logging)
+(library (guildhall spells logging)
   (export root-logger
           make-logger
           make-log
@@ -42,9 +42,9 @@
           (srfi :39 parameters)
           (only (guile) assq-ref define*)
           (ice-9 match)
-          (spells record-types))
+          (guildhall spells record-types))
   
-;;@extractors (import (spells private stexidoc)) spells-extractors
+;;@extractors (import (guildhall spells private stexidoc)) spells-extractors
 
 ;; @subheading Introduction
 ;;

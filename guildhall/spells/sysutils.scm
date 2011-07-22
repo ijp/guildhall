@@ -2,7 +2,7 @@
 
 ;;@ Miscellaneous procedures providing access to various bits of
 ;; information regarding the host running the scheme implementation.
-(library (spells sysutils)
+(library (guildhall spells sysutils)
   (export lookup-environment-variable
           current-process-environment
           extend-process-environment
@@ -11,7 +11,7 @@
   (import (rnrs base)
           (rnrs lists)
           (srfi :98 os-environment-variables)
-          (spells filesys)
+          (guildhall spells filesys)
           (only (guile)
                 uname
                 utsname:machine

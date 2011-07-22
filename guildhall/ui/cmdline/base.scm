@@ -46,12 +46,12 @@
                 string-null?
                 string-trim-both)
           (guildhall ext define-values)
-          (spells operations)
+          (guildhall spells operations)
           (only (guile) assq-ref acons
                 variable-ref make-variable variable-set!
                 and=>)
-          (spells args-fold)
-          (spells record-types)
+          (guildhall spells args-fold)
+          (guildhall spells record-types)
           (guildhall ext foof-loop)
           (guildhall ext fmt)
           (guildhall private utils)

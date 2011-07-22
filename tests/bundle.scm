@@ -25,7 +25,7 @@
 
 (import (rnrs)
         (guildhall ext trc-testing)
-        (spells pathname)
+        (guildhall spells pathname)
         (only (guile) getenv)
         (guildhall package)
         (guildhall bundle))

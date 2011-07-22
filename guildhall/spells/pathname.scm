@@ -19,7 +19,7 @@
 ;;; Code:
 
 ;;@ Pathname abstraction.
-(library (spells pathname)
+(library (guildhall spells pathname)
   (export make-file
           file?
           file-name
@@ -74,13 +74,13 @@
                   string-hash string-copy string->list string-for-each)
           (srfi :14 char-sets)
           (srfi :39 parameters)
-          (spells hash-utils)
-          (spells record-types)
-          (spells operations)
+          (guildhall spells hash-utils)
+          (guildhall spells record-types)
+          (guildhall spells operations)
           (ice-9 match)
-          (spells string-utils))
+          (guildhall spells string-utils))
 
-;;@extractors (import (spells private stexidoc)) spells-extractors
+;;@extractors (import (guildhall spells private stexidoc)) spells-extractors
 
 ;;@subheading Introduction
 ;;

@@ -3,25 +3,25 @@ ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
 SOURCES =					\
 	guildhall/ext/wt-tree.scm \
-	spells/algebraic-types.scm \
-	spells/algebraic-types/helpers.scm \
-	spells/args-fold.scm \
-	spells/condition.scm \
-	spells/filesys.scm \
-	spells/finite-types.scm \
-	spells/hash-utils.scm \
-	spells/logging.scm \
-	spells/operations.scm \
-	spells/pathname.scm \
-	spells/process.scm \
-	spells/process/compat.scm \
-	spells/record-types.scm \
-	spells/record-types/expand-drt.scm \
-	spells/string-utils.scm \
-	spells/syntax-utils.scm \
-	spells/sysutils.scm \
-	spells/xvector.scm \
-	spells/zipper-tree.scm \
+	guildhall/spells/algebraic-types.scm \
+	guildhall/spells/algebraic-types/helpers.scm \
+	guildhall/spells/args-fold.scm \
+	guildhall/spells/condition.scm \
+	guildhall/spells/filesys.scm \
+	guildhall/spells/finite-types.scm \
+	guildhall/spells/hash-utils.scm \
+	guildhall/spells/logging.scm \
+	guildhall/spells/operations.scm \
+	guildhall/spells/pathname.scm \
+	guildhall/spells/process.scm \
+	guildhall/spells/process/compat.scm \
+	guildhall/spells/record-types.scm \
+	guildhall/spells/record-types/expand-drt.scm \
+	guildhall/spells/string-utils.scm \
+	guildhall/spells/syntax-utils.scm \
+	guildhall/spells/sysutils.scm \
+	guildhall/spells/xvector.scm \
+	guildhall/spells/zipper-tree.scm \
 	guildhall/ext/fmt.scm \
 	guildhall/ext/foof-loop.scm \
 	guildhall/ext/foof-loop/nested.scm \
@@ -90,8 +90,8 @@ NOCOMP_SOURCES = \
 	guildhall/ext/inc/fmt-column.scm \
 	guildhall/ext/inc/fmt.scm \
 	guildhall/ext/inc/test.scm \
-	spells/private/condition.scm \
-	spells/private/xvector.scm \
+	guildhall/spells/private/condition.scm \
+	guildhall/spells/private/xvector.scm \
 	guildhall/private/hook-runner.sps
 
 GOBJECTS = $(SOURCES:%.scm=%.go)

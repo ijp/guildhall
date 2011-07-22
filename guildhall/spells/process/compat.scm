@@ -15,7 +15,7 @@
 ;;; Code:
 #!r6rs
 
-(library (spells process compat)
+(library (guildhall spells process compat)
   (export process?
           process-id
           process-input
@@ -35,7 +35,7 @@
           (rnrs arithmetic bitwise)
           (srfi :8 receive)
           (srfi :9 records)
-          (spells pathname)
+          (guildhall spells pathname)
           (prefix (only (guile)
                         execle
                         waitpid

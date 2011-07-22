@@ -45,7 +45,7 @@
   (import (rnrs)
           (only (srfi :1) append-reverse count)
           (ice-9 weak-vector)
-          (spells operations)
+          (guildhall spells operations)
           (guildhall ext foof-loop)
           (guildhall ext fmt))
 

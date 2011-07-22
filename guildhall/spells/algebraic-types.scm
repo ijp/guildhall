@@ -21,10 +21,10 @@
 ;; facilitating creation of these related record types, the library
 ;; also offers a convenient way to dispatch and destructure instances
 ;; thereof.
-(library (spells algebraic-types)
+(library (guildhall spells algebraic-types)
   (export define-datatype cases)
   (import (rnrs)
-          (for (spells algebraic-types helpers) expand))
+          (for (guildhall spells algebraic-types helpers) expand))
 
 ;;@defspec define-datatype name variant-clause ...
 ;;

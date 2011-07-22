@@ -15,7 +15,7 @@
 ;;; Code:
 #!r6rs
 
-(library (spells hash-utils)
+(library (guildhall spells hash-utils)
   (export hash-combine
           hash-fold)
   (import (rnrs base)

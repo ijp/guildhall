@@ -43,7 +43,7 @@
           (guildhall ext fmt)
           (guildhall ext foof-loop)
           (only (guile) assv-ref)
-          (spells logging)
+          (guildhall spells logging)
           (guildhall ext wt-tree)
           (guildhall private utils)
           (guildhall solver universe)

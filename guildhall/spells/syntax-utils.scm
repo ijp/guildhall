@@ -15,7 +15,7 @@
 ;;; Code:
 #!r6rs
 
-(library (spells syntax-utils)
+(library (guildhall spells syntax-utils)
   (export identifier-append
           symbolic-identifier=?)
   (import (rnrs))

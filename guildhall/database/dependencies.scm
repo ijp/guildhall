@@ -39,7 +39,7 @@
           (ice-9 streams)
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
-          (spells record-types)
+          (guildhall spells record-types)
           (ice-9 match)
           (guildhall database)
           (prefix (guildhall package)

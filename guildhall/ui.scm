@@ -33,7 +33,7 @@
           ui/prompt)
   (import (rnrs)
           (srfi :39 parameters)
-          (spells operations))
+          (guildhall spells operations))
 
 (define-operation (ui/message ui . formats))
 (define-operation (ui/y-or-n ui default message))

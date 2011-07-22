@@ -54,12 +54,12 @@
           (guildhall ext fmt)
           (guildhall ext irregex)
           (guildhall ext foof-loop)
-          (spells record-types)
-          (spells pathname)
-          (spells filesys)
-          (spells logging)
-          (spells process) ;just needed for `chmod'
-          (spells sysutils) ;ditto
+          (guildhall spells record-types)
+          (guildhall spells pathname)
+          (guildhall spells filesys)
+          (guildhall spells logging)
+          (guildhall spells process) ;just needed for `chmod'
+          (guildhall spells sysutils) ;ditto
           (guildhall private utils)
           (guildhall build-info)
           (guildhall package))

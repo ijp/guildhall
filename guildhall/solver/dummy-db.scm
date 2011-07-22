@@ -37,7 +37,7 @@
           (only (srfi :1) append-map filter-map delete-duplicates)
           (ice-9 streams)
           (guildhall ext foof-loop)
-          (spells record-types)
+          (guildhall spells record-types)
           (guildhall solver internals))
 
 (define-record-type* dummy-db

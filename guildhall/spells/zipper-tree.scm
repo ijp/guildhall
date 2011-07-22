@@ -26,7 +26,7 @@
 ;; more performant, at least on implementations that don't provide
 ;; native support for delimited continuations.
 ;;
-(library (spells zipper-tree)
+(library (guildhall spells zipper-tree)
   (export make-zipper
           zipper?
           zipper-node
@@ -47,7 +47,7 @@
           zip-insert-down
           zip-delete)
   (import (rnrs)
-          (only (spells record-types) define-functional-fields))
+          (only (guildhall spells record-types) define-functional-fields))
 
 (define-record-type path
   (fields left up right))

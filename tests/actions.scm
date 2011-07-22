@@ -23,8 +23,8 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (spells pathname)
-        (spells filesys)
+        (guildhall spells pathname)
+        (guildhall spells filesys)
         (only (guile) getenv)
         (guildhall ext trc-testing)
         (guildhall private utils)

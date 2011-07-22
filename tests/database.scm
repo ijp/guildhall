@@ -25,9 +25,9 @@
 
 (import (except (rnrs) delete-file file-exists?)
         (guildhall ext foof-loop)
-        (spells pathname)
-        (spells filesys)
-        (spells logging)
+        (guildhall spells pathname)
+        (guildhall spells filesys)
+        (guildhall spells logging)
         (only (guile) getenv)
         (guildhall ext trc-testing)
         (guildhall private utils)

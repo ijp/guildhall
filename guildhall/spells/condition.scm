@@ -16,7 +16,7 @@
 #!r6rs
 
 ;;@ Additional condition types.
-(library (spells condition)
+(library (guildhall spells condition)
   (export &parser-error make-parser-error parser-error?
           parser-error-port
           &stacked make-stacked-condition stacked-condition? next-condition
@@ -31,4 +31,4 @@
           (guildhall ext fmt)
           (only (guile) include-from-path))
   
-  (include-from-path "spells/private/condition"))
+  (include-from-path "guildhall/spells/private/condition"))

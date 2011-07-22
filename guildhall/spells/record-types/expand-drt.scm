@@ -17,7 +17,7 @@
 ;;; Code:
 #!r6rs
 
-(library (spells record-types expand-drt)
+(library (guildhall spells record-types expand-drt)
   (export expand-define-record-type*
           expand-define-functional-fields)
   (import (for (rnrs base) run (meta -1))
@@ -26,7 +26,7 @@
           (for (srfi :8 receive) run (meta -1))
           (for (srfi :9 records) (meta -1))
           (srfi :39 parameters)
-          (spells syntax-utils))
+          (guildhall spells syntax-utils))
 
 (define (expand-define-record-type* stx)
   ((call-with-current-continuation

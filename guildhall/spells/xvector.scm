@@ -23,7 +23,7 @@
 ;;; Code:
 
 ;;@ This library implements vectors of variable length.
-(library (spells xvector)
+(library (guildhall spells xvector)
   (export make-xvector
           xvector?
           xvector-length
@@ -42,13 +42,13 @@
           (only (guile) include-from-path))
   
   (define (error . args)
-    (apply rnrs:error "(spells xvector)" args))
+    (apply rnrs:error "(guildhall spells xvector)" args))
   (define arithmetic-shift bitwise-arithmetic-shift)
   (define (extract-bit-field size position integer)
     (bitwise-bit-field integer position (+ position size)))
   (define integer-length bitwise-length)
 
-  (include-from-path "spells/private/xvector")
+  (include-from-path "guildhall/spells/private/xvector")
 
 ;;@defun make-xvector
 ;;@defunx xvector? object

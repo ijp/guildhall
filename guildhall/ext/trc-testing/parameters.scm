@@ -105,7 +105,7 @@
                   (report-test-suite passages failures)
                   (length failures))))))))
 
-  ;; Move to (spells error)?
+  ;; Move to (guildhall spells error)?
   (define (warn message . irritants)
     (raise-continuable (condition (make-warning)
                                   (make-message-condition message)

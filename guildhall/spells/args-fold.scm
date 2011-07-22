@@ -40,7 +40,7 @@
 ;;; Code:
 #!r6rs
 
-(library (spells args-fold)
+(library (guildhall spells args-fold)
   (export option
           args-fold
           option-names

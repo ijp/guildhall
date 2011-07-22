@@ -17,7 +17,7 @@
 ;;; Code:
 
 ;;@ Utility procedures operating on strings.
-(library (spells string-utils)
+(library (guildhall spells string-utils)
   (export string-split
           string-escape
           string-substitute)

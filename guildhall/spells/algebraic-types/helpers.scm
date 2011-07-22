@@ -1,10 +1,10 @@
 #!r6rs
 
-(library (spells algebraic-types helpers)
+(library (guildhall spells algebraic-types helpers)
   (export expand-datatype-dispatcher)
   (import (for (rnrs) run (meta -1))
-          (spells string-utils)
-          (spells syntax-utils))
+          (guildhall spells string-utils)
+          (guildhall spells syntax-utils))
 
 (define (cond-clause k name variants variant-clause lose)
   (syntax-case variant-clause (else)

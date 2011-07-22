@@ -1,8 +1,8 @@
 (import (except (rnrs) delete-file file-exists?)
         (srfi :8 receive)
         (guildhall ext trc-testing)
-        (spells filesys)
-        (spells pathname)
+        (guildhall spells filesys)
+        (guildhall spells pathname)
         (guildhall private utils))
 
 

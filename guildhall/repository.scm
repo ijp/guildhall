@@ -39,7 +39,6 @@
           (srfi :14 char-sets)
           (only (guile) or-map define*)
           (spells operations)
-          (spells ports)
           (spells pathname)
           (spells filesys)
           (spells logging)

@@ -20,8 +20,22 @@
   (import (rnrs base)
           (rnrs lists)
           (only (srfi :1 lists) any)
-          (spells procedure-annotations))
+          (guildhall ext define-values))
   
+;; Naive, portable implementation
+(define-values (annotate-procedure procedure-annotation)
+  (let ((tag (list 'procedure-annotation)))
+    (values
+     (lambda (proc value)
+       (lambda args
+         (if (and (not (null? args))
+                  (null? (cdr args))
+                  (eq? (car args) tag))
+             value
+             (apply proc args))))
+     (lambda (proc)
+       (proc tag)))))
+
 ;; Auxiliary syntax
 (define-syntax %method-clauses->handler
   (syntax-rules ()

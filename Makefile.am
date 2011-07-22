@@ -13,7 +13,6 @@ SOURCES =					\
 	spells/logging.scm \
 	spells/operations.scm \
 	spells/pathname.scm \
-	spells/procedure-annotations.scm \
 	spells/process.scm \
 	spells/process/compat.scm \
 	spells/record-types.scm \

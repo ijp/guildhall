@@ -2,7 +2,7 @@
 
 ;;;; Extensible Looping Macros, version 9 (BETA)
 
-;;; Copyright (c) 2008, Taylor R. Campbell
+;;; Copyright (c) 2008, 2011, Taylor R. Campbell
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -45,17 +45,17 @@
 
 (define-syntax loop
   (syntax-rules ()
-    ((LOOP ((loop-clause0 loop-clause1+ ...) ...)
+    ((loop ((loop-clause0 loop-clause1+ ...) ...)
        body
        ...)
-     (LOOP ANONYMOUS-LOOP ((loop-clause0 loop-clause1+ ...) ...)
+     (loop anonymous-loop ((loop-clause0 loop-clause1+ ...) ...)
        body
        ...
-       (ANONYMOUS-LOOP)))
+       (anonymous-loop)))
 
-    ((LOOP name ((loop-clause0 loop-clause1+ ...) ...) body ...)
-     (SYNTACTIC-ERROR-IF-NOT-NAME name ("Malformed loop name:" name)
-       (%LOOP START name ((loop-clause0 loop-clause1+ ...) ...) (body ...))))))
+    ((loop name ((loop-clause0 loop-clause1+ ...) ...) body ...)
+     (syntactic-error-if-not-name name ("Malformed loop name:" name)
+       (%loop start name ((loop-clause0 loop-clause1+ ...) ...) (body ...))))))
 
 ;;; We must be very careful about where to add laziness annotations.
 ;;; In particular, we don't want to wrap only the loop's body, because
@@ -66,14 +66,14 @@
 
 (define-syntax lazy-loop
   (syntax-rules (=>)
-    ((LAZY-LOOP name (loop-clause ...) => result body0 body1+ ...)
-     (SYNTACTIC-ERROR-IF-NOT-NAME name ("Invalid lazy loop name:" name)
-       (LAZY (LOOP EAGER-LOOP (loop-clause ...)
+    ((lazy-loop name (loop-clause ...) => result body0 body1+ ...)
+     (syntactic-error-if-not-name name ("Invalid lazy loop name:" name)
+       (lazy (loop eager-loop (loop-clause ...)
                => result
-               (LET-SYNTAX ((name
-                             (SYNTAX-RULES ()
+               (let-syntax ((name
+                             (syntax-rules ()
                                ((name . arguments)
-                                (LAZY (EAGER-LOOP . arguments))))))
+                                (lazy (eager-loop . arguments))))))
                  body0 body1+ ...)))))))
 
 ;;;; Error Reporting
@@ -86,173 +86,173 @@
 
 (define-syntax syntactic-name?
   (syntax-rules ()
-    ((SYNTACTIC-NAME? (a . d) if-yes if-no) if-no)
-    ((SYNTACTIC-NAME? #(v ...) if-yes if-no) if-no)
-    ((SYNTACTIC-NAME? datum if-yes if-no)
-     (LET-SYNTAX ((TEST-ELLIPSIS
-                   (SYNTAX-RULES ()
-                     ((TEST-ELLIPSIS (VARIABLE datum) YES NO) YES)
-                     ((TEST-ELLIPSIS OTHERWISE YES NO) NO))))
-       (TEST-ELLIPSIS (MAGICAL MYSTERY LIST)
+    ((syntactic-name? (a . d) if-yes if-no) if-no)
+    ((syntactic-name? #(v ...) if-yes if-no) if-no)
+    ((syntactic-name? datum if-yes if-no)
+     (let-syntax ((test-ellipsis
+                   (syntax-rules ()
+                     ((test-ellipsis (variable datum) yes no) yes)
+                     ((test-ellipsis otherwise yes no) no))))
+       (test-ellipsis (magical mystery list)
                       if-yes
-                      (LET-SYNTAX ((TEST-NAME
-                                    (SYNTAX-RULES ()
-                                      ((TEST-NAME datum YES NO) YES)
-                                      ((TEST-NAME OTHERWISE YES NO) NO))))
-                        (TEST-NAME MAGICAL-MYSTERY-SYMBOL if-yes if-no)))))))
+                      (let-syntax ((test-name
+                                    (syntax-rules ()
+                                      ((test-name datum yes no) yes)
+                                      ((test-name otherwise yes no) no))))
+                        (test-name magical-mystery-symbol if-yes if-no)))))))
 
 (define-syntax syntactic-ellipsis?
   (syntax-rules ()
-    ((SYNTACTIC-ELLIPSIS? (a . d) if-yes if-no) if-no)
-    ((SYNTACTIC-ELLIPSIS? #(v ...) if-yes if-no) if-no)
-    ((SYNTACTIC-ELLIPSIS? datum if-yes if-no)
-     (LET-SYNTAX ((TEST-ELLIPSIS
-                   (SYNTAX-RULES ()
-                     ((TEST-ELLIPSIS (VARIABLE datum) YES NO) YES)
-                     ((TEST-ELLIPSIS OTHERWISE YES NO) NO))))
-       (TEST-ELLIPSIS (MAGICAL MYSTERY LIST) if-yes if-no)))))
+    ((syntactic-ellipsis? (a . d) if-yes if-no) if-no)
+    ((syntactic-ellipsis? #(v ...) if-yes if-no) if-no)
+    ((syntactic-ellipsis? datum if-yes if-no)
+     (let-syntax ((test-ellipsis
+                   (syntax-rules ()
+                     ((test-ellipsis (variable datum) yes no) yes)
+                     ((test-ellipsis otherwise yes no) no))))
+       (test-ellipsis (magical mystery list) if-yes if-no)))))
 
 (define-syntax syntactic-error-if-not-name
   (syntax-rules ()
-    ((SYNTACTIC-ERROR-IF-NOT-NAME name (message irritant ...) if-ok)
-     (SYNTACTIC-NAME? name
+    ((syntactic-error-if-not-name name (message irritant ...) if-ok)
+     (syntactic-name? name
        if-ok
-       (SYNTACTIC-ERROR message irritant ...)))))
+       (syntactic-error message irritant ...)))))
 
 (define-syntax syntactic-error-if-not-names
   (syntax-rules ()
-    ((SYNTACTIC-ERROR-IF-NOT-NAMES () (message irritant ...) if-ok)
+    ((syntactic-error-if-not-names () (message irritant ...) if-ok)
      if-ok)
-    ((SYNTACTIC-ERROR-IF-NOT-NAMES (name0 name1+ ...) (message irritant ...)
+    ((syntactic-error-if-not-names (name0 name1+ ...) (message irritant ...)
        if-ok)
-     (SYNTACTIC-ERROR-IF-NOT-NAME name0 (message irritant ...)
-       (SYNTACTIC-ERROR-IF-NOT-NAMES (name1+ ...) (message irritant ...)
+     (syntactic-error-if-not-name name0 (message irritant ...)
+       (syntactic-error-if-not-names (name1+ ...) (message irritant ...)
          if-ok)))))
 
 ;;; Implement these if it is expedient in your Scheme system.
 
 (define-syntax syntactic-error-if-not-bvl
   (syntax-rules ()
-    ((SYNTACTIC-ERROR-IF-NOT-BVL bvl (message irritant ...) if-ok)
+    ((syntactic-error-if-not-bvl bvl (message irritant ...) if-ok)
      if-ok)))
 
 (define-syntax syntactic-error-if-not-bvls
   (syntax-rules ()
-    ((SYNTACTIC-ERROR-IF-NOT-BVLS (bvl ...) (message irritant ...) if-ok)
+    ((syntactic-error-if-not-bvls (bvl ...) (message irritant ...) if-ok)
      if-ok)))
 
 ;;; Utilities for reporting syntax errors in LOOP clauses.
 
 (define-syntax loop-clause-error
-  (syntax-rules (CONTEXT)
+  (syntax-rules (context)
 
-    ((LOOP-CLAUSE-ERROR (CONTEXT iterator (variable ...) arguments))
-     (SYNTACTIC-ERROR "Malformed LOOP clause:"
-                      (FOR variable ... (iterator . arguments))))
+    ((loop-clause-error (context iterator (variable ...) arguments))
+     (syntactic-error "Malformed loop clause:"
+                      (for variable ... (iterator . arguments))))
 
-    ;; Old style.
-    ((LOOP-CLAUSE-ERROR (iterator (variable ...) arguments message))
-     (SYNTACTIC-ERROR message (FOR variable ... (iterator . arguments))))))
+    ;; old style.
+    ((loop-clause-error (iterator (variable ...) arguments message))
+     (syntactic-error message (for variable ... (iterator . arguments))))))
 
 (define-syntax %loop-check
   (syntax-rules ()
-    ((%LOOP-CHECK syntactic-check operand
-                  (CONTEXT iterator (variable ...) arguments)
+    ((%loop-check syntactic-check operand
+                  (context iterator (variable ...) arguments)
                   if-ok)
      (syntactic-check operand
-         ("Malformed LOOP clause:" (FOR variable ... (iterator . arguments)))
+         ("Malformed loop clause:" (for variable ... (iterator . arguments)))
        if-ok))
 
-    ((%LOOP-CHECK syntactic-check operand
+    ((%loop-check syntactic-check operand
                   (iterator (variable ...) arguments message)
                   if-ok)
      (syntactic-check operand
-         (message (FOR variable ... (iterator . arguments)))
+         (message (for variable ... (iterator . arguments)))
        if-ok))))
 
 (define-syntax loop-clause-error-if-not-name
   (syntax-rules ()
-    ((LOOP-CLAUSE-ERROR-IF-NOT-NAME name error-context if-ok)
-     (%LOOP-CHECK SYNTACTIC-ERROR-IF-NOT-NAME name error-context if-ok))))
+    ((loop-clause-error-if-not-name name error-context if-ok)
+     (%loop-check syntactic-error-if-not-name name error-context if-ok))))
 
 (define-syntax loop-clause-error-if-not-names
   (syntax-rules ()
-    ((LOOP-CLAUSE-ERROR-IF-NOT-NAMES names error-context if-ok)
-     (%LOOP-CHECK SYNTACTIC-ERROR-IF-NOT-NAMES names error-context if-ok))))
+    ((loop-clause-error-if-not-names names error-context if-ok)
+     (%loop-check syntactic-error-if-not-names names error-context if-ok))))
 
 (define-syntax loop-clause-error-if-not-bvl
   (syntax-rules ()
-    ((LOOP-CLAUSE-ERROR-IF-NOT-BVL bvl error-context if-ok)
-     (%LOOP-CHECK SYNTACTIC-ERROR-IF-NOT-BVL bvl error-context if-ok))))
+    ((loop-clause-error-if-not-bvl bvl error-context if-ok)
+     (%loop-check syntactic-error-if-not-bvl bvl error-context if-ok))))
 
 (define-syntax loop-clause-error-if-not-bvls
   (syntax-rules ()
-    ((LOOP-CLAUSE-ERROR-IF-NOT-BVLS bvls error-context if-ok)
-     (%LOOP-CHECK SYNTACTIC-ERROR-IF-NOT-BVLS bvls error-context if-ok))))
+    ((loop-clause-error-if-not-bvls bvls error-context if-ok)
+     (%loop-check syntactic-error-if-not-bvls bvls error-context if-ok))))
 
 ;;;; The Guts of LOOP
 
 (define-syntax %loop
-  (syntax-rules (=> FOR WITH LET LET-VALUES WHILE UNTIL
-                    START GO PARSE-FOR CONTINUE FINISH SIMPLIFY-BODY)
+  (syntax-rules (=> for with let let-values while until
+                    start go parse-for continue finish simplify-body)
 
-    ((%LOOP START name loop-clauses body)
-     (%LOOP GO name (() () () () () () () ()) loop-clauses body))
+    ((%loop start name loop-clauses body)
+     (%loop go name (() () () () () () () ()) loop-clauses body))
 
-    ;; Simple case of a single variable, for clarity.
-    ((%LOOP GO name state
-            ((FOR variable (iterator argument ...))
+    ;; simple case of a single variable, for clarity.
+    ((%loop go name state
+            ((for variable (iterator argument ...))
              . loop-clauses)
             body)
      (iterator (variable) (argument ...)
-               %LOOP CONTINUE iterator name state loop-clauses body))
+               %loop continue iterator name state loop-clauses body))
 
-    ;; FOR handler with tail patterns.  Unfortunately, tail patterns are non-
+    ;; for handler with tail patterns.  unfortunately, tail patterns are non-
     ;; standard, so we need the next four clauses rather than this one...
     ;; 
-    ;; ((%LOOP GO name state
-    ;;         ((FOR variable0 variable1+ ... (iterator argument ...))
+    ;; ((%loop go name state
+    ;;         ((for variable0 variable1+ ... (iterator argument ...))
     ;;          . loop-clauses)
     ;;         body)
     ;;  (iterator (variable0 variable1+ ...)
     ;;            (argument ...)
-    ;;            %LOOP CONTINUE iterator name state loop-clauses body))
+    ;;            %loop continue iterator name state loop-clauses body))
 
-;;;;; FOR Clauses: Dealing with Iterators
+;;;;; for clauses: dealing with iterators
 
-    ((%LOOP GO name state
-            ((FOR variable0 variable1 variable2+ ...) . loop-clauses)
+    ((%loop go name state
+            ((for variable0 variable1 variable2+ ...) . loop-clauses)
             body)
-     (%LOOP PARSE-FOR (variable0 variable1 variable2+ ...)
+     (%loop parse-for (variable0 variable1 variable2+ ...)
             ()
-            (FOR variable0 variable1 variable2+ ...)  ;Copy for error message.
+            (for variable0 variable1 variable2+ ...)  ;copy for error message.
             name state loop-clauses body))
 
-    ((%LOOP PARSE-FOR ((iterator argument ...))
+    ((%loop parse-for ((iterator argument ...))
             variables
             original-clause name state loop-clauses body)
      (iterator variables (argument ...)
-               %LOOP CONTINUE iterator name state loop-clauses body))
+               %loop continue iterator name state loop-clauses body))
 
-    ((%LOOP PARSE-FOR (next-variable more0 more1+ ...)
+    ((%loop parse-for (next-variable more0 more1+ ...)
             (variable ...)
             original-clause name state loop-clauses body)
-     (%LOOP PARSE-FOR (more0 more1+ ...)
+     (%loop parse-for (more0 more1+ ...)
             (variable ... next-variable)
             original-clause name state loop-clauses body))
 
-    ((%LOOP PARSE-FOR (non-list)
+    ((%loop parse-for (non-list)
             variables
             original-clause name state loop-clauses body)
-     (SYNTACTIC-ERROR "Malformed FOR clause in LOOP:" original-clause))
+     (syntactic-error "Malformed for clause in loop:" original-clause))
 
-    ((%LOOP ((outer-bvl outer-producer) ...)
+    ((%loop ((outer-bvl outer-producer) ...)
             ((loop-variable loop-initializer loop-stepper) ...)
             ((entry-bvl entry-producer) ...)
             (termination-condition ...)
             ((body-bvl body-producer) ...)
             ((final-bvl final-producer) ...)
-            CONTINUE
+            continue
             iterator
             name
             ((loop-variables ...)
@@ -265,13 +265,13 @@
              final-bindings)
             loop-clauses
             body)
-     (SYNTACTIC-ERROR-IF-NOT-NAMES (loop-variable ...)
-         ("Internal error -- Malformed loop variables from iterator:" iterator)
-       (SYNTACTIC-ERROR-IF-NOT-BVLS
+     (syntactic-error-if-not-names (loop-variable ...)
+         ("Internal error -- malformed loop variables from iterator:" iterator)
+       (syntactic-error-if-not-bvls
            (outer-bvl ... entry-bvl ... body-bvl ... final-bvl ...)
-           ("Internal error -- Malformed BVLs from iterator:" iterator)
-         (%LOOP GO name
-                ((loop-variables ...    ;** Preserve order.
+           ("Internal error -- malformed bvls from iterator:" iterator)
+         (%loop go name
+                ((loop-variables ...    ;** preserve order.
                   (loop-variable loop-initializer loop-stepper) ...)
                  user-bindings
                  user-termination-conditions
@@ -283,61 +283,61 @@
                 loop-clauses
                 body))))
 
-;;;;; User-Directed Clauses
+;;;;; user-directed clauses
 
-    ((%LOOP GO name state
-            ((WITH variable initializer) . loop-clauses)
+    ((%loop go name state
+            ((with variable initializer) . loop-clauses)
             body)
-     (SYNTACTIC-ERROR-IF-NOT-NAME variable
-         ("Malformed WITH clause in LOOP:" (WITH variable initializer))
-       (%LOOP GO name state
-              ((WITH variable initializer variable) . loop-clauses)
+     (syntactic-error-if-not-name variable
+         ("Malformed with clause in loop:" (with variable initializer))
+       (%loop go name state
+              ((with variable initializer variable) . loop-clauses)
               body)))
 
-    ((%LOOP GO name
+    ((%loop go name
             ((loop-variable ...) . more-state)
-            ((WITH variable initializer stepper) . loop-clauses)
+            ((with variable initializer stepper) . loop-clauses)
             body)
-     (SYNTACTIC-ERROR-IF-NOT-NAME variable
-         ("Malformed WITH clause in LOOP:" (WITH variable initializer stepper))
-       (%LOOP GO name
-              ;; Preserve ordering of the user's loop variables.
+     (syntactic-error-if-not-name variable
+         ("Malformed with clause in loop:" (with variable initializer stepper))
+       (%loop go name
+              ;; preserve ordering of the user's loop variables.
               ((loop-variable ... (variable initializer stepper))
                . more-state)
               loop-clauses
               body)))
 
-    ((%LOOP GO name state ((LET variable expression) . loop-clauses) body)
-     (SYNTACTIC-ERROR-IF-NOT-NAME variable
-         ("Malformed LET clause in LOOP:" (LET variable expression))
-       (%LOOP GO name state ((LET-VALUES (variable) expression) . loop-clauses)
+    ((%loop go name state ((let variable expression) . loop-clauses) body)
+     (syntactic-error-if-not-name variable
+         ("Malformed let clause in loop:" (let variable expression))
+       (%loop go name state ((let-values (variable) expression) . loop-clauses)
               body)))
 
-    ((%LOOP GO name (loop-variables (user-binding ...) . more-state)
-            ((LET-VALUES user-bvl user-producer) . loop-clauses)
+    ((%loop go name (loop-variables (user-binding ...) . more-state)
+            ((let-values user-bvl user-producer) . loop-clauses)
             body)
-     (SYNTACTIC-ERROR-IF-NOT-BVL user-bvl
-         ("Malformed LET-VALUES clause in LOOP:"
-          (LET-VALUES user-bvl user-producer))
-       (%LOOP GO name (loop-variables
-                       ;; Preserve order of the user's termination conditions.
+     (syntactic-error-if-not-bvl user-bvl
+         ("Malformed let-values clause in loop:"
+          (let-values user-bvl user-producer))
+       (%loop go name (loop-variables
+                       ;; preserve order of the user's termination conditions.
                        (user-binding ... (user-bvl user-producer))
                        . more-state)
               loop-clauses
               body)))
 
-;;;;;; User-Directed Clauses, continued
+;;;;;; user-directed clauses, continued
 
-    ((%LOOP GO name state ((WHILE condition) . loop-clauses) body)
-     (%LOOP GO name state ((UNTIL (NOT condition)) . loop-clauses) body))
+    ((%loop go name state ((while condition) . loop-clauses) body)
+     (%loop go name state ((until (not condition)) . loop-clauses) body))
 
-    ((%LOOP GO name (loop-variables
+    ((%loop go name (loop-variables
                      user-bindings
                      (user-termination-condition ...)
                      . more-state)
-            ((UNTIL user-termination-condition*) . loop-clauses)
+            ((until user-termination-condition*) . loop-clauses)
             body)
-     (%LOOP GO name
+     (%loop go name
             (loop-variables
              user-bindings
              (user-termination-condition ... user-termination-condition*)
@@ -345,36 +345,36 @@
             loop-clauses
             body))
 
-    ;; Compatibility forms.  These clauses *must* come after all
+    ;; compatibility forms.  these clauses *must* come after all
     ;; others, because there is no keyword, so these would shadow any
     ;; clauses with keywords.
 
-    ((%LOOP GO name state ((variable initializer) . loop-clauses) body)
-     (SYNTACTIC-ERROR-IF-NOT-NAME variable
-         ("Malformed named-LET-style clause in LOOP:" (variable initializer))
-       (%LOOP GO name state
-              ((WITH variable initializer) . loop-clauses)
+    ((%loop go name state ((variable initializer) . loop-clauses) body)
+     (syntactic-error-if-not-name variable
+         ("Malformed named-let-style clause in loop:" (variable initializer))
+       (%loop go name state
+              ((with variable initializer) . loop-clauses)
               body)))
 
-    ((%LOOP GO name state ((variable initializer stepper) . loop-clauses) body)
-     (SYNTACTIC-ERROR-IF-NOT-NAME variable
-         ("Malformed DO-style clause in LOOP:" (variable initializer stepper))
-       (%LOOP GO name state
-              ((WITH variable initializer stepper) . loop-clauses)
+    ((%loop go name state ((variable initializer stepper) . loop-clauses) body)
+     (syntactic-error-if-not-name variable
+         ("Malformed do-style clause in loop:" (variable initializer stepper))
+       (%loop go name state
+              ((with variable initializer stepper) . loop-clauses)
               body)))
 
-    ((%LOOP GO name state (clause . loop-clauses) body)
-     (SYNTACTIC-ERROR "Malformed LOOP clause:" clause))
+    ((%loop go name state (clause . loop-clauses) body)
+     (syntactic-error "Malformed loop clause:" clause))
 
-;;;;; Finishing -- Generating Output
+;;;;; finishing -- generating output
 
-    ((%LOOP GO name state () (=> result-form . body))
-     (%LOOP FINISH name state result-form body))
+    ((%loop go name state () (=> result-form . body))
+     (%loop finish name state result-form body))
 
-    ((%LOOP GO name state () body)
-     (%LOOP FINISH name state (IF #F #F) body))
+    ((%loop go name state () body)
+     (%loop finish name state (if #f #f) body))
 
-    ((%LOOP FINISH name
+    ((%loop finish name
             (((loop-variable loop-initializer loop-stepper) ...)
              user-bindings
              user-termination-conditions
@@ -385,87 +385,87 @@
              final-bindings)
             result-form
             body)
-     (LET-VALUES outer-bindings
-       (DEFINE (LOOP-PROCEDURE loop-variable ...)
-         (LET-VALUES entry-bindings
-           (%LOOP SIMPLIFY-BODY
+     (let-values outer-bindings
+       (define (loop-procedure loop-variable ...)
+         (let-values entry-bindings
+           (%loop simplify-body
                   termination-conditions
-                  (LET-VALUES final-bindings
-                    (WITH-EXTENDED-PARAMETER-OPERATORS
+                  (let-values final-bindings
+                    (with-extended-parameter-operators
                         ((name
-                          (LOOP-PROCEDURE (loop-variable . loop-stepper)
+                          (loop-procedure (loop-variable . loop-stepper)
                                           ...)))
                       result-form))
                   body-bindings
                   user-bindings
                   user-termination-conditions
-                  (WITH-EXTENDED-PARAMETER-OPERATORS
+                  (with-extended-parameter-operators
                       ((name
-                        (LOOP-PROCEDURE (loop-variable . loop-stepper)
+                        (loop-procedure (loop-variable . loop-stepper)
                                         ...)))
                     . body))))
-       (LOOP-PROCEDURE loop-initializer ...)))
+       (loop-procedure loop-initializer ...)))
 
-;;;;;; Simplifying the Body
+;;;;;; simplifying the body
 
-    ;; No iterator- or user-introduced termination conditions at all.
-    ;; No test or closure needed.
-    ((%LOOP SIMPLIFY-BODY
+    ;; no iterator- or user-introduced termination conditions at all.
+    ;; no test or closure needed.
+    ((%loop simplify-body
             ()
             final-form
             body-bindings
             user-bindings
             ()
             body-form)
-     (LET-VALUES body-bindings
-       (LET-VALUES user-bindings
+     (let-values body-bindings
+       (let-values user-bindings
          body-form)))
 
-    ;; Iterator-introduced termination conditions only.  One test and
+    ;; iterator-introduced termination conditions only.  one test and
     ;; no closure needed.
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop simplify-body
             (termination-condition ...)
             final-form
             body-bindings
             user-bindings
-            ()                          ;No user termination conditions
+            ()                          ;no user termination conditions
             body-form)
-     (IF (OR termination-condition ...)
+     (if (or termination-condition ...)
          final-form
-         (LET-VALUES body-bindings
-           (LET-VALUES user-bindings
+         (let-values body-bindings
+           (let-values user-bindings
              body-form))))
 
-    ;; The closure is needed here because the body bindings shouldn't
+    ;; the closure is needed here because the body bindings shouldn't
     ;; be visible in the final form.
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop simplify-body
             ()
             final-form
             body-bindings
             user-bindings
             (user-termination-condition ...)
             body-form)
-     (LET ((FINISH (LAMBDA () final-form)))
-       (LET-VALUES body-bindings
-         (LET-VALUES user-bindings
-           (IF (OR user-termination-condition ...)
-               (FINISH)
+     (let ((finish (lambda () final-form)))
+       (let-values body-bindings
+         (let-values user-bindings
+           (if (or user-termination-condition ...)
+               (finish)
                body-form)))))
 
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop simplify-body
             (termination-condition ...)
             final-form
             body-bindings
             user-bindings
             (user-termination-condition ...)
             body-form)
-     (LET ((FINISH (LAMBDA () final-form)))
-       (IF (OR termination-condition ...)
-           (FINISH)
-           (LET-VALUES body-bindings
-             (LET-VALUES user-bindings
-               (IF (OR user-termination-condition ...)
-                   (FINISH)
+     (let ((finish (lambda () final-form)))
+       (if (or termination-condition ...)
+           (finish)
+           (let-values body-bindings
+             (let-values user-bindings
+               (if (or user-termination-condition ...)
+                   (finish)
                    body-form))))))))
 
 ;;;; Accumulators
@@ -486,79 +486,79 @@
 ;;;   (FOR <result-list> (LISTING (INITIAL <tail>) <element>)).
 
 (define-syntax listing
-  (syntax-rules (INITIAL)
-    ((LISTING variables ((INITIAL tail-expression) . arguments) next . rest)
-     (%ACCUMULATING variables arguments (((TAIL) tail-expression))
-                    ('() CONS (LAMBDA (RESULT)
-                                (APPEND-REVERSE RESULT TAIL)))
-                    (CONTEXT LISTING
+  (syntax-rules (initial)
+    ((listing variables ((initial tail-expression) . arguments) next . rest)
+     (%accumulating variables arguments (((tail) tail-expression))
+                    ('() cons (lambda (result)
+                                (append-reverse result tail)))
+                    (context listing
                              variables
-                             ((INITIAL tail-expression) . arguments))
+                             ((initial tail-expression) . arguments))
                     next . rest))
 
-    ((LISTING variables arguments next . rest)
-     (%ACCUMULATING variables arguments ()
-                    ('() CONS REVERSE)
-                    (CONTEXT LISTING variables arguments)
+    ((listing variables arguments next . rest)
+     (%accumulating variables arguments ()
+                    ('() cons reverse)
+                    (context listing variables arguments)
                     next . rest))))
 
 (define-syntax listing-reverse
-  (syntax-rules (INITIAL)
-    ((LISTING-REVERSE variables ((INITIAL tail-expression) . arguments)
+  (syntax-rules (initial)
+    ((listing-reverse variables ((initial tail-expression) . arguments)
                       next . rest)
-     (%ACCUMULATING variables arguments (((TAIL) tail-expression))
-                    (TAIL CONS)
-                    (CONTEXT LISTING-REVERSE
+     (%accumulating variables arguments (((tail) tail-expression))
+                    (tail cons)
+                    (context listing-reverse
                              variables
-                             ((INITIAL tail-expression) . arguments))
+                             ((initial tail-expression) . arguments))
                     next . rest))
 
-    ((LISTING-REVERSE variables arguments next . rest)
-     (%ACCUMULATING variables arguments ()
-                    ('() CONS)
-                    (CONTEXT LISTING-REVERSE variables arguments)
+    ((listing-reverse variables arguments next . rest)
+     (%accumulating variables arguments ()
+                    ('() cons)
+                    (context listing-reverse variables arguments)
                     next . rest))))
 
 ;;; This is non-reentrant but produces precisely one garbage cons cell.
 
 (define-syntax listing!
   (syntax-rules ()
-    ((LISTING! variables arguments next . rest)
-     (%LISTING! variables arguments (CONS #F '())
-                (CONTEXT LISTING! variables arguments)
+    ((listing! variables arguments next . rest)
+     (%listing! variables arguments (cons #f '())
+                (context listing! variables arguments)
                 next . rest))))
 
 (define-syntax listing-into!
   (syntax-rules ()
-    ((LISTING-INTO! variables (first-expression . arguments) next . rest)
-     (%LISTING! variables arguments first-expression
-                (CONTEXT LISTING-INTO!
+    ((listing-into! variables (first-expression . arguments) next . rest)
+     (%listing! variables arguments first-expression
+                (context listing-into!
                          variables
                          (first-expression . arguments))
                 next . rest))))
 
 (define-syntax %listing!
-  (syntax-rules (INITIAL)
-    ((%LISTING! variables ((INITIAL tail-expression) . arguments)
+  (syntax-rules (initial)
+    ((%listing! variables ((initial tail-expression) . arguments)
                 first-expression
                 error-context
                 next . rest)
-     (%ACCUMULATING variables arguments
-                    (((FIRST TAIL)
-                      (LET ((FIRST first-expression)
-                            (TAIL tail-expression))
-                        (SET-CDR! FIRST TAIL)
-                        (VALUES FIRST TAIL))))
-                    (FIRST (LAMBDA (DATUM PREVIOUS-CELL)
-                             (LET ((NEXT-CELL (CONS DATUM TAIL)))
-                               (SET-CDR! PREVIOUS-CELL NEXT-CELL)
-                               NEXT-CELL))
-                           (LAMBDA (CELL) CELL (CDR FIRST)))
+     (%accumulating variables arguments
+                    (((first tail)
+                      (let ((first first-expression)
+                            (tail tail-expression))
+                        (set-cdr! first tail)
+                        (values first tail))))
+                    (first (lambda (datum previous-cell)
+                             (let ((next-cell (cons datum tail)))
+                               (set-cdr! previous-cell next-cell)
+                               next-cell))
+                           (lambda (cell) cell (cdr first)))
                     error-context
                     next . rest))
 
-    ((%LISTING! variables arguments first-expression error-context next . rest)
-     (%LISTING! variables ((INITIAL '()) . arguments)
+    ((%listing! variables arguments first-expression error-context next . rest)
+     (%listing! variables ((initial '()) . arguments)
                 first-expression
                 error-context
                 next . rest))))
@@ -566,38 +566,38 @@
 ;;;;; List Appending Accumulators
 
 (define-syntax appending
-  (syntax-rules (INITIAL)
-    ((APPENDING variables ((INITIAL tail-expression) . arguments)
+  (syntax-rules (initial)
+    ((appending variables ((initial tail-expression) . arguments)
                 next . rest)
-     (%ACCUMULATING variables arguments (((TAIL) tail-expression))
-                    ('() APPEND-REVERSE (LAMBDA (RESULT)
-                                          (APPEND-REVERSE RESULT TAIL)))
-                    (CONTEXT APPENDING
+     (%accumulating variables arguments (((tail) tail-expression))
+                    ('() append-reverse (lambda (result)
+                                          (append-reverse result tail)))
+                    (context appending
                              variables
-                             ((INITIAL tail-expression) . arguments))
+                             ((initial tail-expression) . arguments))
                     next . rest))
 
-    ((APPENDING variables arguments next . rest)
-     (%ACCUMULATING variables arguments ()
-                    ('() APPEND-REVERSE REVERSE)
-                    (CONTEXT APPENDING variables arguments)
+    ((appending variables arguments next . rest)
+     (%accumulating variables arguments ()
+                    ('() append-reverse reverse)
+                    (context appending variables arguments)
                     next . rest))))
 
 (define-syntax appending-reverse
-  (syntax-rules (INITIAL)
-    ((APPENDING-REVERSE variables ((INITIAL tail-expression) . arguments)
+  (syntax-rules (initial)
+    ((appending-reverse variables ((initial tail-expression) . arguments)
                         next . rest)
-     (%ACCUMULATING variables arguments (((TAIL) tail-expression))
-                    (TAIL APPEND-REVERSE)
-                    (CONTEXT APPENDING-REVERSE
+     (%accumulating variables arguments (((tail) tail-expression))
+                    (tail append-reverse)
+                    (context appending-reverse
                              variables
-                             ((INITIAL tail-expression) . arguments))
+                             ((initial tail-expression) . arguments))
                     next . rest))
 
-    ((APPENDING-REVERSE variables arguments next . rest)
-     (%ACCUMULATING variables arguments ()
-                    ('() APPEND-REVERSE)
-                    (CONTEXT APPENDING-REVERSE variables arguments)
+    ((appending-reverse variables arguments next . rest)
+     (%accumulating variables arguments ()
+                    ('() append-reverse)
+                    (context appending-reverse variables arguments)
                     next . rest))))
 
 ;; (define (append-reverse list tail)
@@ -613,159 +613,159 @@
 ;;;;; Numerical Accumulators
 
 (define-syntax summing
-  (syntax-rules (INITIAL)
-    ((SUMMING variables ((INITIAL initial-expression) . arguments) next . rest)
-     (%ACCUMULATING variables arguments () (initial-expression +)
-                    (CONTEXT SUMMING
+  (syntax-rules (initial)
+    ((summing variables ((initial initial-expression) . arguments) next . rest)
+     (%accumulating variables arguments () (initial-expression +)
+                    (context summing
                              variables
-                             ((INITIAL initial-expression) . arguments))
+                             ((initial initial-expression) . arguments))
                     next . rest))
 
-    ((SUMMING variables arguments next . rest)
-     (%ACCUMULATING variables arguments () (0 +)
-                    (CONTEXT SUMMING variables arguments)
+    ((summing variables arguments next . rest)
+     (%accumulating variables arguments () (0 +)
+                    (context summing variables arguments)
                     next . rest))))
 
 (define-syntax multiplying
-  (syntax-rules (INITIAL)
-    ((MULTIPLYING variables ((INITIAL initial-expression) . arguments)
+  (syntax-rules (initial)
+    ((multiplying variables ((initial initial-expression) . arguments)
                   next . rest)
-     (%ACCUMULATING variables arguments () (initial-expression *)
-                    (CONTEXT MULTIPLYING
+     (%accumulating variables arguments () (initial-expression *)
+                    (context multiplying
                              variables
-                             ((INITIAL initial-expression) . arguments))
+                             ((initial initial-expression) . arguments))
                     next . rest))
 
-    ((MULTIPLYING variables arguments next . rest)
-     (%ACCUMULATING variables arguments () (1 *)
-                    (CONTEXT MULTIPLYING variables arguments)
+    ((multiplying variables arguments next . rest)
+     (%accumulating variables arguments () (1 *)
+                    (context multiplying variables arguments)
                     next . rest))))
 
 (define-syntax maximizing
   (syntax-rules ()
-    ((MAXIMIZING variables arguments next . rest)
-     (%EXTREMIZING variables arguments MAX
-                   (CONTEXT MAXIMIZING variables arguments)
+    ((maximizing variables arguments next . rest)
+     (%extremizing variables arguments max
+                   (context maximizing variables arguments)
                    next . rest))))
 
 (define-syntax minimizing
   (syntax-rules ()
-    ((MINIMIZING variables arguments next . rest)
-     (%EXTREMIZING variables arguments MIN
-                   (CONTEXT MINIMIZING variables arguments)
+    ((minimizing variables arguments next . rest)
+     (%extremizing variables arguments min
+                   (context minimizing variables arguments)
                    next . rest))))
 
 (define-syntax %extremizing
-  (syntax-rules (INITIAL)
-    ((%EXTREMIZING variables ((INITIAL initial-expression) . arguments)
+  (syntax-rules (initial)
+    ((%extremizing variables ((initial initial-expression) . arguments)
                    chooser
                    error-context next . rest)
-     (%ACCUMULATING variables arguments (((INITIAL-VALUE) initial-expression))
-                    (INITIAL-VALUE chooser)
+     (%accumulating variables arguments (((initial-value) initial-expression))
+                    (initial-value chooser)
                     error-context next . rest))
 
-    ((%EXTREMIZING variables arguments chooser error-context next . rest)
-     (%ACCUMULATING variables arguments ()
-                    (#F (LAMBDA (DATUM EXTREME)
-                          (IF (AND DATUM EXTREME)
-                              (chooser DATUM EXTREME)
-                              (OR DATUM EXTREME))))
+    ((%extremizing variables arguments chooser error-context next . rest)
+     (%accumulating variables arguments ()
+                    (#f (lambda (datum extreme)
+                          (if (and datum extreme)
+                              (chooser datum extreme)
+                              (or datum extreme))))
                     error-context next . rest))))
 
 (define-syntax %accumulating
   (syntax-rules ()
 
-    ;; There is a finalization step, so the result variable cannot be
+    ;; there is a finalization step, so the result variable cannot be
     ;; the accumulator variable, and we must apply the finalizer at the
     ;; end.
-    ((%ACCUMULATING (result-variable) arguments outer-bindings
+    ((%accumulating (result-variable) arguments outer-bindings
                     (initializer combiner finalizer)
                     error-context
                     next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME result-variable error-context
-       (%%ACCUMULATING arguments (ACCUMULATOR initializer combiner)
+     (loop-clause-error-if-not-name result-variable error-context
+       (%%accumulating arguments (accumulator initializer combiner)
                        outer-bindings
-                       (((result-variable) (finalizer ACCUMULATOR)))
+                       (((result-variable) (finalizer accumulator)))
                        error-context
                        next . rest)))
 
-    ;; There is no finalizer step, so the accumulation is incremental,
+    ;; there is no finalizer step, so the accumulation is incremental,
     ;; and can be exploited; therefore, the result variable and the
     ;; accumulator variable are one and the same.
-    ((%ACCUMULATING (accumulator-variable) arguments outer-bindings
+    ((%accumulating (accumulator-variable) arguments outer-bindings
                     (initializer combiner)
                     error-context
                     next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME accumulator-variable error-context
-       (%%ACCUMULATING arguments (accumulator-variable initializer combiner)
+     (loop-clause-error-if-not-name accumulator-variable error-context
+       (%%accumulating arguments (accumulator-variable initializer combiner)
                        outer-bindings
                        ()
                        error-context
                        next . rest)))
 
-    ;; The user supplied more than one variable.  Lose lose.
-    ((%ACCUMULATING variables arguments outer-bindings parameters
+    ;; the user supplied more than one variable.  lose lose.
+    ((%accumulating variables arguments outer-bindings parameters
                     error-context next . rest)
-     (LOOP-CLAUSE-ERROR error-context))))
+     (loop-clause-error error-context))))
 
 (define-syntax %%%accumulating
   (syntax-rules ()
-    ((%%%ACCUMULATING outer-bindings loop-variable final-bindings next . rest)
+    ((%%%accumulating outer-bindings loop-variable final-bindings next . rest)
      (next outer-bindings
            (loop-variable)
-           ()                           ;Entry bindings
-           ()                           ;Termination conditions
-           ()                           ;Body bindings
+           ()                           ;entry bindings
+           ()                           ;termination conditions
+           ()                           ;body bindings
            final-bindings
            . rest))))
 
 (define-syntax %%accumulating
-  (syntax-rules (IF =>)
-    ((%%ACCUMULATING (generator)        ;No conditional
+  (syntax-rules (if =>)
+    ((%%accumulating (generator)        ;no conditional
                      (accumulator initializer combiner)
                      outer-bindings final-bindings error-context next . rest)
-     (%%%ACCUMULATING outer-bindings
-                      (accumulator initializer       ;Loop variable
+     (%%%accumulating outer-bindings
+                      (accumulator initializer       ;loop variable
                                    (combiner generator accumulator))
                       final-bindings next . rest))
 
-    ((%%ACCUMULATING (generator (IF condition))
+    ((%%accumulating (generator (if condition))
                      (accumulator initializer combiner)
                      outer-bindings final-bindings error-context next . rest)
-     (%%%ACCUMULATING outer-bindings
-                      (accumulator initializer       ;Loop variable
-                                   (IF condition
+     (%%%accumulating outer-bindings
+                      (accumulator initializer       ;loop variable
+                                   (if condition
                                        (combiner generator accumulator)
                                        accumulator))
                       final-bindings next . rest))
 
-    ((%%ACCUMULATING (generator => mapper)
+    ((%%accumulating (generator => mapper)
                      (accumulator initializer combiner)
                      outer-bindings final-bindings error-context next . rest)
-     (%%%ACCUMULATING outer-bindings
-                      (accumulator initializer       ;Loop variable
-                                   (COND (generator
-                                          => (LAMBDA (DATUM)
-                                               (combiner (mapper DATUM)
+     (%%%accumulating outer-bindings
+                      (accumulator initializer       ;loop variable
+                                   (cond (generator
+                                          => (lambda (datum)
+                                               (combiner (mapper datum)
                                                          accumulator)))
-                                         (ELSE accumulator)))
+                                         (else accumulator)))
                       final-bindings next . rest))
 
-    ((%%ACCUMULATING (generator tester => mapper)
+    ((%%accumulating (generator tester => mapper)
                      (accumulator initializer combiner)
                      outer-bindings final-bindings error-context next . rest)
-     (%%%ACCUMULATING outer-bindings
-                      (accumulator initializer       ;Loop variable
-                                   (RECEIVE ARGS generator
-                                     (IF (APPLY tester ARGS)
-                                         (combiner (APPLY mapper ARGS)
+     (%%%accumulating outer-bindings
+                      (accumulator initializer       ;loop variable
+                                   (receive args generator
+                                     (if (apply tester args)
+                                         (combiner (apply mapper args)
                                                    accumulator)
                                          accumulator)))
                       final-bindings next . rest))
 
-    ((%%ACCUMULATING arguments parameters outer-bindings final-bindings
+    ((%%accumulating arguments parameters outer-bindings final-bindings
                      error-context next . rest)
-     (LOOP-CLAUSE-ERROR error-context))))
+     (loop-clause-error error-context))))
 
 ;;;; List Iteration
 
@@ -777,89 +777,89 @@
 
 (define-syntax in-list
   (syntax-rules ()
-    ((IN-LIST (element-variable pair-variable)
+    ((in-list (element-variable pair-variable)
               (list-expression successor-expression)
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES (element-variable pair-variable)
-         (CONTEXT IN-LIST
+     (loop-clause-error-if-not-names (element-variable pair-variable)
+         (context in-list
                   (element-variable pair-variable)
                   (list-expression successor-expression))
-       (next (((LIST) list-expression)                  ;Outer bindings
-              ((SUCCESSOR) successor-expression))
-             ((pair-variable LIST TAIL))                ;Loop variables
-             ()                                         ;Entry bindings
-             ((NOT (PAIR? pair-variable)))              ;Termination conditions
-             (((element-variable) (CAR pair-variable))  ;Body bindings
-              ((TAIL)             (SUCCESSOR pair-variable)))
-             ()                                         ;Final bindings
+       (next (((list) list-expression)                  ;outer bindings
+              ((successor) successor-expression))
+             ((pair-variable list tail))                ;loop variables
+             ()                                         ;entry bindings
+             ((not (pair? pair-variable)))              ;termination conditions
+             (((element-variable) (car pair-variable))  ;body bindings
+              ((tail)             (successor pair-variable)))
+             ()                                         ;final bindings
              . rest)))
 
-    ((IN-LIST (element-variable pair-variable) (list-expression) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES (element-variable pair-variable)
-         (CONTEXT IN-LIST (element-variable pair-variable) (list-expression))
-       ;++ This is silly, but it will improve performance in Scheme
-       ;++ systems that don't beta-reduce (LET ((X CDR)) ...).
-       (next (((LIST) list-expression))                 ;Outer bindings
-             ((pair-variable LIST TAIL))                ;Loop variables
-             ()                                         ;Entry bindings
-             ((NOT (PAIR? pair-variable)))              ;Termination conditions
-             (((element-variable) (CAR pair-variable))  ;Body bindings
-              ((TAIL)             (CDR pair-variable)))
-             ()                                         ;Final bindings
+    ((in-list (element-variable pair-variable) (list-expression) next . rest)
+     (loop-clause-error-if-not-names (element-variable pair-variable)
+         (context in-list (element-variable pair-variable) (list-expression))
+       ;++ this is silly, but it will improve performance in scheme
+       ;++ systems that don't beta-reduce (let ((x cdr)) ...).
+       (next (((list) list-expression))                 ;outer bindings
+             ((pair-variable list tail))                ;loop variables
+             ()                                         ;entry bindings
+             ((not (pair? pair-variable)))              ;termination conditions
+             (((element-variable) (car pair-variable))  ;body bindings
+              ((tail)             (cdr pair-variable)))
+             ()                                         ;final bindings
              . rest)))
 
-    ((IN-LIST (element-variable) (list-expression successor) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME element-variable
-         (CONTEXT IN-LIST (element-variable) (list-expression successor))
-       (IN-LIST (element-variable PAIR)
+    ((in-list (element-variable) (list-expression successor) next . rest)
+     (loop-clause-error-if-not-name element-variable
+         (context in-list (element-variable) (list-expression successor))
+       (in-list (element-variable pair)
                 (list-expression successor)
                 next . rest)))
 
-    ((IN-LIST (element-variable) (list-expression) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME element-variable
-         (CONTEXT IN-LIST (element-variable) (list-expression))
-       (IN-LIST (element-variable PAIR) (list-expression) next . rest)))
+    ((in-list (element-variable) (list-expression) next . rest)
+     (loop-clause-error-if-not-name element-variable
+         (context in-list (element-variable) (list-expression))
+       (in-list (element-variable pair) (list-expression) next . rest)))
 
-    ((IN-LIST variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (CONTEXT IN-LIST variables arguments)))))
+    ((in-list variables arguments next . rest)
+     (loop-clause-error (context in-list variables arguments)))))
 
 ;;;;; Parallel List Iteration
 
 (define-syntax in-lists
   (syntax-rules ()
-    ((IN-LISTS (elements-variable pairs-variable)
+    ((in-lists (elements-variable pairs-variable)
                (lists-expression tail-expression)
                next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES (element-variable pair-variable)
-         (CONTEXT IN-LISTS
+     (loop-clause-error-if-not-names (element-variable pair-variable)
+         (context in-lists
                   (elements-variable pairs-variable)
                   (lists-expression tail-expression))
-       (next (((LISTS) lists-expression))       ;Outer bindings
-             ((pairs-variable LISTS CDRS))      ;Loop variables
-             (((LOSE? CARS CDRS)                ;Entry bindings
-               (%CARS&CDRS pairs-variable tail-expression '())))
-             (LOSE?)                            ;Termination conditions
-             (((elements-variable) CARS))       ;Body bindings
-             ()                                 ;Final bindings
+       (next (((lists) lists-expression))       ;outer bindings
+             ((pairs-variable lists cdrs))      ;loop variables
+             (((lose? cars cdrs)                ;entry bindings
+               (%cars&cdrs pairs-variable tail-expression '())))
+             (lose?)                            ;termination conditions
+             (((elements-variable) cars))       ;body bindings
+             ()                                 ;final bindings
              . rest)))
 
-    ((IN-LISTS (elements-variable pairs-variable) (lists) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES (elements-variable pair-variable)
-         (CONTEXT IN-LISTS (elements-variable pairs-variable) (lists))
-       (IN-LISTS (elements-variable pairs-variable) (lists '()) next . rest)))
+    ((in-lists (elements-variable pairs-variable) (lists) next . rest)
+     (loop-clause-error-if-not-names (elements-variable pair-variable)
+         (context in-lists (elements-variable pairs-variable) (lists))
+       (in-lists (elements-variable pairs-variable) (lists '()) next . rest)))
 
-    ((IN-LISTS (elements-variable) (lists tail) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME elements-variable
-         (CONTEXT IN-LISTS (elements-variable) (lists tail))
-       (IN-LISTS (elements-variable PAIRS) (lists tail) next . rest)))
+    ((in-lists (elements-variable) (lists tail) next . rest)
+     (loop-clause-error-if-not-name elements-variable
+         (context in-lists (elements-variable) (lists tail))
+       (in-lists (elements-variable pairs) (lists tail) next . rest)))
 
-    ((IN-LISTS (elements-variable) (lists) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME elements-variable
-         (CONTEXT IN-LISTS (elements-variable) (lists))
-       (IN-LISTS (elements-variable PAIRS) (lists '()) next . rest)))
+    ((in-lists (elements-variable) (lists) next . rest)
+     (loop-clause-error-if-not-name elements-variable
+         (context in-lists (elements-variable) (lists))
+       (in-lists (elements-variable pairs) (lists '()) next . rest)))
 
-    ((IN-LISTS variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (CONTEXT IN-LISTS variables arguments)))))
+    ((in-lists variables arguments next . rest)
+     (loop-clause-error (context in-lists variables arguments)))))
 
 (define (%cars&cdrs lists cars-tail cdrs-tail)
   (loop proceed ((for list (in-list lists))
@@ -882,42 +882,42 @@
 
 (define-syntax in-vector
   (syntax-rules ()
-    ((IN-VECTOR variables (vector-expression start/end ...) next . rest)
-     (%IN-VECTOR (FORWARD VECTOR-REF VECTOR 0 (VECTOR-LENGTH VECTOR))
+    ((in-vector variables (vector-expression start/end ...) next . rest)
+     (%in-vector (forward vector-ref vector 0 (vector-length vector))
                  variables (vector-expression start/end ...)
-                 (CONTEXT IN-VECTOR
+                 (context in-vector
                           variables
                           (vector-expression start/end ...))
                  next . rest))))
 
 (define-syntax in-vector-reverse
   (syntax-rules ()
-    ((IN-VECTOR-REVERSE variables (vector-expression start/end ...)
+    ((in-vector-reverse variables (vector-expression start/end ...)
                         next . rest)
-     (%IN-VECTOR (BACKWARD VECTOR-REF VECTOR (VECTOR-LENGTH VECTOR) 0)
+     (%in-vector (backward vector-ref vector (vector-length vector) 0)
                  variables (vector-expression start/end ...)
-                 (CONTEXT IN-VECTOR-REVERSE
+                 (context in-vector-reverse
                           variables
                           (vector-expression start/end ...))
                  next . rest))))
 
 (define-syntax in-string
   (syntax-rules ()
-    ((IN-STRING variables (vector-expression start/end ...) next . rest)
-     (%IN-VECTOR (FORWARD STRING-REF STRING 0 (STRING-LENGTH STRING))
+    ((in-string variables (vector-expression start/end ...) next . rest)
+     (%in-vector (forward string-ref string 0 (string-length string))
                  variables (vector-expression start/end ...)
-                 (CONTEXT IN-STRING
+                 (context in-string
                           variables
                           (vector-expression start/end ...))
                  next . rest))))
 
 (define-syntax in-string-reverse
   (syntax-rules ()
-    ((IN-STRING-REVERSE variables (string-expression start/end ...)
+    ((in-string-reverse variables (string-expression start/end ...)
                         next . rest)
-     (%IN-VECTOR (BACKWARD STRING-REF STRING (STRING-LENGTH STRING) 0)
+     (%in-vector (backward string-ref string (string-length string) 0)
                  variables (string-expression start/end ...)
-                 (CONTEXT IN-STRING-REVERSE
+                 (context in-string-reverse
                           variables
                           (string-expression start/end ...))
                  next . rest))))
@@ -925,76 +925,76 @@
 ;;;;; Random-Access Sequence Generalization
 
 (define-syntax %in-vector
-  (syntax-rules (FORWARD BACKWARD)
-    ((%IN-VECTOR (FORWARD vector-ref vector-variable default-start default-end)
+  (syntax-rules (forward backward)
+    ((%in-vector (forward vector-ref vector-variable default-start default-end)
                  (element-variable index-variable)
                  (vector-expression start-expression end-expression)
                  error-context next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES (element-variable index-variable)
+     (loop-clause-error-if-not-names (element-variable index-variable)
          error-context
-       (next (((vector-variable START END)      ;Outer bindings
-               (LET ((vector-variable vector-expression))
-                 (VALUES vector-variable start-expression end-expression))))
-             ((index-variable START             ;Loop variables
+       (next (((vector-variable start end)      ;outer bindings
+               (let ((vector-variable vector-expression))
+                 (values vector-variable start-expression end-expression))))
+             ((index-variable start             ;loop variables
                               (+ index-variable 1)))
-             ()                                 ;Entry bindings
-             ((>= index-variable END))          ;Termination conditions
-             (((element-variable)               ;Body bindings
+             ()                                 ;entry bindings
+             ((>= index-variable end))          ;termination conditions
+             (((element-variable)               ;body bindings
                (vector-ref vector-variable index-variable)))
-             ()                                 ;Final bindings
+             ()                                 ;final bindings
              . rest)))
 
-    ((%IN-VECTOR (BACKWARD
+    ((%in-vector (backward
                   vector-ref vector-variable default-start default-end)
                  (element-variable index-variable)
                  (vector-expression start-expression end-expression)
                  error-context next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES (element-variable index-variable)
+     (loop-clause-error-if-not-names (element-variable index-variable)
          error-context
-       (next (((vector-variable START END)      ;Outer bindings
-               (LET ((vector-variable vector-expression))
-                 (VALUES vector-variable start-expression end-expression))))
-             ((index-variable START             ;Loop variables
+       (next (((vector-variable start end)      ;outer bindings
+               (let ((vector-variable vector-expression))
+                 (values vector-variable start-expression end-expression))))
+             ((index-variable start             ;loop variables
                               index-variable))
-             ()                                 ;Entry bindings
-             ((<= index-variable END))          ;Termination conditions
-             (((index-variable)                 ;Body bindings
+             ()                                 ;entry bindings
+             ((<= index-variable end))          ;termination conditions
+             (((index-variable)                 ;body bindings
                (- index-variable 1))
               ((element-variable)
                (vector-ref vector-variable (- index-variable 1))))
-             ()                                 ;Final bindings
+             ()                                 ;final bindings
              . rest)))
 
-;;;;;; %IN-VECTOR, continued
+;;;;;; %in-vector, continued
 
-    ;; Supply an index variable if absent.
-    ((%IN-VECTOR iteration-parameters (element-variable) arguments
+    ;; supply an index variable if absent.
+    ((%in-vector iteration-parameters (element-variable) arguments
                  error-context next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME element-variable error-context
-       (%IN-VECTOR iteration-parameters (element-variable INDEX) arguments
+     (loop-clause-error-if-not-name element-variable error-context
+       (%in-vector iteration-parameters (element-variable index) arguments
                    error-context next . rest)))
 
-    ;; Supply the default start index if necessary.
-    ((%IN-VECTOR (direction vector-ref variable default-start default-end)
+    ;; supply the default start index if necessary.
+    ((%in-vector (direction vector-ref variable default-start default-end)
                  variables (vector-expression)
                  error-context next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES variables error-context
-       (%IN-VECTOR (direction vector-ref variable default-start default-end)
+     (loop-clause-error-if-not-names variables error-context
+       (%in-vector (direction vector-ref variable default-start default-end)
                    variables (vector-expression default-start)
                    error-context next . rest)))
 
-    ;; Supply the default end index if necessary.
-    ((%IN-VECTOR (direction vector-ref variable default-start default-end)
+    ;; supply the default end index if necessary.
+    ((%in-vector (direction vector-ref variable default-start default-end)
                  variables (vector-expression start-expression)
                  error-context next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAMES variables error-context
-       (%IN-VECTOR (direction vector-ref variable default-start default-end)
+     (loop-clause-error-if-not-names variables error-context
+       (%in-vector (direction vector-ref variable default-start default-end)
                    variables (vector-expression start-expression default-end)
                    error-context next . rest)))
 
-    ((%IN-VECTOR iteration-parameters modified-variables modified-arguments
+    ((%in-vector iteration-parameters modified-variables modified-arguments
                  error-context next . rest)
-     (LOOP-CLAUSE-ERROR error-context))))
+     (loop-clause-error error-context))))
 
 ;;;; Input
 
@@ -1005,198 +1005,198 @@
 
 (define-syntax in-port
   (syntax-rules ()
-    ((IN-PORT (datum-variable)
+    ((in-port (datum-variable)
               (port-expression reader-expression eof-predicate)
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME datum-variable
-         (CONTEXT IN-PORT
+     (loop-clause-error-if-not-name datum-variable
+         (context in-port
                   (datum-variable)
                   (port-expression reader-expression eof-predicate))
-       (next (((PORT) port-expression)          ;Outer bindings
-              ((READER) reader-expression)
-              ((EOF?) eof-predicate))
-             ()                                 ;Loop variables
-             (((datum-variable) (READER PORT))) ;Entry bindings
-             ((EOF? datum-variable))            ;Termination conditions
-             ()                                 ;Body bindings
-             ()                                 ;Final bindings
+       (next (((port) port-expression)          ;outer bindings
+              ((reader) reader-expression)
+              ((eof?) eof-predicate))
+             ()                                 ;loop variables
+             (((datum-variable) (reader port))) ;entry bindings
+             ((eof? datum-variable))            ;termination conditions
+             ()                                 ;body bindings
+             ()                                 ;final bindings
              . rest)))
 
-    ;; Supply a reader if absent.
-    ((IN-PORT (datum-variable) (port-expression) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME datum-variable
-         (CONTEXT IN-PORT (datum-variable) (port-expression))
-       (IN-PORT (datum-variable) (port-expression READ-CHAR) next . rest)))
+    ;; supply a reader if absent.
+    ((in-port (datum-variable) (port-expression) next . rest)
+     (loop-clause-error-if-not-name datum-variable
+         (context in-port (datum-variable) (port-expression))
+       (in-port (datum-variable) (port-expression read-char) next . rest)))
 
-    ;; Supply an EOF predicate if absent.
-    ((IN-PORT (datum-variable) (port-expression reader-expression) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME datum-variable
-         (CONTEXT IN-PORT (datum-variable) (port-expression reader-expression))
-       (IN-PORT (datum-variable)
-                (port-expression reader-expression EOF-OBJECT?)
+    ;; supply an eof predicate if absent.
+    ((in-port (datum-variable) (port-expression reader-expression) next . rest)
+     (loop-clause-error-if-not-name datum-variable
+         (context in-port (datum-variable) (port-expression reader-expression))
+       (in-port (datum-variable)
+                (port-expression reader-expression eof-object?)
                 next . rest)))
 
-    ((IN-PORT variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (CONTEXT IN-PORT variables arguments)))))
+    ((in-port variables arguments next . rest)
+     (loop-clause-error (context in-port variables arguments)))))
 
 (define-syntax in-file
   (syntax-rules ()
-    ((IN-FILE (datum-variable)
+    ((in-file (datum-variable)
               (pathname-expression reader-expression eof-predicate)
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME datum-variable
-         (CONTEXT IN-FILE
+     (loop-clause-error-if-not-name datum-variable
+         (context in-file
                   (datum-variable)
                   (pathname-expression reader-expression eof-predicate))
-       (next (((PORT)                           ;Outer bindings
-               (OPEN-INPUT-FILE pathname-expression))
-              ((READER) reader-expression)
-              ((EOF?) eof-predicate))
-             ()                                 ;Loop variables
-             (((datum-variable) (READER PORT))) ;Entry bindings
-             ((EOF? datum-variable))            ;Termination conditions
-             ()                                 ;Body bindings
-             ((()                               ;Final bindings
-               (BEGIN (CLOSE-INPUT-PORT PORT)
-                      (VALUES))))
+       (next (((port)                           ;outer bindings
+               (open-input-file pathname-expression))
+              ((reader) reader-expression)
+              ((eof?) eof-predicate))
+             ()                                 ;loop variables
+             (((datum-variable) (reader port))) ;entry bindings
+             ((eof? datum-variable))            ;termination conditions
+             ()                                 ;body bindings
+             ((()                               ;final bindings
+               (begin (close-input-port port)
+                      (values))))
              . rest)))
 
-    ;; Supply a reader if absent.
-    ((IN-FILE (datum-variable) (pathname-expression) next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME datum-variable
-         (CONTEXT IN-FILE (datum-variable) (pathname-expression))
-       (IN-FILE (datum-variable) (pathname-expression READ-CHAR) next . rest)))
+    ;; supply a reader if absent.
+    ((in-file (datum-variable) (pathname-expression) next . rest)
+     (loop-clause-error-if-not-name datum-variable
+         (context in-file (datum-variable) (pathname-expression))
+       (in-file (datum-variable) (pathname-expression read-char) next . rest)))
 
-    ;; Supply an EOF predicate if absent.
-    ((IN-FILE (datum-variable)
+    ;; supply an eof predicate if absent.
+    ((in-file (datum-variable)
               (pathname-expression reader-expression)
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME datum-varable
-         (CONTEXT IN-FILE
+     (loop-clause-error-if-not-name datum-varable
+         (context in-file
                   (datum-variable)
                   (pathname-expression reader-expression))
-       (IN-FILE (datum-variable)
-                (pathname-expression reader-expression EOF-OBJECT?)
+       (in-file (datum-variable)
+                (pathname-expression reader-expression eof-object?)
                 next . rest)))
 
-    ((IN-FILE variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (CONTEXT IN-FILE variables arguments)))))
+    ((in-file variables arguments next . rest)
+     (loop-clause-error (context in-file variables arguments)))))
 
 ;;;; Iterating Up through Numbers
 
 (define-syntax up-from
-  (syntax-rules (TO BY)
-    ((UP-FROM (variable)
-              (start-expression (TO end-expression)
-                                (BY step-expression))
+  (syntax-rules (to by)
+    ((up-from (variable)
+              (start-expression (to end-expression)
+                                (by step-expression))
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT UP-FROM
+     (loop-clause-error-if-not-name variable
+         (context up-from
                   (variable)
-                  (start-expression (TO end-expression) (BY step-expression)))
-       (next (((START) start-expression)        ;Outer bindings
-              ((END) end-expression)
-              ((STEP) step-expression))
-             ((variable START                   ;Loop variables
-                        (+ variable STEP)))
-             ()                                 ;Entry bindings
-             ((>= variable END))                ;Termination conditions
-             ()                                 ;Body bindings
-             ()                                 ;Final bindings
+                  (start-expression (to end-expression) (by step-expression)))
+       (next (((start) start-expression)        ;outer bindings
+              ((end) end-expression)
+              ((step) step-expression))
+             ((variable start                   ;loop variables
+                        (+ variable step)))
+             ()                                 ;entry bindings
+             ((>= variable end))                ;termination conditions
+             ()                                 ;body bindings
+             ()                                 ;final bindings
              . rest)))
 
-    ((UP-FROM (variable)
-              (start-expression (BY step-expression))
+    ((up-from (variable)
+              (start-expression (by step-expression))
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT UP-FROM (variable) (start-expression (BY step-expression)))
-       (next (((START) start-expression)        ;Outer bindings
-              ((STEP) step-expression))
-             ((variable START                   ;Loop variables
-                        (+ variable STEP)))
-             ()                                 ;Entry bindings
-             ()                                 ;Termination conditions
-             ()                                 ;Body bindings
-             ()                                 ;Final bindings
+     (loop-clause-error-if-not-name variable
+         (context up-from (variable) (start-expression (by step-expression)))
+       (next (((start) start-expression)        ;outer bindings
+              ((step) step-expression))
+             ((variable start                   ;loop variables
+                        (+ variable step)))
+             ()                                 ;entry bindings
+             ()                                 ;termination conditions
+             ()                                 ;body bindings
+             ()                                 ;final bindings
              . rest)))
 
-    ;; Add a default step of 1.
-    ((UP-FROM (variable)
-              (start-expression (TO end-expression))
+    ;; add a default step of 1.
+    ((up-from (variable)
+              (start-expression (to end-expression))
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT UP-FROM (variable) (start-expression (TO end-expression)))
-       (UP-FROM (variable)
-                (start-expression (TO end-expression) (BY 1))
+     (loop-clause-error-if-not-name variable
+         (context up-from (variable) (start-expression (to end-expression)))
+       (up-from (variable)
+                (start-expression (to end-expression) (by 1))
                 next . rest)))
 
-    ((UP-FROM (variable)
+    ((up-from (variable)
               (start-expression)
               next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT UP-FROM (variable) (start-expression))
-       (UP-FROM (variable)
-                (start-expression (BY 1))
+     (loop-clause-error-if-not-name variable
+         (context up-from (variable) (start-expression))
+       (up-from (variable)
+                (start-expression (by 1))
                 next . rest)))
 
-    ((UP-FROM variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (CONTEXT UP-FROM variables arguments)))))
+    ((up-from variables arguments next . rest)
+     (loop-clause-error (context up-from variables arguments)))))
 
 ;;;; Iterating Down through Numbers
 
 (define-syntax down-from
-  (syntax-rules (TO BY)
-    ((DOWN-FROM (variable)
-                (start-expression (TO end-expression)
-                                  (BY step-expression))
+  (syntax-rules (to by)
+    ((down-from (variable)
+                (start-expression (to end-expression)
+                                  (by step-expression))
                 next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT DOWN-FROM
+     (loop-clause-error-if-not-name variable
+         (context down-from
                   (variable)
-                  (start-expression (TO end-expression) (BY step-expression)))
-       (next (((START) start-expression)        ;Outer bindings
-              ((END) end-expression)
-              ((STEP) step-expression))
-             ((variable START variable))        ;Loop variables
-             ()                                 ;Entry bindings
-             ((<= variable END))                ;Termination conditions
-             (((variable)                       ;Body bindings
-               (- variable STEP)))
-             ()                                 ;Final bindings
+                  (start-expression (to end-expression) (by step-expression)))
+       (next (((start) start-expression)        ;outer bindings
+              ((end) end-expression)
+              ((step) step-expression))
+             ((variable start variable))        ;loop variables
+             ()                                 ;entry bindings
+             ((<= variable end))                ;termination conditions
+             (((variable)                       ;body bindings
+               (- variable step)))
+             ()                                 ;final bindings
              . rest)))
 
-    ((DOWN-FROM (variable)
-                (start-expression (BY step-expression))
+    ((down-from (variable)
+                (start-expression (by step-expression))
                 next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT DOWN-FROM (variable) (start-expression (BY step-expression)))
-       (next (((START) start-expression)        ;Outer bindings
-             ((STEP) step-expression))
-            ((variable START variable))         ;Loop variables
-            (((variable) (- variable STEP)))    ;Entry bindings
-            ()                                  ;Termination conditions
-            ()                                  ;Body bindings
-            ()                                  ;Final bindings
+     (loop-clause-error-if-not-name variable
+         (context down-from (variable) (start-expression (by step-expression)))
+       (next (((start) start-expression)        ;outer bindings
+             ((step) step-expression))
+            ((variable start variable))         ;loop variables
+            (((variable) (- variable step)))    ;entry bindings
+            ()                                  ;termination conditions
+            ()                                  ;body bindings
+            ()                                  ;final bindings
             . rest)))
 
-    ;; Add a default step of 1.
-    ((DOWN-FROM (variable)
-                (start-expression (TO end-expression))
+    ;; add a default step of 1.
+    ((down-from (variable)
+                (start-expression (to end-expression))
                 next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT DOWN-FROM (variable) (start-expression (TO end-expression)))
-       (DOWN-FROM (variable)
-                  (start-expression (TO end-expression) (BY 1))
+     (loop-clause-error-if-not-name variable
+         (context down-from (variable) (start-expression (to end-expression)))
+       (down-from (variable)
+                  (start-expression (to end-expression) (by 1))
                   next . rest)))
 
-    ((DOWN-FROM (variable)
+    ((down-from (variable)
                 (start-expression)
                 next . rest)
-     (LOOP-CLAUSE-ERROR-IF-NOT-NAME variable
-         (CONTEXT DOWN-FROM (variable) (start-expression))
-       (DOWN-FROM (variable)
-                  (start-expression (BY 1))
+     (loop-clause-error-if-not-name variable
+         (context down-from (variable) (start-expression))
+       (down-from (variable)
+                  (start-expression (by 1))
                   next . rest)))
 
-    ((DOWN-FROM variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (CONTEXT DOWN-FROM variables arguments)))))
+    ((down-from variables arguments next . rest)
+     (loop-clause-error (context down-from variables arguments)))))

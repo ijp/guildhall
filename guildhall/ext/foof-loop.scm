@@ -86,7 +86,7 @@
     )
 
   (include-from-path "guildhall/ext/foof-loop/private/syn-param")
-  (include-file/downcase ((guildhall ext foof-loop private) foof-loop))
+  (include-from-path "guildhall/ext/foof-loop/private/foof-loop")
 
   (define-syntax in-stream
     (syntax-rules ()

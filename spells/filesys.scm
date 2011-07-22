@@ -74,7 +74,6 @@
           (only (srfi :13) string-contains string-unfold)
           (srfi :27)
           (srfi :98 os-environment-variables)
-          (only (spells process) get-process-id)
           (spells string-utils)
           (spells pathname)
           (spells time-lib)
@@ -733,7 +732,7 @@
                        (string-append fname "-{pid}-{random}.tmp"))
                    `((count . ,count)
                      (random . ,(create-random-string 6))
-                     (pid . ,(get-process-id))))
+                     (pid . ,(guile:getpid))))
                   types)))))
 
 (define default-temp-template

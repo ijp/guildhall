@@ -45,8 +45,8 @@
           (only (srfi :1) append-reverse)
           (srfi :8 receive)
           (srfi :98 os-environment-variables)
-          (wak foof-loop)
-          (wak foof-loop nested)
+          (guildhall ext foof-loop)
+          (guildhall ext foof-loop nested)
           (only (spells misc)
                 and=>
                 scheme-implementation)

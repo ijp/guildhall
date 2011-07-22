@@ -23,7 +23,7 @@
 
 (import (rnrs)
         (only (srfi :1) append-map)
-        (wak trc-testing)
+        (guildhall ext trc-testing)
         (guildhall package))
 
 (define-test-suite package-tests

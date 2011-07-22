@@ -36,7 +36,7 @@
           (only (srfi :13) string-fold-right string-map)
           (spells operations)
           (spells args-fold)
-          (wak fmt)
+          (guildhall ext fmt)
           (spells alist)
           (spells match)
           (spells tracing) ;debug

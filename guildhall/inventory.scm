@@ -64,7 +64,7 @@
   (import (rnrs)
           (srfi :2 and-let*)
           (srfi :8 receive)
-          (wak foof-loop)
+          (guildhall ext foof-loop)
           (spells tracing)
           (spells zipper-tree))
 

@@ -34,7 +34,7 @@
           (spells filesys)
           (spells pathname)
           (spells condition)
-          (only (wak trc-testing)
+          (only (guildhall ext trc-testing)
                 test-verbosity with-test-verbosity
                 test-debug-errors? with-test-debug-errors?)
           (spells test-runner environment))
@@ -113,7 +113,7 @@
                   '((except (rnrs base)
                             error string-copy string-for-each string->list)
                     (rnrs io simple)
-                    (wak trc-testing)
+                    (guildhall ext trc-testing)
                     (spells test-runner environment))
                   '())
               imports))))

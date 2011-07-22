@@ -24,11 +24,11 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (wak foof-loop)
+        (guildhall ext foof-loop)
         (spells pathname)
         (spells filesys)
         (spells logging)
-        (wak trc-testing)
+        (guildhall ext trc-testing)
         (spells test-runner environment)
         (only (spells misc)
               scheme-implementation)

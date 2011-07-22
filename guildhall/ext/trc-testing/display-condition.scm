@@ -1,10 +1,10 @@
 #!r6rs
 
-(library (wak trc-testing display-condition)
+(library (guildhall ext trc-testing display-condition)
   (export display-condition)
   (import (rnrs)
-          (wak foof-loop)
-          (wak fmt))
+          (guildhall ext foof-loop)
+          (guildhall ext fmt))
   
 (define-syntax formatting
   (syntax-rules ()

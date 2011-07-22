@@ -47,8 +47,8 @@
           (only (spells gc) make-weak-cell weak-cell-ref)
           (only (spells misc) unspecific)
           (spells operations)
-          (wak foof-loop)
-          (wak fmt))
+          (guildhall ext foof-loop)
+          (guildhall ext fmt))
 
 
 ;;; Operations valid on all expressions

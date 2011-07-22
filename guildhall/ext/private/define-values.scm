@@ -16,7 +16,7 @@
 ;;; Code:
 #!r6rs
 
-(library (wak private define-values)
+(library (guildhall ext private define-values)
   (export define-values)
   (import (for (rnrs base) run expand)
           (for (rnrs syntax-case) run expand))

@@ -36,7 +36,7 @@
   (import (rnrs)
           (only (srfi :1) append-map filter-map delete-duplicates)
           (ice-9 streams)
-          (wak foof-loop)
+          (guildhall ext foof-loop)
           (spells record-types)
           (guildhall solver internals))
 

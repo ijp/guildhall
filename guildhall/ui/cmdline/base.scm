@@ -52,8 +52,8 @@
           (spells cells)
           (only (spells misc) and=> unspecific)
           (spells record-types)
-          (wak foof-loop)
-          (wak fmt)
+          (guildhall ext foof-loop)
+          (guildhall ext fmt)
           (guildhall private utils)
           (guildhall ui))
 

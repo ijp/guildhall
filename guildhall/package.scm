@@ -102,7 +102,7 @@
                 string-skip)
           (srfi :14 char-sets)
           (srfi :67 compare-procedures)
-          (wak foof-loop)
+          (guildhall ext foof-loop)
           (only (spells string-utils) string-split)
           (spells record-types)
           (spells alist)

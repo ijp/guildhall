@@ -16,7 +16,7 @@
 ;;; Code:
 #!r6rs
 
-(library (wak private include compat)
+(library (guildhall ext private include compat)
   (export stale-when
           read-annotated
           annotation?
@@ -26,7 +26,7 @@
           library-search-paths)
   (import (rnrs base)
           (rnrs io simple)
-          (wak private include utils)
+          (guildhall ext private include utils)
           (prefix (only (guile)
                         %load-path
                         stat

@@ -16,12 +16,12 @@
 ;;; Code:
 #!r6rs
 
-(library (wak private include)
+(library (guildhall ext private include)
   (export include-file
           include-file/downcase)
   (import (rnrs)
-          (for (wak private include helper) expand)
-          (for (wak private include compat) expand))
+          (for (guildhall ext private include helper) expand)
+          (for (guildhall ext private include compat) expand))
 
 (define-syntax include-file
   (lambda (stx)

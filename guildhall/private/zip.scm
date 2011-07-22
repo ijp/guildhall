@@ -28,7 +28,7 @@
   (import (rnrs)
           (srfi :8 receive)
           (only (srfi :13) string-null?)
-          (wak foof-loop)
+          (guildhall ext foof-loop)
           (spells string-utils)
           (prefix (weinholt compression zip) zip:)
           (guildhall inventory))

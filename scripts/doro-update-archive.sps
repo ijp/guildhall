@@ -29,9 +29,9 @@
         (srfi :39 parameters)
         (srfi :45 lazy)
         (srfi :67 compare-procedures)
-        (wak fmt)
-        (wak foof-loop)
-        (wak foof-loop nested)
+        (guildhall ext fmt)
+        (guildhall ext foof-loop)
+        (guildhall ext foof-loop nested)
         (only (spells misc) and=>)
         (spells tracing) ;debug
         (spells process)

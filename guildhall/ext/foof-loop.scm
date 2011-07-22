@@ -15,7 +15,7 @@
 ;;; Code:
 #!r6rs
 
-(library (wak foof-loop)
+(library (guildhall ext foof-loop)
   (export
     loop
     lazy-loop
@@ -64,7 +64,7 @@
     (srfi :8 receive)
     (srfi :45 lazy)
     (ice-9 streams)
-    (wak private include))
+    (guildhall ext private include))
 
   (define-syntax define-aux
     (syntax-rules ()
@@ -85,8 +85,8 @@
     initial
     )
 
-  (include-from-path "wak/foof-loop/private/syn-param")
-  (include-file/downcase ((wak foof-loop private) foof-loop))
+  (include-from-path "guildhall/ext/foof-loop/private/syn-param")
+  (include-file/downcase ((guildhall ext foof-loop private) foof-loop))
 
   (define-syntax in-stream
     (syntax-rules ()

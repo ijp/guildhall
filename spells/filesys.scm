@@ -210,7 +210,7 @@
 ;; Foof-loop is an extensible loop facility that allows for concise
 ;; and convenient expression of complex loops. The iterators described
 ;; in the following extend foof-loop to allow for iteration over
-;; directory contents.  @xref{Top,,the foof-loop documentation,(wak
+;; directory contents.  @xref{Top,,the foof-loop documentation,(guildhall ext
 ;; foof-loop)}, for more information about how to use foof-loop.
 
 ;;@

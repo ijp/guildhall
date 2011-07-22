@@ -13,7 +13,7 @@
 
 #!r6rs
 
-(library (wak trc-testing parameters)
+(library (guildhall ext trc-testing parameters)
   (export
     with-test-case-run
     with-test-suite-run
@@ -31,10 +31,10 @@
     )
   (import (rnrs)
           (srfi :39 parameters)
-          (wak trc-testing limited-write)
-          (wak trc-testing display-condition)
-          (wak trc-testing port-tracker)
-          (wak trc-testing restart))
+          (guildhall ext trc-testing limited-write)
+          (guildhall ext trc-testing display-condition)
+          (guildhall ext trc-testing port-tracker)
+          (guildhall ext trc-testing restart))
 
   (define test-verbosity (make-parameter 'normal))
   (define test-debug-errors? (make-parameter #f))

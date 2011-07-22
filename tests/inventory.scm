@@ -25,8 +25,8 @@
 (import (rnrs)
         (srfi :8 receive)
         (spells misc)
-        (wak foof-loop)
-        (wak trc-testing)
+        (guildhall ext foof-loop)
+        (guildhall ext trc-testing)
         (guildhall inventory)
         (guildhall inventory mapping))
 

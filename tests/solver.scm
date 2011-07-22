@@ -34,8 +34,8 @@
         (guildhall solver universe)
         (guildhall solver logging)
         (spells match)
-        (wak fmt)
-        (wak trc-testing)
+        (guildhall ext fmt)
+        (guildhall ext trc-testing)
         (spells logging))
 
 ;; Set this to `#t' to show the universe that the solver will operate

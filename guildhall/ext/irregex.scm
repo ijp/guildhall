@@ -1,4 +1,4 @@
-;; Copyright (c) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (c) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; This program is free software, you can redistribute it and/or
 ;; modify it under the terms of the new-style BSD license.
@@ -8,7 +8,7 @@
 
 #!r6rs
 
-(library (wak irregex)
+(library (guildhall ext irregex)
   (export
     irregex
     string->irregex
@@ -52,5 +52,5 @@
   (define (error . args)
     (apply assertion-violation "irregex" args))
 
-  (include-from-path "wak/irregex/private/irregex-r6rs")
-  (include-from-path "wak/irregex/private/irregex-utils"))
+  (include-from-path "guildhall/ext/irregex/private/irregex-r6rs")
+  (include-from-path "guildhall/ext/irregex/private/irregex-utils"))

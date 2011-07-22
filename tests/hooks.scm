@@ -25,7 +25,7 @@
 (import (except (rnrs) delete-file file-exists?)
         (spells pathname)
         (spells filesys)
-        (wak trc-testing)
+        (guildhall ext trc-testing)
         (spells logging)
         (guildhall private utils)
         (guildhall inventory)

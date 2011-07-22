@@ -24,7 +24,7 @@
 #!r6rs
 
 (import (rnrs)
-        (wak trc-testing)
+        (guildhall ext trc-testing)
         (spells test-runner environment)
         (spells pathname)
         (guildhall package)

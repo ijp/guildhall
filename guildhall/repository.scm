@@ -44,7 +44,7 @@
           (spells pathname)
           (spells filesys)
           (spells logging)
-          (wak fmt)
+          (guildhall ext fmt)
           (web uri)
           (web client)
           (web response)

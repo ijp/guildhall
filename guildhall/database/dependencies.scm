@@ -37,8 +37,8 @@
           (srfi :2 and-let*)
           (srfi :8 receive)
           (ice-9 streams)
-          (wak foof-loop)
-          (wak foof-loop nested)
+          (guildhall ext foof-loop)
+          (guildhall ext foof-loop nested)
           (spells record-types)
           (spells match)
           (spells tracing) ;debug

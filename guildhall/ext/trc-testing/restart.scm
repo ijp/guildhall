@@ -9,7 +9,7 @@
 ;;; Originally written by Taylor Campbell and placed in the Public
 ;;; Domain.  All warranties are disclaimed.
 
-(library (wak trc-testing restart)
+(library (guildhall ext trc-testing restart)
   (export
    make-restarter
    restarter?

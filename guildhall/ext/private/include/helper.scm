@@ -1,4 +1,4 @@
-;;; helper.scm --- Helper procedures for (wak private include)
+;;; helper.scm --- Helper procedures for (guildhall ext private include)
 
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -16,12 +16,12 @@
 ;;; Code:
 #!r6rs
 
-(library (wak private include helper)
+(library (guildhall ext private include helper)
   (export include-file/aux)
   (import (rnrs)
-          (wak private include utils)
-          (wak private include filesys)
-          (for (wak private include compat) run (meta -1)))
+          (guildhall ext private include utils)
+          (guildhall ext private include filesys)
+          (for (guildhall ext private include compat) run (meta -1)))
 
 (define (error/conditions who msg irrts . cndts)
   (raise

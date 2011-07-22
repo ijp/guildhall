@@ -15,7 +15,7 @@
 
 ;;; Code:
 #!r6rs
-(library (wak private include utils)
+(library (guildhall ext private include utils)
   (export string-join)
   (import (rnrs base))
   

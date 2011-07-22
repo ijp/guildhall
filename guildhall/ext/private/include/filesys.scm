@@ -16,11 +16,11 @@
 ;;; Code:
 #!r6rs
 
-(library (wak private include filesys)
+(library (guildhall ext private include filesys)
   (export find-file)
   (import (rnrs base)
           (rnrs files)
-          (wak private include compat))
+          (guildhall ext private include compat))
 
 (define (find-file path origins)
   (let loop ((origins origins))

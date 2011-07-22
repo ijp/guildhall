@@ -13,7 +13,7 @@
 
 #!r6rs
 
-(library (wak trc-testing)
+(library (guildhall ext trc-testing)
   (export
    define-test-suite
    make-test-suite
@@ -59,15 +59,15 @@
           (rnrs mutable-pairs)
           (srfi :8 receive)
           (srfi :9 records)
-          (wak private define-values)
-          (wak private include)
-          (wak trc-testing parameters))
+          (guildhall ext private define-values)
+          (guildhall ext private include)
+          (guildhall ext trc-testing parameters))
 
   (define (error . args)
     (apply rnrs:error "trc-testing" args))
 
   ;; Hack.  We shouldn't be messing in another module's path.
-  (include-from-path "wak/foof-loop/private/syn-param.scm")
-  (include-file/downcase ((wak trc-testing private) test))
+  (include-from-path "guildhall/ext/foof-loop/private/syn-param.scm")
+  (include-file/downcase ((guildhall ext trc-testing private) test))
 
   )

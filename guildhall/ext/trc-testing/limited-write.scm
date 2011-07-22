@@ -1,6 +1,6 @@
 #!r6rs
 
-(library (wak trc-testing limited-write)
+(library (guildhall ext trc-testing limited-write)
   (export limited-write)
   (import (rnrs))
 

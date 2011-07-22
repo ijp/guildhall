@@ -24,9 +24,9 @@
 
 (import (except (rnrs) delete-file file-exists?)
         (srfi :45 lazy)
-        (wak foof-loop)
-        (wak foof-loop nested)
-        (wak fmt)
+        (guildhall ext foof-loop)
+        (guildhall ext foof-loop nested)
+        (guildhall ext fmt)
         (spells match)
         (spells pathname)
         (spells filesys)

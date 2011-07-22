@@ -27,8 +27,8 @@
           ;; This doesn't really belong here
           limited-write)
   (import (rnrs)
-          (wak foof-loop)
-          (wak fmt)
+          (guildhall ext foof-loop)
+          (guildhall ext fmt)
           (only (guile) include-from-path))
   
   (include-from-path "spells/private/condition"))

@@ -14,7 +14,7 @@
 #!r6rs
 
 ;;@ Optional arguments.
-(library (wak private let-optionals)
+(library (guildhall ext private let-optionals)
   (export let-optionals*)
   (import (rnrs base)
           (rnrs lists))

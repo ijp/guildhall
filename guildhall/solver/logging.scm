@@ -40,8 +40,8 @@
           dsp-choice-set
           dsp-choice-table)
   (import (rnrs)
-          (wak fmt)
-          (wak foof-loop)
+          (guildhall ext fmt)
+          (guildhall ext foof-loop)
           (spells alist)
           (spells logging)
           (guildhall ocelotl wt-tree)

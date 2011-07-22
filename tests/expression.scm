@@ -24,7 +24,7 @@
 #!r6rs
 
 (import (rnrs)
-        (wak trc-testing)
+        (guildhall ext trc-testing)
         (guildhall solver expression))
 
 (define-test-suite expression-tests

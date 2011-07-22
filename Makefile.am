@@ -42,23 +42,23 @@ SOURCES =					\
 	spells/tracing/compat.scm \
 	spells/xvector.scm \
 	spells/zipper-tree.scm \
-	wak/fmt.scm \
-	wak/foof-loop.scm \
-	wak/foof-loop/nested.scm \
-	wak/irregex.scm \
-	wak/private/define-values.scm \
-	wak/private/include.scm \
-	wak/private/include/compat.scm \
-	wak/private/include/filesys.scm \
-	wak/private/include/helper.scm \
-	wak/private/include/utils.scm \
-	wak/private/let-optionals.scm \
-	wak/trc-testing.scm \
-	wak/trc-testing/display-condition.scm \
-	wak/trc-testing/limited-write.scm \
-	wak/trc-testing/parameters.scm \
-	wak/trc-testing/port-tracker.scm \
-	wak/trc-testing/restart.scm \
+	guildhall/ext/fmt.scm \
+	guildhall/ext/foof-loop.scm \
+	guildhall/ext/foof-loop/nested.scm \
+	guildhall/ext/irregex.scm \
+	guildhall/ext/private/define-values.scm \
+	guildhall/ext/private/include.scm \
+	guildhall/ext/private/include/compat.scm \
+	guildhall/ext/private/include/filesys.scm \
+	guildhall/ext/private/include/helper.scm \
+	guildhall/ext/private/include/utils.scm \
+	guildhall/ext/private/let-optionals.scm \
+	guildhall/ext/trc-testing.scm \
+	guildhall/ext/trc-testing/display-condition.scm \
+	guildhall/ext/trc-testing/limited-write.scm \
+	guildhall/ext/trc-testing/parameters.scm \
+	guildhall/ext/trc-testing/port-tracker.scm \
+	guildhall/ext/trc-testing/restart.scm \
 	weinholt/compression/bitstream.scm \
 	weinholt/compression/huffman.scm \
 	weinholt/compression/inflate.scm \
@@ -105,21 +105,21 @@ SOURCES =					\
 # always nice to have source, so that's what we do.
 #
 NOCOMP_SOURCES = \
-	wak/foof-loop/private/test-foof-loop.scm \
-	wak/foof-loop/private/foof-loop.scm \
-	wak/foof-loop/private/nested-foof-loop.scm \
-	wak/foof-loop/private/syn-param.scm \
-	wak/irregex/private/irregex-utils.scm \
-	wak/irregex/private/irregex-r6rs.scm \
-	wak/irregex/private/test-irregex.scm \
-	wak/fmt/private/fmt-pretty.scm \
-	wak/fmt/private/test-fmt.scm \
-	wak/fmt/private/test-round.scm \
-	wak/fmt/private/fmt-unicode.scm \
-	wak/fmt/private/mantissa.scm \
-	wak/fmt/private/fmt-column.scm \
-	wak/fmt/private/fmt.scm \
-	wak/trc-testing/private/test.scm \
+	guildhall/ext/foof-loop/private/test-foof-loop.scm \
+	guildhall/ext/foof-loop/private/foof-loop.scm \
+	guildhall/ext/foof-loop/private/nested-foof-loop.scm \
+	guildhall/ext/foof-loop/private/syn-param.scm \
+	guildhall/ext/irregex/private/irregex-utils.scm \
+	guildhall/ext/irregex/private/irregex-r6rs.scm \
+	guildhall/ext/irregex/private/test-irregex.scm \
+	guildhall/ext/fmt/private/fmt-pretty.scm \
+	guildhall/ext/fmt/private/test-fmt.scm \
+	guildhall/ext/fmt/private/test-round.scm \
+	guildhall/ext/fmt/private/fmt-unicode.scm \
+	guildhall/ext/fmt/private/mantissa.scm \
+	guildhall/ext/fmt/private/fmt-column.scm \
+	guildhall/ext/fmt/private/fmt.scm \
+	guildhall/ext/trc-testing/private/test.scm \
 	spells/private/ascii.scm \
 	spells/private/misc.scm \
 	spells/private/condition.scm \

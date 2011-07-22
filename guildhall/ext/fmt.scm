@@ -7,7 +7,7 @@
 ;; R6RS adaption Copyright (c) 2009, 2011 Andreas Rottmann, same license.
 #!r6rs
 
-(library (wak fmt)
+(library (guildhall ext fmt)
   (export new-fmt-state
           fmt fmt-start fmt-if fmt-capture fmt-let fmt-bind fmt-null
           fmt-ref fmt-set! fmt-add-properties! fmt-set-property!
@@ -47,7 +47,7 @@
           (srfi :69 basic-hash-tables)
           (srfi :1 lists)
           (except (srfi :13 strings) string-hash)
-          (wak private let-optionals)
+          (guildhall ext private let-optionals)
           (only (guile) include-from-path))
   
   (define (make-eq?-table) (make-hash-table eq?))
@@ -58,7 +58,7 @@
   (define call-with-output-string call-with-string-output-port)
   (define read-line get-line)
   
-  (include-from-path "wak/fmt/private/mantissa")
-  (include-from-path "wak/fmt/private/fmt")
-  (include-from-path "wak/fmt/private/fmt-pretty")
-  (include-from-path "wak/fmt/private/fmt-column"))
+  (include-from-path "guildhall/ext/fmt/private/mantissa")
+  (include-from-path "guildhall/ext/fmt/private/fmt")
+  (include-from-path "guildhall/ext/fmt/private/fmt-pretty")
+  (include-from-path "guildhall/ext/fmt/private/fmt-column"))

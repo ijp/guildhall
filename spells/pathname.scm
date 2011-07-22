@@ -79,8 +79,7 @@
           (spells operations)
           (ice-9 match)
           (spells tracing)
-          (spells string-utils)
-          (spells pathname os-string))
+          (spells string-utils))
 
 ;;@extractors (import (spells private stexidoc)) spells-extractors
 
@@ -174,7 +173,6 @@
     (assertion-violation '->pathname "cannot coerce to a pathname" object))
   (cond ((symbol?    object) (make-pathname #f '() object))
         ((string?    object) (parse-namestring object fs-type))
-        ((os-string? object) (parse-namestring (os-string->string object)))
         ((pathname?  object) object)
         ((pair? object)
          (match object

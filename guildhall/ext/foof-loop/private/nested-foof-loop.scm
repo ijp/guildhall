@@ -34,227 +34,227 @@
 
 (define-syntax nested-loop
   (syntax-rules ()
-    ((NESTED-LOOP continuation ((state initial) ...) combiner
+    ((nested-loop continuation ((state initial) ...) combiner
          clause0 clause1+ ...)
-     (%NESTED-LOOP LOOP continuation ((state initial) ...) combiner
+     (%nested-loop loop continuation ((state initial) ...) combiner
          clause0 clause1+ ...))))
 
 (define-syntax nested-lazy-loop
   (syntax-rules ()
-    ((NESTED-LOOP continuation ((state initial) ...) combiner
+    ((nested-loop continuation ((state initial) ...) combiner
          clause0 clause1+ ...)
-     (%NESTED-LOOP LAZY-LOOP continuation ((state initial) ...) combiner
+     (%nested-loop lazy-loop continuation ((state initial) ...) combiner
          clause0 clause1+ ...))))
 
 (define-syntax %nested-loop
-  (syntax-rules (PARALLEL NESTED DO LET LET-VALUES IF NOT AND OR)
+  (syntax-rules (parallel nested do let let-values if not and or)
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
+    ((%nested-loop looper continuation ((state initial) ...) combiner
        expression)
-     (LET ((state initial) ...)
-       (combiner (LAMBDA () expression) continuation)))
+     (let ((state initial) ...)
+       (combiner (lambda () expression) continuation)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (PARALLEL (iterator ...) ...)
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (parallel (iterator ...) ...)
          clause0 clause1+ ...)
-     (looper CONTINUE ((WITH state initial)
+     (looper continue ((with state initial)
                        ...
                        (iterator ...)
                        ...)
        => (continuation state ...)
-       (%NESTED-LOOP looper (LAMBDA (state ...) (CONTINUE state ...))
+       (%nested-loop looper (lambda (state ...) (continue state ...))
            ((state state) ...)
            combiner
            clause0 clause1+ ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (NESTED clause ...)
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (nested clause ...)
          clause0 clause1+ ...)
-     (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (%nested-loop looper continuation ((state initial) ...) combiner
          clause ... clause0 clause1+ ...))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (DO command ...)
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (do command ...)
          clause0 clause1+ ...)
-     (BEGIN command ...
-            (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (begin command ...
+            (%nested-loop looper continuation ((state initial) ...) combiner
                 clause0 clause1+ ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (LET ((variable value) ...))
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (let ((variable value) ...))
          clause0 clause1+ ...)
-     (LET ((variable value) ...)
-       (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (let ((variable value) ...)
+       (%nested-loop looper continuation ((state initial) ...) combiner
            clause0 clause1+ ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (LET variable value)
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (let variable value)
          clause0 clause1+ ...)
-     (LET ((variable value))
-       (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (let ((variable value))
+       (%nested-loop looper continuation ((state initial) ...) combiner
            clause0 clause1+ ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (LET-VALUES ((bvl expression) ...))
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (let-values ((bvl expression) ...))
          clause0 clause1+ ...)
-     (LET-VALUES ((bvl expression) ...)
-       (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (let-values ((bvl expression) ...)
+       (%nested-loop looper continuation ((state initial) ...) combiner
            clause0 clause1+ ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (LET-VALUES bvl expression)
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (let-values bvl expression)
          clause0 clause1+ ...)
-     (LET-VALUES ((bvl expression))
-       (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (let-values ((bvl expression))
+       (%nested-loop looper continuation ((state initial) ...) combiner
            clause0 clause1+ ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (IF condition)
+    ((%nested-loop looper continuation ((state initial) ...) combiner
+         (if condition)
          clause0 clause1+ ...)
-     (IF condition
-         (%NESTED-LOOP looper continuation ((state initial) ...) combiner
+     (if condition
+         (%nested-loop looper continuation ((state initial) ...) combiner
              clause0 clause1+ ...)
          (continuation initial ...)))
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
+    ((%nested-loop looper continuation ((state initial) ...) combiner
          ((iterator ...) ...)
          clause0 clause1+ ...)
-     (%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (PARALLEL (iterator ...) ...)
+     (%nested-loop looper continuation ((state initial) ...) combiner
+         (parallel (iterator ...) ...)
          clause0 clause1+ ...))
 
-    ;** This clause must come last!  It would shadow the others.
+    ;** this clause must come last!  it would shadow the others.
 
-    ((%NESTED-LOOP looper continuation ((state initial) ...) combiner
+    ((%nested-loop looper continuation ((state initial) ...) combiner
          (iterator ...)
          clause0 clause1+ ...)
-     (%NESTED-LOOP looper continuation ((state initial) ...) combiner
-         (PARALLEL (iterator ...))
+     (%nested-loop looper continuation ((state initial) ...) combiner
+         (parallel (iterator ...))
          clause0 clause1+ ...))))
 
 ;;;; Iteration
 
 (define-syntax iterate*
   (syntax-rules (=>)
-    ((ITERATE* ((state initial) ...) => result stepper clause0 clause1+ ...)
-     (NESTED-LOOP (LAMBDA (state ...) result)
+    ((iterate* ((state initial) ...) => result stepper clause0 clause1+ ...)
+     (nested-loop (lambda (state ...) result)
          ((state initial) ...) stepper clause0 clause1+ ...))
-    ((ITERATE* ((state initial) ...) stepper clause0 clause1+ ...)
-     (NESTED-LOOP VALUES* ((state initial) ...) stepper
+    ((iterate* ((state initial) ...) stepper clause0 clause1+ ...)
+     (nested-loop values* ((state initial) ...) stepper
          clause0 clause1+ ...))))
 
 (define-syntax iterate
   (syntax-rules (=>)
-    ((ITERATE ((state initial) ...) => result stepper clause0 clause1+ ...)
-     (ITERATE* ((state initial) ...) => result
-         (LAMBDA (BODY CONTINUATION)
-           (RECEIVE (state ...) (stepper (BODY) state ...)
-             (CONTINUATION state ...)))
+    ((iterate ((state initial) ...) => result stepper clause0 clause1+ ...)
+     (iterate* ((state initial) ...) => result
+         (lambda (body continuation)
+           (receive (state ...) (stepper (body) state ...)
+             (continuation state ...)))
          clause0 clause1+ ...))
-    ((ITERATE ((state initial) ...) stepper clause0 clause1+ ...)
-     (ITERATE* ((state initial) ...)
-         (LAMBDA (BODY CONTINUATION)
-           (RECEIVE (state ...) (stepper (BODY) state ...)
-             (CONTINUATION state ...)))
+    ((iterate ((state initial) ...) stepper clause0 clause1+ ...)
+     (iterate* ((state initial) ...)
+         (lambda (body continuation)
+           (receive (state ...) (stepper (body) state ...)
+             (continuation state ...)))
          clause0 clause1+ ...))))
 
 (define-syntax iterate!
   (syntax-rules ()
-    ((ITERATE! clause0 clause1+ ...)
-     (ITERATE* ()                       ;No state
-         (LAMBDA (BODY CONTINUATION) (BODY) (CONTINUATION))
+    ((iterate! clause0 clause1+ ...)
+     (iterate* ()                       ;no state
+         (lambda (body continuation) (body) (continuation))
          clause0 clause1+ ...))))
 
 (define-syntax iterate-values
   (syntax-rules (=>)
 
-    ((ITERATE-VALUES ((state initial) ...) => result
+    ((iterate-values ((state initial) ...) => result
          clause0 clause1+ ...)
-     (ITERATE* ((state initial) ...) => result CALL-WITH-VALUES
+     (iterate* ((state initial) ...) => result call-with-values
          clause0 clause1+ ...))
 
-    ((ITERATE-VALUES updater ((state initial) ...) => result
+    ((iterate-values updater ((state initial) ...) => result
          clause0 clause1+ ...)
-     ;++ This should be visible only in the final expression.  However,
+     ;++ this should be visible only in the final expression.  however,
      ;++ that requires tail patterns, which are non-standard.
-     (WITH-EXTENDED-PARAMETER-OPERATORS
-         ((updater (VALUES* (state . state) ...)))
-       (ITERATE-VALUES ((state initial) ...) => result clause0 clause1+ ...)))
+     (with-extended-parameter-operators
+         ((updater (values* (state . state) ...)))
+       (iterate-values ((state initial) ...) => result clause0 clause1+ ...)))
 
-    ((ITERATE-VALUES ((state initial) ...) clause0 clause1+ ...)
-     (ITERATE* ((state initial) ...) CALL-WITH-VALUES
+    ((iterate-values ((state initial) ...) clause0 clause1+ ...)
+     (iterate* ((state initial) ...) call-with-values
          clause0 clause1+ ...))
 
-    ((ITERATE-VALUES updater ((state initial) ...) clause0 clause1+ ...)
-     (WITH-EXTENDED-PARAMETER-OPERATORS
-         ((updater (VALUES* (state . state) ...)))
-       (ITERATE* ((state initial) ...) CALL-WITH-VALUES
+    ((iterate-values updater ((state initial) ...) clause0 clause1+ ...)
+     (with-extended-parameter-operators
+         ((updater (values* (state . state) ...)))
+       (iterate* ((state initial) ...) call-with-values
          clause0 clause1+ ...)))))
 
 ;++ Hack for MIT Scheme, whose multiple return values are broken.
 
 (define-syntax values*
   (syntax-rules ()
-    ((VALUES* single) single)
-    ((VALUES* multiple ...) (VALUES multiple ...))))
+    ((values* single) single)
+    ((values* multiple ...) (values multiple ...))))
 
 ;;;; Recursion
 
 (define-syntax recur*
   (syntax-rules ()
-    ((RECUR* base-case combiner clause0 clause1+ ...)
-     (NESTED-LOOP (LAMBDA () base-case)
-         ()                             ;No state
+    ((recur* base-case combiner clause0 clause1+ ...)
+     (nested-loop (lambda () base-case)
+         ()                             ;no state
          combiner
          clause0 clause1+ ...))))
 
 (define-syntax lazy-recur*
   (syntax-rules ()
-    ((LAZY-RECUR* base-case combiner clause0 clause1+ ...)
-     (NESTED-LAZY-LOOP (LAMBDA () base-case)
-         ()                             ;No state
+    ((lazy-recur* base-case combiner clause0 clause1+ ...)
+     (nested-lazy-loop (lambda () base-case)
+         ()                             ;no state
          combiner
          clause0 clause1+ ...))))
 
 (define-syntax recur
   (syntax-rules ()
-    ((RECUR base-case combiner clause0 clause1+ ...)
-     (RECUR* base-case
-         (LAMBDA (BODY CONTINUATION)
-           (combiner (BODY) (CONTINUATION)))
+    ((recur base-case combiner clause0 clause1+ ...)
+     (recur* base-case
+         (lambda (body continuation)
+           (combiner (body) (continuation)))
          clause0 clause1+ ...))))
 
 (define-syntax lazy-recur
   (syntax-rules ()
-    ((LAZY-RECUR base-case combiner clause0 clause1+ ...)
-     (LAZY-RECUR* base-case
-         (LAMBDA (BODY CONTINUATION)
-           (combiner (BODY) (CONTINUATION)))
+    ((lazy-recur base-case combiner clause0 clause1+ ...)
+     (lazy-recur* base-case
+         (lambda (body continuation)
+           (combiner (body) (continuation)))
          clause0 clause1+ ...))))
 
 (define-syntax recur-values
   (syntax-rules (=>)
-    ((RECUR-VALUES base-case => result clause0 clause1+ ...)
-     (CALL-WITH-VALUES (LAMBDA ()
-                         (RECUR-VALUES base-case clause0 clause1+ ...))
+    ((recur-values base-case => result clause0 clause1+ ...)
+     (call-with-values (lambda ()
+                         (recur-values base-case clause0 clause1+ ...))
        result))
 
-    ((RECUR-VALUES base-case clause0 clause1+ ...)
-     (RECUR* base-case
-         (LAMBDA (RECEIVER-BODY RECURSION)
-           (CALL-WITH-VALUES RECURSION (RECEIVER-BODY)))
+    ((recur-values base-case clause0 clause1+ ...)
+     (recur* base-case
+         (lambda (receiver-body recursion)
+           (call-with-values recursion (receiver-body)))
          clause0 clause1+ ...))))
 
 ;;;; Collecting Lists & Streams
 
 (define-syntax collect-list-reverse
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-LIST-REVERSE (INITIAL tail-expression) clause0 clause1+ ...)
-     (ITERATE ((TAIL tail-expression)) CONS clause0 clause1+ ...))
+    ((collect-list-reverse (initial tail-expression) clause0 clause1+ ...)
+     (iterate ((tail tail-expression)) cons clause0 clause1+ ...))
 
-    ((COLLECT-LIST-REVERSE clause0 clause1+ ...)
-     (COLLECT-LIST-REVERSE (INITIAL '()) clause0 clause1+ ...))))
+    ((collect-list-reverse clause0 clause1+ ...)
+     (collect-list-reverse (initial '()) clause0 clause1+ ...))))
 
 ;;; The first definition of COLLECT-LIST is probably the one that you
 ;;; want.  On the other hand, what follows in comments is elegant, and
@@ -262,14 +262,14 @@
 ;;; with the definition of COLLECT-STREAM.
 
 (define-syntax collect-list
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-LIST (INITIAL tail-expression) clause0 clause1+ ...)
-     (APPEND-REVERSE (COLLECT-LIST-REVERSE clause0 clause1+ ...)
+    ((collect-list (initial tail-expression) clause0 clause1+ ...)
+     (append-reverse (collect-list-reverse clause0 clause1+ ...)
                      tail-expression))
 
-    ((COLLECT-LIST clause0 clause1+ ...)
-     (REVERSE (COLLECT-LIST-REVERSE clause0 clause1+ ...)))))
+    ((collect-list clause0 clause1+ ...)
+     (reverse (collect-list-reverse clause0 clause1+ ...)))))
 
 ; (define-syntax collect-list
 ;   (syntax-rules (INITIAL)
@@ -281,46 +281,46 @@
 ;      (COLLECT-LIST (INITIAL '()) clause0 clause1+ ...))))
 
 (define-syntax collect-stream
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-STREAM (INITIAL tail-expression) clause0 clause1+ ...)
-     (LAZY-RECUR tail-expression STREAM-CONS clause0 clause1+ ...))
+    ((collect-stream (initial tail-expression) clause0 clause1+ ...)
+     (lazy-recur tail-expression stream-cons clause0 clause1+ ...))
 
-    ((COLLECT-STREAM clause0 clause1+ ...)
-     (COLLECT-STREAM (INITIAL STREAM-NIL) clause0 clause1+ ...))))
+    ((collect-stream clause0 clause1+ ...)
+     (collect-stream (initial stream-nil) clause0 clause1+ ...))))
 
 (define-syntax collect-list!
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-LIST! (INITIAL tail-expression) clause0 clause1+ ...)
-     (LET ((PAIR (CONS #F tail-expression)))
-       (COLLECT-LIST-INTO! PAIR clause0 clause1+ ...)
-       (CDR PAIR)))
+    ((collect-list! (initial tail-expression) clause0 clause1+ ...)
+     (let ((pair (cons #f tail-expression)))
+       (collect-list-into! pair clause0 clause1+ ...)
+       (cdr pair)))
 
-    ((COLLECT-LIST! clause0 clause1+ ...)
-     (COLLECT-LIST! (INITIAL '()) clause0 clause1+ ...))))
+    ((collect-list! clause0 clause1+ ...)
+     (collect-list! (initial '()) clause0 clause1+ ...))))
 
 (define-syntax collect-list-into!
   (syntax-rules ()
-    ((COLLECT-LIST-INTO! pair-expression clause0 clause1+ ...)
-     (ITERATE* ((PAIR pair-expression))
-         (LAMBDA (BODY CONTINUATION)
-           (LET ((TAIL (CONS (BODY) (CDR PAIR))))
-             (SET-CDR! PAIR TAIL)
-             (CONTINUATION TAIL)))
+    ((collect-list-into! pair-expression clause0 clause1+ ...)
+     (iterate* ((pair pair-expression))
+         (lambda (body continuation)
+           (let ((tail (cons (body) (cdr pair))))
+             (set-cdr! pair tail)
+             (continuation tail)))
          clause0 clause1+ ...))))
 
 ;;;; Collecting Vectors and Strings
 
 (define-syntax collect-vector
   (syntax-rules ()
-    ((COLLECT-VECTOR clause0 clause1+ ...)
-     (LIST->VECTOR (COLLECT-LIST clause0 clause1+ ...)))))
+    ((collect-vector clause0 clause1+ ...)
+     (list->vector (collect-list clause0 clause1+ ...)))))
 
 (define-syntax collect-string
   (syntax-rules ()
-    ((COLLECT-STRING clause0 clause1+ ...)
-     (LIST->STRING (COLLECT-LIST clause0 clause1+ ...)))))
+    ((collect-string clause0 clause1+ ...)
+     (list->string (collect-list clause0 clause1+ ...)))))
 
 ;;; The following definition of COLLECT-DISPLAY can collect any object,
 ;;; whose printed representation is computed using DISPLAY; it relies
@@ -328,14 +328,14 @@
 
 (define-syntax collect-display
   (syntax-rules ()
-    ((COLLECT-DISPLAY clause0 clause1+ ...)
-     (LET ((OUTPUT-PORT (OPEN-OUTPUT-STRING)))
-       (ITERATE* ()                      ;No state
-           (LAMBDA (BODY CONTINUATION)
-             (DISPLAY (BODY) OUTPUT-PORT)
-             (CONTINUATION))
+    ((collect-display clause0 clause1+ ...)
+     (let ((output-port (open-output-string)))
+       (iterate* ()                      ;no state
+           (lambda (body continuation)
+             (display (body) output-port)
+             (continuation))
            clause0 clause1+ ...)
-       (GET-OUTPUT-STRING OUTPUT-PORT)))))
+       (get-output-string output-port)))))
 
 ;;;;; Expanding Vector and String Collection
 
@@ -410,257 +410,257 @@
 ;;; STRING-SET!.  This may not be a good idea.
 
 (define-syntax collect-into-vector!
-  (syntax-rules (FROM)
+  (syntax-rules (from)
 
-    ((COLLECT-INTO-VECTOR! vector-expression (FROM start-expression)
+    ((collect-into-vector! vector-expression (from start-expression)
        clause0 clause1+ ...)
-     (LET ((VECTOR vector-expression)
-           (START start-expression))
-       (ITERATE* ((INDEX start))
-           (LAMBDA (BODY CONTINUATION)
-             (VECTOR-SET! VECTOR INDEX (BODY))
-             (CONTINUATION (+ INDEX 1)))
+     (let ((vector vector-expression)
+           (start start-expression))
+       (iterate* ((index start))
+           (lambda (body continuation)
+             (vector-set! vector index (body))
+             (continuation (+ index 1)))
            clause0 clause1+ ...)))
 
-    ((COLLECT-INTO-VECTOR! vector-expression clause0 clause1+ ...)
-     (COLLECT-INTO-VECTOR! vector-expression (FROM 0) clause0 clause1+ ...))))
+    ((collect-into-vector! vector-expression clause0 clause1+ ...)
+     (collect-into-vector! vector-expression (from 0) clause0 clause1+ ...))))
 
 (define-syntax collect-into-string!
-  (syntax-rules (FROM)
+  (syntax-rules (from)
 
-    ((COLLECT-INTO-STRING! string-expression (FROM start-expression)
+    ((collect-into-string! string-expression (from start-expression)
        clause0 clause1+ ...)
-     (LET ((STRING string-expression)
-           (START start-expression))
-       (ITERATE* ((INDEX start))
-           (LAMBDA (BODY CONTINUATION)
-             (STRING-SET! STRING INDEX (BODY))
-             (CONTINUATION (+ INDEX 1)))
+     (let ((string string-expression)
+           (start start-expression))
+       (iterate* ((index start))
+           (lambda (body continuation)
+             (string-set! string index (body))
+             (continuation (+ index 1)))
            clause0 clause1+ ...)))
 
-    ((COLLECT-INTO-STRING! string-expression clause0 clause1+ ...)
-     (COLLECT-INTO-STRING! string-expression (FROM 0) clause0 clause1+ ...))))
+    ((collect-into-string! string-expression clause0 clause1+ ...)
+     (collect-into-string! string-expression (from 0) clause0 clause1+ ...))))
 
 ;;; These should probably have bang suffixes to emphasize that they are
 ;;; non-reentrant.
 
 (define-syntax collect-vector-of-length
   (syntax-rules ()
-    ((COLLECT-VECTOR-OF-LENGTH length clause0 clause1+ ...)
-     (LET ((VECTOR (MAKE-VECTOR length)))
-       (COLLECT-INTO-VECTOR! VECTOR clause0 clause1+ ...)
-       VECTOR))))
+    ((collect-vector-of-length length clause0 clause1+ ...)
+     (let ((vector (make-vector length)))
+       (collect-into-vector! vector clause0 clause1+ ...)
+       vector))))
 
 (define-syntax collect-string-of-length
   (syntax-rules ()
-    ((COLLECT-STRING-OF-LENGTH length clause0 clause1+ ...)
-     (LET ((STRING (MAKE-STRING length)))
-       (COLLECT-INTO-STRING! STRING clause0 clause1+ ...)
-       STRING))))
+    ((collect-string-of-length length clause0 clause1+ ...)
+     (let ((string (make-string length)))
+       (collect-into-string! string clause0 clause1+ ...)
+       string))))
 
 ;;;; Numerical Collection
 
 (define-syntax collect-sum
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-SUM (INITIAL value-expression) clause0 clause1+ ...)
-     (ITERATE ((SUM value-expression)) + clause0 clause1+ ...))
+    ((collect-sum (initial value-expression) clause0 clause1+ ...)
+     (iterate ((sum value-expression)) + clause0 clause1+ ...))
 
-    ((COLLECT-SUM clause0 clause1+ ...)
-     (COLLECT-SUM (INITIAL 0) clause0 clause1+ ...))))
+    ((collect-sum clause0 clause1+ ...)
+     (collect-sum (initial 0) clause0 clause1+ ...))))
 
 (define-syntax collect-product
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-PRODUCT (INITIAL value-expression) clause0 clause1+ ...)
-     (ITERATE ((PRODUCT value-expression)) * clause0 clause1+ ...))
+    ((collect-product (initial value-expression) clause0 clause1+ ...)
+     (iterate ((product value-expression)) * clause0 clause1+ ...))
 
-    ((COLLECT-PRODUCT clause0 clause1+ ...)
-     (COLLECT-PRODUCT (INITIAL 1) clause0 clause1+ ...))))
+    ((collect-product clause0 clause1+ ...)
+     (collect-product (initial 1) clause0 clause1+ ...))))
 
 (define-syntax collect-count
   (syntax-rules ()
-    ((COLLECT-COUNT clause0 clause1+ ...)
-     (COLLECT-SUM clause0 clause1+ ... 1))))
+    ((collect-count clause0 clause1+ ...)
+     (collect-sum clause0 clause1+ ... 1))))
 
 (define-syntax collect-average
   (syntax-rules ()
-    ((COLLECT-AVERAGE clause0 clause1+ ...)
-     (RECEIVE (SUM COUNT)
-              (ITERATE* ((SUM 0) (COUNT 0))
-                  (LAMBDA (BODY CONTINUATION)
-                    (CONTINUATION (+ SUM (BODY)) (+ COUNT 1)))
+    ((collect-average clause0 clause1+ ...)
+     (receive (sum count)
+              (iterate* ((sum 0) (count 0))
+                  (lambda (body continuation)
+                    (continuation (+ sum (body)) (+ count 1)))
                   clause0 clause1+ ...)
-       (/ SUM COUNT)))))
+       (/ sum count)))))
 
 ;;;; Collecting Extrema
 
 (define-syntax collect-extremum
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-EXTREMUM comparator-expression (INITIAL initial-expression)
+    ((collect-extremum comparator-expression (initial initial-expression)
          clause0 clause1+ ...)
-     (LET ((COMPARATOR comparator-expression))
-       (ITERATE ((EXTREMUM initial-expression))
-           (LAMBDA (DATUM EXTREMUM)
-             (IF (COMPARATOR DATUM EXTREMUM) DATUM EXTREMUM))
+     (let ((comparator comparator-expression))
+       (iterate ((extremum initial-expression))
+           (lambda (datum extremum)
+             (if (comparator datum extremum) datum extremum))
            clause0 clause1+ ...)))
 
-    ((COLLECT-EXTREMUM comparator-expression clause0 clause1+ ...)
-     (LET ((COMPARATOR comparator-expression))
-       (ITERATE ((EXTREMUM #F))
-           (LAMBDA (DATUM EXTREMUM)
-             (IF (AND DATUM EXTREMUM)
-                 (IF (COMPARATOR DATUM EXTREMUM) DATUM EXTREMUM)
-                 (OR DATUM EXTREMUM)))
+    ((collect-extremum comparator-expression clause0 clause1+ ...)
+     (let ((comparator comparator-expression))
+       (iterate ((extremum #f))
+           (lambda (datum extremum)
+             (if (and datum extremum)
+                 (if (comparator datum extremum) datum extremum)
+                 (or datum extremum)))
          clause0 clause1+ ...)))))
 
 (define-syntax collect-minimum
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-MINIMUM (INITIAL initial-expression) clause0 clause1+ ...)
-     (ITERATE ((MINIMUM initial-expression)) MIN clause0 clause1+ ...))
+    ((collect-minimum (initial initial-expression) clause0 clause1+ ...)
+     (iterate ((minimum initial-expression)) min clause0 clause1+ ...))
 
-    ((COLLECT-MINIMUM clause0 clause1+ ...)
-     (ITERATE ((MINIMUM #F))
-         (LAMBDA (DATUM MINIMUM)
-           (IF (AND DATUM MINIMUM)
-               (MIN DATUM MINIMUM)
-               (OR DATUM MINIMUM)))
+    ((collect-minimum clause0 clause1+ ...)
+     (iterate ((minimum #f))
+         (lambda (datum minimum)
+           (if (and datum minimum)
+               (min datum minimum)
+               (or datum minimum)))
          clause0 clause1+ ...))))
 
 (define-syntax collect-maximum
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-MAXIMUM (INITIAL initial-expression) clause0 clause1+ ...)
-     (ITERATE ((MAXIMUM initial-expression)) MAX clause0 clause1+ ...))
+    ((collect-maximum (initial initial-expression) clause0 clause1+ ...)
+     (iterate ((maximum initial-expression)) max clause0 clause1+ ...))
 
-    ((COLLECT-MAXIMUM clause0 clause1+ ...)
-     (ITERATE ((MAXIMUM #F))
-         (LAMBDA (DATUM MAXIMUM)
-           (IF (AND DATUM MAXIMUM)
-               (MAX DATUM MAXIMUM)
-               (OR DATUM MAXIMUM)))
+    ((collect-maximum clause0 clause1+ ...)
+     (iterate ((maximum #f))
+         (lambda (datum maximum)
+           (if (and datum maximum)
+               (max datum maximum)
+               (or datum maximum)))
          clause0 clause1+ ...))))
 
 ;;;;; Generalization by Multiple Values
 
 (define-syntax collect-extremum*
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-EXTREMUM* comparator-expression
-         (INITIAL key-expression element-expression)
+    ((collect-extremum* comparator-expression
+         (initial key-expression element-expression)
          clause0 clause1+ ...)
-     (LET ((COMPARATOR comparator-expression)
-           (INITIAL-KEY key-expression)
-           (INITIAL-ELEMENT element-expression))
-       (ITERATE* ((EXTREME-KEY INITIAL-KEY)
-                  (EXTREME-ELEMENT INITIAL-ELEMENT))
-           (LAMBDA (BODY CONTINUATION)
-             (RECEIVE (KEY ELEMENT) (BODY)
-               (IF (COMPARATOR KEY EXTREME-KEY)
-                   (CONTINUATION KEY ELEMENT)
-                   (CONTINUATION EXTREME-KEY EXTREME-ELEMENT))))
+     (let ((comparator comparator-expression)
+           (initial-key key-expression)
+           (initial-element element-expression))
+       (iterate* ((extreme-key initial-key)
+                  (extreme-element initial-element))
+           (lambda (body continuation)
+             (receive (key element) (body)
+               (if (comparator key extreme-key)
+                   (continuation key element)
+                   (continuation extreme-key extreme-element))))
            clause0 clause1+ ...)))
 
-    ((COLLECT-EXTREMUM* comparator-expression clause0 clause1+ ...)
-     (LET ((COMPARATOR comparator-expression))
-       (ITERATE* ((EXTREME-KEY #F)
-                  (EXTREME-ELEMENT #F))
-           (LAMBDA (BODY CONTINUATION)
-             (RECEIVE (KEY ELEMENT) (BODY)
-               (IF KEY
-                   (IF EXTREME-KEY
-                       (IF (COMPARATOR KEY EXTREME-KEY)
-                           (CONTINUATION KEY ELEMENT)
-                           (CONTINUATION EXTREME-KEY EXTREME-ELEMENT))
-                       (CONTINUATION KEY ELEMENT))
-                   (CONTINUATION EXTREME-KEY EXTREME-ELEMENT))))
+    ((collect-extremum* comparator-expression clause0 clause1+ ...)
+     (let ((comparator comparator-expression))
+       (iterate* ((extreme-key #f)
+                  (extreme-element #f))
+           (lambda (body continuation)
+             (receive (key element) (body)
+               (if key
+                   (if extreme-key
+                       (if (comparator key extreme-key)
+                           (continuation key element)
+                           (continuation extreme-key extreme-element))
+                       (continuation key element))
+                   (continuation extreme-key extreme-element))))
            clause0 clause1+ ...)))))
 
 (define-syntax collect-minimum*
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-MINIMUM* (INITIAL key-expression element-expression)
+    ((collect-minimum* (initial key-expression element-expression)
          clause0 clause1+ ...)
-     (COLLECT-EXTREMUM* < (INITIAL key-expression element-expression)
+     (collect-extremum* < (initial key-expression element-expression)
          clause0 clause1+ ...))
 
-    ((COLLECT-MINIMUM* clause0 clause1+ ...)
-     (COLLECT-EXTREMUM* < clause0 clause1+ ...))))
+    ((collect-minimum* clause0 clause1+ ...)
+     (collect-extremum* < clause0 clause1+ ...))))
 
 (define-syntax collect-maximum*
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-MAXIMUM* (INITIAL key-expression element-expression)
+    ((collect-maximum* (initial key-expression element-expression)
          clause0 clause1+ ...)
-     (COLLECT-EXTREMUM* < (INITIAL key-expression element-expression)
+     (collect-extremum* < (initial key-expression element-expression)
          clause0 clause1+ ...))
 
-    ((COLLECT-MAXIMUM* clause0 clause1+ ...)
-     (COLLECT-EXTREMUM* < clause0 clause1+ ...))))
+    ((collect-maximum* clause0 clause1+ ...)
+     (collect-extremum* < clause0 clause1+ ...))))
 
 ;;;;; Generalization by Selectors
 
 (define-syntax collect-extremum-by
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-EXTREMUM-BY comparator-expression selector-expression
-         (INITIAL initial-expression)
+    ((collect-extremum-by comparator-expression selector-expression
+         (initial initial-expression)
          clause0 clause1+ ...)
-     (LET ((COMPARATOR comparator-expression)
-           (SELECTOR selector-expression)
-           (INITIAL-ELEMENT initial-expression))
-       (ITERATE* ((EXTREME-KEY (SELECTOR INITIAL-ELEMENT))
-                  (EXTREME-ELEMENT INITIAL-ELEMENT))
-           => EXTREME-ELEMENT
-           (LAMBDA (BODY CONTINUATION)
-             (LET* ((ELEMENT (BODY))
-                    (KEY (SELECTOR ELEMENT)))
-               (IF (COMPARATOR KEY EXTREME-KEY)
-                   (CONTINUATION KEY ELEMENT)
-                   (CONTINUATION EXTREME-KEY EXTREME-ELEMENT))))
+     (let ((comparator comparator-expression)
+           (selector selector-expression)
+           (initial-element initial-expression))
+       (iterate* ((extreme-key (selector initial-element))
+                  (extreme-element initial-element))
+           => extreme-element
+           (lambda (body continuation)
+             (let* ((element (body))
+                    (key (selector element)))
+               (if (comparator key extreme-key)
+                   (continuation key element)
+                   (continuation extreme-key extreme-element))))
            clause0 clause1+ ...)))
 
-    ((COLLECT-EXTREMUM-BY comparator-expression selector-expression
+    ((collect-extremum-by comparator-expression selector-expression
          clause0 clause1+ ...)
-     (LET ((COMPARATOR comparator-expression)
-           (SELECTOR selector-expression))
-       (ITERATE* ((EXTREME-KEY #F) (EXTREME-ELEMENT #F))
-           => EXTREME-ELEMENT
-           (LAMBDA (BODY CONTINUATION)
-             (LET* ((ELEMENT (BODY))
-                    (KEY (SELECTOR ELEMENT)))
-               (IF KEY
-                   (IF EXTREME-KEY
-                       (IF (COMPARATOR KEY EXTREME-KEY)
-                           (CONTINUATION KEY ELEMENT)
-                           (CONTINUATION EXTREME-KEY EXTREME-ELEMENT))
-                       (CONTINUATION KEY ELEMENT))
-                   (CONTINUATION EXTREME-KEY EXTREME-ELEMENT))))
+     (let ((comparator comparator-expression)
+           (selector selector-expression))
+       (iterate* ((extreme-key #f) (extreme-element #f))
+           => extreme-element
+           (lambda (body continuation)
+             (let* ((element (body))
+                    (key (selector element)))
+               (if key
+                   (if extreme-key
+                       (if (comparator key extreme-key)
+                           (continuation key element)
+                           (continuation extreme-key extreme-element))
+                       (continuation key element))
+                   (continuation extreme-key extreme-element))))
            clause0 clause1+ ...)))))
 
 (define-syntax collect-minimum-by
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-MINIMUM-BY selector-expression (INITIAL initial-expression)
+    ((collect-minimum-by selector-expression (initial initial-expression)
          clause0 clause1+ ...)
-     (COLLECT-EXTREMUM-BY < selector-expression (INITIAL initial-expression)
+     (collect-extremum-by < selector-expression (initial initial-expression)
          clause0 clause1+ ...))
 
-    ((COLLECT-MINIMUM-BY selector-expression clause0 clause1+ ...)
-     (COLLECT-EXTREMUM-BY < selector-expression clause0 clause1+ ...))))
+    ((collect-minimum-by selector-expression clause0 clause1+ ...)
+     (collect-extremum-by < selector-expression clause0 clause1+ ...))))
 
 (define-syntax collect-maximum-by
-  (syntax-rules (INITIAL)
+  (syntax-rules (initial)
 
-    ((COLLECT-MAXIMUM-BY selector-expression (INITIAL initial-expression)
+    ((collect-maximum-by selector-expression (initial initial-expression)
          clause0 clause1+ ...)
-     (COLLECT-EXTREMUM-BY > selector-expression (INITIAL initial-expression)
+     (collect-extremum-by > selector-expression (initial initial-expression)
          clause0 clause1+ ...))
 
-    ((COLLECT-MAXIMUM-BY selector-expression clause0 clause1+ ...)
-     (COLLECT-EXTREMUM-BY > selector-expression clause0 clause1+ ...))))
+    ((collect-maximum-by selector-expression clause0 clause1+ ...)
+     (collect-extremum-by > selector-expression clause0 clause1+ ...))))
 
 ;;;; Miscellaneous
 
@@ -687,41 +687,41 @@
 ;;; last is in a tail position.  COLLECT-AND cannot do this.
 
 (define-syntax collect-first
-  (syntax-rules (DEFAULT)
+  (syntax-rules (default)
 
-    ((COLLECT-FIRST (DEFAULT default-expression) clause0 clause1+ ...)
-     (NESTED-LOOP (LAMBDA () default-expression)
-         ()                             ;No state
-         (LAMBDA (BODY CONTINUATION)
-           CONTINUATION                 ;ignore
-           (BODY))
+    ((collect-first (default default-expression) clause0 clause1+ ...)
+     (nested-loop (lambda () default-expression)
+         ()                             ;no state
+         (lambda (body continuation)
+           continuation                 ;ignore
+           (body))
          clause0 clause1+ ...))
 
-    ((COLLECT-FIRST clause0 clause1+ ...)
-     (COLLECT-FIRST (DEFAULT (ERROR "Nothing generated in COLLECT-FIRST."))
+    ((collect-first clause0 clause1+ ...)
+     (collect-first (default (error "nothing generated in collect-first."))
          clause0 clause1+ ...))))
 
 (define-syntax collect-last
-  (syntax-rules (DEFAULT)
-    ((COLLECT-LAST (DEFAULT default-expression) clause0 clause1+ ...)
-     (NESTED-LOOP (LAMBDA (RESULT) RESULT)
-         ((RESULT default-expression))
-         (LAMBDA (BODY CONTINUATION) (CONTINUATION (BODY)))
+  (syntax-rules (default)
+    ((collect-last (default default-expression) clause0 clause1+ ...)
+     (nested-loop (lambda (result) result)
+         ((result default-expression))
+         (lambda (body continuation) (continuation (body)))
          clause0 clause1+ ...))))
 
 (define-syntax collect-or
   (syntax-rules ()
-    ((COLLECT-OR clause0 clause1+ ...)
-     (NESTED-LOOP (LAMBDA () #F)
-         ()                             ;No state
-         (LAMBDA (BODY CONTINUATION) (OR (BODY) (CONTINUATION)))
+    ((collect-or clause0 clause1+ ...)
+     (nested-loop (lambda () #f)
+         ()                             ;no state
+         (lambda (body continuation) (or (body) (continuation)))
          clause0 clause1+ ...))))
 
 (define-syntax collect-and
   (syntax-rules ()
-    ((COLLECT-AND clause0 clause1+ ...)
-     (NESTED-LOOP (LAMBDA (RESULT) RESULT)
-         ((RESULT #F))
-         (LAMBDA (BODY CONTINUATION)
-           (LET ((RESULT (BODY))) (AND RESULT (CONTINUATION RESULT))))
+    ((collect-and clause0 clause1+ ...)
+     (nested-loop (lambda (result) result)
+         ((result #f))
+         (lambda (body continuation)
+           (let ((result (body))) (and result (continuation result))))
          clause0 clause1+ ...))))

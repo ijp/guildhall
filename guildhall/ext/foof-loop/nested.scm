@@ -52,8 +52,7 @@
           (only (guile) include-from-path)
           (srfi :8 receive)
           (ice-9 streams)
-          (guildhall ext foof-loop)
-          (guildhall ext private include))
+          (guildhall ext foof-loop))
   
   (define-syntax define-aux
     (syntax-rules ()
@@ -67,4 +66,4 @@
   (define-aux parallel nested)
 
   (include-from-path "guildhall/ext/foof-loop/private/syn-param")
-  (include-file/downcase ((guildhall ext foof-loop private) nested-foof-loop)))
+  (include-from-path "guildhall/ext/foof-loop/private/nested-foof-loop"))

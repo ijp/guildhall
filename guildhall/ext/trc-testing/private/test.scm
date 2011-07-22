@@ -100,94 +100,94 @@
 
 (define-syntax test-predicate
   (syntax-rules ()
-    ((TEST-PREDICATE predicate expression)
-     (LET ((DATUM expression))
-       (IF (NOT (predicate expression))
-           (TEST-FAILURE:PREDICATE-DATUM 'predicate 'expression DATUM))))))
+    ((test-predicate predicate expression)
+     (let ((datum expression))
+       (if (not (predicate expression))
+           (test-failure:predicate-datum 'predicate 'expression datum))))))
 
 (define-syntax test-compare
   (syntax-rules ()
-    ((TEST-COMPARE comparator expected-expression actual-expression)
-     (LET ((EXPECTED-DATUM expected-expression)
-           (ACTUAL-DATUM actual-expression))
-       (IF (NOT (comparator EXPECTED-DATUM ACTUAL-DATUM))
-           (TEST-FAILURE:COMPARE-DATUM 'comparator
-                                       'expected-expression EXPECTED-DATUM
-                                       'actual-expression ACTUAL-DATUM))))))
+    ((test-compare comparator expected-expression actual-expression)
+     (let ((expected-datum expected-expression)
+           (actual-datum actual-expression))
+       (if (not (comparator expected-datum actual-datum))
+           (test-failure:compare-datum 'comparator
+                                       'expected-expression expected-datum
+                                       'actual-expression actual-datum))))))
 
 (define-syntax test-eq
   (syntax-rules ()
-    ((TEST-EQ expected-expression actual-expression)
-     (TEST-COMPARE EQ? expected-expression actual-expression))))
+    ((test-eq expected-expression actual-expression)
+     (test-compare eq? expected-expression actual-expression))))
 
 (define-syntax test-eqv
   (syntax-rules ()
-    ((TEST-EQ expected-expression actual-expression)
-     (TEST-COMPARE EQV? expected-expression actual-expression))))
+    ((test-eq expected-expression actual-expression)
+     (test-compare eqv? expected-expression actual-expression))))
 
 (define-syntax test-equal
   (syntax-rules ()
-    ((TEST-EQ expected-expression actual-expression)
-     (TEST-COMPARE EQUAL? expected-expression actual-expression))))
+    ((test-eq expected-expression actual-expression)
+     (test-compare equal? expected-expression actual-expression))))
 
 ;;;; Syntactic Sugar
 
 (define-syntax define-test-suite
   (syntax-rules ()
-    ((DEFINE-TEST-SUITE (suite-name parent) description)
-     (DEFINE suite-name
-       (LET ((suite-name (MAKE-TEST-SUITE 'suite-name 'description)))
-         (ADD-TEST! parent 'suite-name suite-name)
+    ((define-test-suite (suite-name parent) description)
+     (define suite-name
+       (let ((suite-name (make-test-suite 'suite-name 'description)))
+         (add-test! parent 'suite-name suite-name)
          suite-name)))
-    ((DEFINE-TEST-SUITE suite-name description)
-     (DEFINE suite-name (MAKE-TEST-SUITE 'suite-name 'description)))))
+    ((define-test-suite suite-name description)
+     (define suite-name (make-test-suite 'suite-name 'description)))))
 
 (define-syntax define-test-case
   (syntax-rules ()
-    ((DEFINE-TEST-CASE test-suite name test-case)
-     (DEFINE-VALUES () ;Make this expand into a definition
-       (ADD-TEST! test-suite `name test-case)))
-    ((DEFINE-TEST-CASE test-suite test-case-name (option ...) test ...)
-     (DEFINE-VALUES () ;Ditto
-       (LET ((NAME `test-case-name))
-         (ADD-TEST! test-suite NAME
-           (TEST-CASE ,NAME (option ...) test ...)))))))
+    ((define-test-case test-suite name test-case)
+     (define-values () ;make this expand into a definition
+       (add-test! test-suite `name test-case)))
+    ((define-test-case test-suite test-case-name (option ...) test ...)
+     (define-values () ;ditto
+       (let ((name `test-case-name))
+         (add-test! test-suite name
+           (test-case ,name (option ...) test ...)))))))
 
 (define-syntax test-case
   (syntax-rules ()
-    ;; Do the syntactically fast case with no options.
-    ;; WITH-EXTENDED-PARAMETER-OPERATORS* is *slow*.
-    ((TEST-CASE test-case-name () test ...)
-     (%TEST-CASE test-case-name #F (test ...) ((VALUES)) ((VALUES))))
-    ((TEST-CASE test-case-name (option ...) test ...)
-     (WITH-EXTENDED-PARAMETER-OPERATORS*
-         ((%TEST-CASE*
-           ()                      ;No named parameter pattern literals
-           (%TEST-CASE
-            (NAME               ((NAME ?name)) ?name #F)
-            (DESCRIPTION        ((DESCRIPTION ?description)) ?description #F)
-            (TESTS              ((TESTS . ?tests)) ?tests #F)
-            ;; Unfortunately, because of...issues with ellipsis, we
+    ;; do the syntactically fast case with no options.
+    ;; with-extended-parameter-operators* is *slow*.
+    ((test-case test-case-name () test ...)
+     (%test-case test-case-name #f (test ...) ((values)) ((values))))
+    ((test-case test-case-name (option ...) test ...)
+     (with-extended-parameter-operators*
+         ((%test-case*
+           ()                      ;no named parameter pattern literals
+           (%test-case
+            (name               ((name ?name)) ?name #f)
+            (description        ((description ?description)) ?description #f)
+            (tests              ((tests . ?tests)) ?tests #f)
+            ;; unfortunately, because of...issues with ellipsis, we
             ;; can't write the actual patterns we want to write here
             ;; for non-empty proper list bodies.
-            (SETUP              ((SETUP . ?setup-body)) ?setup-body ((VALUES)))
-            (TEARDOWN           ((TEARDOWN . ?teardown-body))
+            (setup              ((setup . ?setup-body)) ?setup-body ((values)))
+            (teardown           ((teardown . ?teardown-body))
                                 ?teardown-body
-                                ((VALUES))))))
-       ;; Force named parameters by using leading ones.
-       (%TEST-CASE* (NAME test-case-name) (TESTS test ...) option ...)))))
+                                ((values))))))
+       ;; force named parameters by using leading ones.
+       (%test-case* (name test-case-name) (tests test ...) option ...)))))
 
 (define-syntax %test-case
   (syntax-rules ()
-    ((%TEST-CASE name
+    ((%test-case name
                  description
                  (test ...)
                  (setup-body0 setup-body1 ...)
                  (teardown-body0 teardown-body1 ...))
-     (MAKE-TEST-CASE `name
+     (make-test-case `name
                      'description
-                     (LAMBDA ()
-                       (VALUES (LAMBDA () setup-body0 setup-body1 ...)
-                               (LAMBDA () teardown-body0 teardown-body1 ...)
-                               (LIST (LAMBDA () test)
+                     (lambda ()
+                       (values (lambda () setup-body0 setup-body1 ...)
+                               (lambda () teardown-body0 teardown-body1 ...)
+                               (list (lambda () test)
                                      ...)))))))

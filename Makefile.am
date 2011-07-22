@@ -6,7 +6,6 @@ SOURCES =					\
 	spells/algebraic-types.scm \
 	spells/algebraic-types/helpers.scm \
 	spells/args-fold.scm \
-	spells/cells.scm \
 	spells/condition.scm \
 	spells/define-values.scm \
 	spells/delimited-readers.scm \

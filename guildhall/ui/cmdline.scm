@@ -42,9 +42,8 @@
           (guildhall ext foof-loop)
           (guildhall ext foof-loop nested)
           (spells define-values)
-          (only (guile) assq-ref acons)
+          (only (guile) assq-ref acons variable-ref)
           (only (spells misc) and=> unspecific)
-          (spells cells)
           (spells match)
           (spells operations)
           (spells pathname)
@@ -498,7 +497,7 @@
 ;;; Command-line processing
 
 (define (command-list)
-  (reverse (cell-ref %commands)))
+  (reverse (variable-ref %commands)))
 
 (define (make-help-option command)
   (option
@@ -632,9 +631,9 @@
               (handlers (warning ,(make-message-log-handler 1))))))
         (cond ((null? operands)
                (fmt #t (dsp-help indented-help-formatter
-                                 (find-command 'main (cell-ref %commands)))))
+                                 (find-command 'main (variable-ref %commands)))))
               ((find-command (string->symbol (car operands))
-                             (cell-ref %commands))
+                             (variable-ref %commands))
                => (lambda (command)
                     (let ((config (cond ((assq-ref vals 'config)
                                          => read-config/guard)
@@ -712,7 +711,7 @@
                   (cat "doro: discrepancy in bundle detected: "
                        (condition-message c) "\n"
                        (dsp-bundle-discrepancy c)))))
-    (process-command-line (find-command 'main (cell-ref %commands))
+    (process-command-line (find-command 'main (variable-ref %commands))
                           (cdr argv)
                           `((operands)
                             (repositories . ())

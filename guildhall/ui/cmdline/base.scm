@@ -47,9 +47,9 @@
                 string-trim-both)
           (spells define-values)
           (spells operations)
-          (only (guile) assq-ref acons)
+          (only (guile) assq-ref acons
+                variable-ref make-variable variable-set!)
           (spells args-fold)
-          (spells cells)
           (only (spells misc) and=> unspecific)
           (spells record-types)
           (guildhall ext foof-loop)
@@ -150,7 +150,7 @@
 
 ;;; Commands
 
-(define %commands (make-cell '()))
+(define %commands (make-variable '()))
 
 (define-record-type* command
   (make-command name description synopsis footer options handler)
@@ -186,7 +186,7 @@
                            ...)))))))
 
 (define (add-command command)
-  (cell-set! %commands (cons command (cell-ref %commands))))
+  (variable-set! %commands (cons command (variable-ref %commands))))
 
 (define (arg-pusher name)
   (lambda (option option-name arg vals)

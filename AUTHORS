@@ -1,1 +1,113 @@
-Andreas Rottmann <rotty@debian.org>
+Guild-hall is a port of Andreas Rottmann's `dorodango' package manager
+for R6RS Scheme.  Dorodango is available under the GNU GPL, version 3 or
+later, and is Copyright (C) 2009-2011 Andreas Rottman.
+
+The porting work to turn dorodango into the guild-hall was done by Andy
+Wingo, and is Copyright (C) 2011 Free Software Foundation, Inc.
+
+* imported code
+
+For resolving dependencies, guild-hall employs a Scheme "port" of
+aptitude's solver, from the Debian project. The code is based on
+aptitude changeset 3258:f952da7ee794, Copyright (C) 2005, 2007-2009,
+Daniel Burrows, licensed under the GPL, version 2 or later. Guild-hall
+also takes some inspiration from aptitude's command line user interface,
+mostly in the form of similiar wording of messages.
+
+Guild-hall also includes a number of external Scheme libraries which
+have their own licenses, all of them compatible with the GPLv3+.  Here
+is a list of those libraries, their files, and their licenses.  If a
+file does not appear in this list, it is probably under the GPLv3+,
+though the header on the file will tell you for sure.
+
+See the COPYING.* files for the full licenses.
+
+Author: Andreas Rottmann <a.rottmann@gmx.at>
+Files: guild/ext/define-values.scm
+License: MIT
+
+Author: Olin Shivers
+Files: guild/ext/let-optionals.scm
+License: BSD
+
+Author: Andreas Rottmann
+Files: guild/ext/fmt.scm
+License: BSD
+
+Author: Alex Shinn
+Files: guild/ext/inc/{mantissa,fmt,fmt-pretty,fmt-column}.scm
+License: BSD
+
+Author: Taylor Campbell
+Files: guild/ext/inc/syn-param.scm
+License: Public Domain
+
+Author: Andreas Rottmann
+Files: guild/ext/foof-loop.scm, guild/ext/foof-loop/nested.scm
+License: BSD
+
+Author: Taylor Campbell
+Files: guild/ext/inc/{nested-,}foof-loop.scm
+License: BSD
+
+Author: Andreas Rottmann
+Files: guild/ext/irregex.scm
+License: BSD
+
+Author: Alex Shinn
+Files: guild/ext/inc/irregex-{r6rs,utils}.scm
+License: BSD
+
+Author: Andreas Rottmann
+Author: Taylor Campbell
+Files: guild/ext/trc-testing.scm
+Files: guild/ext/trc-testing/parameters.scm
+Files: guild/ext/inc/test.scm
+License: LGPLv3+
+
+Author: Andreas Rottmann
+Author: Taylor Campbell
+Files: guild/ext/trc-testing/restart.scm
+License: Public Domain
+
+Author: Andreas Rottmann
+Files: guild/ext/trc-testing/port-tracker.scm
+Files: guild/ext/trc-testing/display-condition.scm
+License: BSD
+
+Author: Richard Kelsey
+Author: Jonathan Rees
+Files: guild/ext/trc-testing/limited-write.scm
+License: BSD
+
+Author: Andreas Rottmann
+Author: Massachusetts Institute of Technology
+Author: Stephen Adams
+Files: guild/ext/wt-tree.scm
+License: GPLv2+
+
+Author: Andreas Rottmann
+Files: guild/spells/*
+License: BSD
+
+Author: Anthony Carrico
+Files: guild/spells/args-fold.scm
+License: BSD
+
+Author: Richard Kelsey
+Author: Jonathan Rees
+Files: guild/spells/private/condition.scm
+License: BSD
+
+Author: Taylor Campbell
+Files: guild/spells/record-types/expand-drt.scm,
+       guild/spells/private/xvector.scm
+License: BSD
+
+Author: Göran Weinholt
+Files: guild/weinholt/*
+License: GPLv3+
+
+Author: Andreas Rottmann
+Files: guild/weinholt/compression/sliding-buffer.scm
+License: GPLv3+

@@ -73,7 +73,8 @@ SOURCES =					\
 	guild/ui/cmdline/help.scm \
 	guild/ui/formatters.scm \
 	\
-	scripts/hall.scm
+	scripts/hall.scm \
+	scripts/update-archive.scm
 
 # These files are `include'd by other files.  Given up-to-date .go
 # files, installing them is not strictly necessary.  However it is

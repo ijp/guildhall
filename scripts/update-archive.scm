@@ -1,7 +1,7 @@
 #!r6rs
 ;;; doro-update-archive.sps --- Archive maintainence script
 
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -22,32 +22,33 @@
 
 ;;; Code:
 
-(import (except (rnrs) delete-file file-exists?)
-        (only (srfi :13)
-              string-suffix?)
-        (srfi :8 receive)
-        (srfi :39 parameters)
-        (srfi :45 lazy)
-        (srfi :67 compare-procedures)
-        (guild ext fmt)
-        (guild ext foof-loop)
-        (guild ext foof-loop nested)
-        (only (spells misc) and=>)
-        (spells tracing) ;debug
-        (spells process)
-        (spells pathname)
-        (spells filesys)
-        (spells sysutils)
-        (spells match)
-        (spells args-fold)
-        (spells record-types)
-        (only (guild private utils)
-              in-hashtable
-              location->pathname
-              pathname->location
-              pathname-add-type)
-        (guild bundle)
-        (guild package))
+(library (scripts update-archive)
+  (export)
+  (import (except (rnrs) delete-file file-exists?)
+          (only (srfi :13)
+                string-suffix?)
+          (srfi :8 receive)
+          (srfi :39 parameters)
+          (srfi :45 lazy)
+          (srfi :67 compare-procedures)
+          (guild ext fmt)
+          (guild ext foof-loop)
+          (guild ext foof-loop nested)
+          (only (guile) and=>)
+          (guild spells process)
+          (guild spells pathname)
+          (guild spells filesys)
+          (guild spells sysutils)
+          (ice-9 match)
+          (guild spells args-fold)
+          (guild spells record-types)
+          (only (guild private utils)
+                in-hashtable
+                location->pathname
+                pathname->location
+                pathname-add-type)
+          (guild bundle)
+          (guild package)))
 
 
 ;;; Archive
@@ -247,10 +248,10 @@
         (option '("dry-run") #f
                 (option-handler dry-run? (lambda (arg) #t)))))
 
-(define (main argv)
+(define (main . argv)
   (define (unrecognized-option option name arg operands)
     (fatal "unrecognized command-line option: " name))
-  (let ((args (reverse (args-fold (cdr argv)
+  (let ((args (reverse (args-fold argv
                                   command-line-options
                                   unrecognized-option
                                   cons
@@ -260,8 +261,6 @@
        (update-archive archive-directory upload-directory))
       (_
        (fatal "two command-line arguments expected")))))
-
-(main (command-line))
 
 ;; Local Variables:
 ;; scheme-indent-styles: (foof-loop as-match)

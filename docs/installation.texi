@@ -1,8 +1,8 @@
 @node Installation
 @section Installation
 
-The Guildhall comes in a standard GNU tarball, and so the normal
-package installation techniques apply:
+Guild-hall comes in a standard GNU tarball, and so the normal package
+installation techniques apply:
 
 @verbatim
 tar -xjf @value{PACKAGE}-@value{VERSION}.tar.bz2
@@ -16,8 +16,8 @@ make install
 
 Note that this assumes that you have installed Guile into the default
 prefix for @command{./configure}, which is usually @code{/usr/local}.
-It is recommended to install the Guildhall into the same prefix as
-your Guile installation, so if you installed Guile to @code{/usr}, add
+It is recommended to install guild-hall into the same prefix as your
+Guile installation, so if you installed Guile to @code{/usr}, add
 @code{--prefix=/usr} after to your @code{./configure} invocation.
 
 After running @command{setup} like above, you should now be able to

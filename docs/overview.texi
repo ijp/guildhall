@@ -3,7 +3,7 @@
 @cindex packages
 @cindex bundles
 
-The Guildhall is used via the @command{guild hall} command-line
+The guild hall is accessed via the @command{guild hall} command-line
 interface, which allows you to automatically download, install, remove
 and upgrade R6RS library collections and programs that might be
 included with them.
@@ -18,8 +18,8 @@ If you already are familiar with other package managers, such as
 Debian's APT, having more than one package bundled in the same file
 might seem unusual to you, but don't worry: bundles are mostly
 transparent to the user. Most of the time, you will deal with
-packages, and bundles are of concern mostly when using the Guildhall
-to package your or other people's software.
+packages, and bundles are of concern mostly when packaging your or
+other people's software for the guild.
 
 @menu
 * Packages:: Anatomy of a Package
@@ -33,14 +33,14 @@ to package your or other people's software.
 @cindex category
 @cindex file, category
 
-A package is the "unit of software" that the Guildhall works with. It
-has a name, and a version, which may be used to form dependency
+A package is the "unit of software" that the guild works with. It has
+a name, and a version, which may be used to form dependency
 relationships among packages. It also may have other attributes, like
 a description and a homepage URL. Besides the metadata, a package also
 contains files, which are grouped into categories. Each category of a
 package conceptionally contains a set of files, along with their
 desired installation locations. The categories currently handled by
-the Guildhall are:
+the guild are:
 
 @table @samp
 @item libraries
@@ -64,7 +64,7 @@ somewhere, and usually into different locations. The rules that
 describe where software is installed into are provided by a
 @emph{destination}. You can select the destination by invoking the
 @command{guild hall} command line tool with the @samp{--prefix}
-option, @pxref{Global Options}. For each destination, the Guildhall
+option, @pxref{Global Options}. For each destination, the guild
 maintains a database of installed and available packages.
 
 Currently, all destinations have the same rules which should be
@@ -80,7 +80,7 @@ Installed into
 @file{@var{PREFIX}/share/libr6rs-@var{PACKAGE-NAME}/programs}, and a
 shell wrapper in @file{@var{PREFIX}/bin} is created which starts the
 Scheme program via @file{r6rs-script}, which is created automatically
-when the Guildhall initializes a destination.
+when the guild initializes a destination.
 
 @item documentation
 Installed into @var{PREFIX}@file{/share/doc/libr6rs-PACKAGE-NAME}.

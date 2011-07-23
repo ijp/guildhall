@@ -204,9 +204,9 @@ Create a bundle from the directories given as arguments.
 @itemx -o @var{filename}
 
 Output the bundle to @var{filename}. When this option is not given,
-the Guildhall will try to name the bundle based on the package
-contained in it. Should the bundle contain multiple packages, this
-option is mandatory.
+the guild will try to name the bundle based on the package contained
+in it. Should the bundle contain multiple packages, this option is
+mandatory.
 
 @item --directory=@var{directory}
 @itemx -d @var{directory}
@@ -262,8 +262,8 @@ comma- or space-seperated list @var{packages}.
 @node Configuration File
 @section Configuration File
 
-The configuration file stores permanent settings for the Guildhall,
-and can be selected with the @option{--config} option, @pxref{Global
+The configuration file stores permanent settings for the guild, and
+can be selected with the @option{--config} option, @pxref{Global
 Options}. It's syntax is S-expression-based clauses. In the following,
 we will dissect an example configuration file; note however, that for
 most users, a much simpler configuration will suffice
@@ -324,27 +324,15 @@ will be used with this destination. A repository must be declared before
 being referenced in a destination's @code{repositories} clause.
 
 The @code{database} sub-clause allows to define the location of the
-package database on disk; if it is left out, the Guildhall will use a
+package database on disk; if it is left out, the guild will use a
 default location, based on the destination's prefix.
 
 @subsection Defaults
 
-@anchor{default-implementation}
-
-The @code{default-implementation} clause specifies the Scheme
-implementation to use by default when setting up new destinations.
-The implementation associated with a destination will be used by R6RS
-programs installed into that destinationq.  One can explicitly
-initialize a destination using the @command{guild hall init} command,
-thus overriding the default.
-
-If @code{default-implementation} is not specified, the Guildhall will
-use a built-in default (@code{ikarus} at the time of writing).
-
 Using the @code{default-destination} clause one can specify which
 configured destination will be used when none is explicitly specified
 via the @option{--destination} global option. If there is no
-@code{default-implementation} clause, the first destination specified is
+@code{default-destination} clause, the first destination specified is
 considered the default.
 
 @subsection Formal Grammar

@@ -1,11 +1,11 @@
 \input texinfo   @c -*-texinfo-*-
-@setfilename guild.info
-@settitle Guildhall Manual
+@setfilename guild-hall.info
+@settitle Guild-Hall Manual
 @include version.texi
-@set PACKAGE guile-guild
+@set PACKAGE guild-hall
 
 @copying
-This manual is for Guildhall version @value{VERSION}.
+This manual is for Guild-Hall version @value{VERSION}.
 
 Copyright @copyright{} 2011 Free Software Foundation, Inc.
 Copyright @copyright{} 2010 Andreas Rottmann.
@@ -18,7 +18,7 @@ later version published by the Free Software Foundation.
 @end copying
 
 @titlepage
-@title Guildhall Manual
+@title Guild-Hall Manual
 @author Andreas Rottmann
 
 @page
@@ -33,27 +33,29 @@ later version published by the Free Software Foundation.
 @node Top
 @top Dorodango
 
-This manual is for Guildhall version @value{VERSION}.
+This manual is for Guild-Hall version @value{VERSION}.
 @end ifnottex
 
-A guild is where guild members meet.  This Guildhall is a package
-manager written for Guile Scheme, providing a virtual space for Guile
-masters and journeyfolk to share code.
+Guild-hall is a package manager written for Guile Scheme.
 
-Using the Guildhall, you can easily install and distribute collections
-of Scheme modules and programs.  The Guildhall can handle
+A guild hall is where guild members meet.  This package builds a guild
+hall for Guile, providing a virtual space for Guile masters and
+journeyfolk to share code.
+
+Using the guild hall, you can easily install and distribute
+collections of Scheme modules and programs.  The guild can handle
 dependencies, so when a program requires several libraries, and each
 of those has further dependencies, all of the prerequisites for the
 program can be installed in one go.
 
-Guildhall is a port of Andreas Rottmann's Dorodango portable package
+Guild-hall is a port of Andreas Rottmann's Dorodango portable package
 manager for R6RS Scheme, adapted to better fit in with Guile Scheme
 environments.  It is compatible with the R6RS Scheme package archives
 that Dorodango uses.
 
 @menu
 * Getting Started:: Installation and a quick introduction
-* Overview:: Dorodango summed up
+* Overview:: A tour of the guild hall
 * Reference:: The command-line interface
 * Packaging Guide:: How to create packages
 * Index:: Concept index

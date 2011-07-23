@@ -319,18 +319,9 @@ the package in question should be installed into. Evaluating hooks in
 guild-hall's own context would hence pose the problem that the hook
 could rely neither on libraries provided by its package nor its
 dependencies. For this reason, guild-hall spawns a small helper
-program.  With this way of proceeding, the following objectives are
-achieved:
-
-@itemize @bullet
-@item
-An installation hook may @code{import} libraries that are part of the
-package or its dependencies.
-@item
-An installation hook is executed using the Scheme implementation
-configured for the destination that the package in question is being
-installed to.
-@end itemize
+program.  With this way of proceeding, an installation hook may
+@code{import} libraries that are part of the package or its
+dependencies.
 
 However, due to the way the communication of the guild with helper
 program running the hook is implemented currently, a hook must not use

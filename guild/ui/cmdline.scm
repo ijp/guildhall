@@ -336,28 +336,6 @@
   (options)
   (handler config-command))
 
-(define (init-command vals)
-  (let* ((config (assq-ref vals 'config))
-         (operands (opt-ref/list vals 'operands))
-         (n-operands (length operands))
-         (destination
-          (case n-operands
-            ((0)  #f)
-            ((1)  (string->symbol (car operands)))
-            (else (fatal "`setup-destination' takes zero or one arguments")))))
-    (call-with-database* (append (if destination
-                                     '((destination . ,destination))
-                                     '())
-                                 vals)
-      (lambda (db)
-        ;; no need to do anything
-        (values)))))
-
-(define-command init
-  (description "Initialize a destination.")
-  (synopsis "init [OPTIONS] [DESTINATION]")
-  (handler init-command))
-
 
 ;;; Packaging
 

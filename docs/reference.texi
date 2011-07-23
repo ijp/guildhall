@@ -175,22 +175,6 @@ that still have others depending on them.
 Upgrade all packages to the newest available version.
 @end deffn
 
-@deffn Command init
-This command can be used to explicitly initialize a destination for
-use with a particuliar Scheme implementation. The initialization is
-otherwise done implicitly upon first opening the database for that
-destination, and uses the @code{default-implementation} configuration
-clause (@pxref{default-implementation}).
-
-@table @option
-@item --implementation=@var{impl}
-@itemx -i @var{impl}
-
-Select the implementation to use for that destination.
-
-@end table
-@end deffn
-
 @subsection Development
 
 The following commands are of use if you want to create your own
@@ -282,7 +266,6 @@ a configuration that uses all possible clauses:
   (fhs "/home/alice/scheme-experiments")
   (database "/home/alice/scheme-experiments/db"))
 (default-destination experimental)
-(default-implementation ypsilon)
 @end lisp
 
 @subsection Repositories
@@ -343,7 +326,7 @@ A complete BNF-style grammar for the configuration file:
 @verbatim
 <configuration> -> <clause>*
 <clause> ->  <repository> | <destination>
-   | <default-destination> | <default-implementation>
+   | <default-destination>
 
 <repository> -> (repository <name> <uri>)
 
@@ -353,8 +336,6 @@ A complete BNF-style grammar for the configuration file:
 <destination-spec> -> (fhs <directory>)
 
 <default-destination> -> (default-destination <name>)
-<default-implementation> -> (default-implementation <implementation>)
-<implementation> = ikarus | ypsilon
 
 <directory> -> <string>
 <name> -> <symbol>

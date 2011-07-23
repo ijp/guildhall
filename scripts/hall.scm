@@ -27,7 +27,7 @@
 #!r6rs
 
 (define-module (scripts hall)
-  #:use-module (guildhall ui cmdline))
+  #:use-module (guild ui cmdline))
 
 (define (main . args)
   (run-cmdline-ui (cons "guild hall" args)))

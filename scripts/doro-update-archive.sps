@@ -29,9 +29,9 @@
         (srfi :39 parameters)
         (srfi :45 lazy)
         (srfi :67 compare-procedures)
-        (guildhall ext fmt)
-        (guildhall ext foof-loop)
-        (guildhall ext foof-loop nested)
+        (guild ext fmt)
+        (guild ext foof-loop)
+        (guild ext foof-loop nested)
         (only (spells misc) and=>)
         (spells tracing) ;debug
         (spells process)
@@ -41,13 +41,13 @@
         (spells match)
         (spells args-fold)
         (spells record-types)
-        (only (guildhall private utils)
+        (only (guild private utils)
               in-hashtable
               location->pathname
               pathname->location
               pathname-add-type)
-        (guildhall bundle)
-        (guildhall package))
+        (guild bundle)
+        (guild package))
 
 
 ;;; Archive

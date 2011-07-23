@@ -24,17 +24,17 @@
 
 (import (except (rnrs) delete-file file-exists?)
         (srfi :45 lazy)
-        (guildhall ext foof-loop)
-        (guildhall ext foof-loop nested)
-        (guildhall ext fmt)
+        (guild ext foof-loop)
+        (guild ext foof-loop nested)
+        (guild ext fmt)
         (spells match)
         (spells pathname)
         (spells filesys)
         (spells process)
         (spells sysutils)
-        (only (guildhall private utils) rm-rf)
-        (guildhall package)
-        (guildhall actions))
+        (only (guild private utils) rm-rf)
+        (guild package)
+        (guild actions))
 
 (define bundle-base (make-pathname '(back) '() #f))
 

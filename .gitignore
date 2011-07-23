@@ -10,8 +10,8 @@
 *.go
 /configure
 /env
-/guildhall/build-info.scm
+/guild/build-info.scm
 /docs/.dirstamp
-/docs/guildhall.info
+/docs/guild.info
 /docs/stamp-vti
 /docs/version.texi

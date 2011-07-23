@@ -23,8 +23,8 @@
 
 (import (rnrs)
         (only (srfi :1) append-map)
-        (guildhall ext trc-testing)
-        (guildhall package))
+        (guild ext trc-testing)
+        (guild package))
 
 (define-test-suite package-tests
   "Package datastructures")

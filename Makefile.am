@@ -2,76 +2,76 @@ moddir=$(datadir)/guile/site/$(GUILE_EFFECTIVE_VERSION)
 ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
 SOURCES =					\
-	guildhall/ext/wt-tree.scm \
-	guildhall/spells/algebraic-types.scm \
-	guildhall/spells/algebraic-types/helpers.scm \
-	guildhall/spells/args-fold.scm \
-	guildhall/spells/condition.scm \
-	guildhall/spells/filesys.scm \
-	guildhall/spells/finite-types.scm \
-	guildhall/spells/hash-utils.scm \
-	guildhall/spells/logging.scm \
-	guildhall/spells/operations.scm \
-	guildhall/spells/pathname.scm \
-	guildhall/spells/process.scm \
-	guildhall/spells/process/compat.scm \
-	guildhall/spells/record-types.scm \
-	guildhall/spells/record-types/expand-drt.scm \
-	guildhall/spells/string-utils.scm \
-	guildhall/spells/syntax-utils.scm \
-	guildhall/spells/sysutils.scm \
-	guildhall/spells/xvector.scm \
-	guildhall/spells/zipper-tree.scm \
-	guildhall/ext/fmt.scm \
-	guildhall/ext/foof-loop.scm \
-	guildhall/ext/foof-loop/nested.scm \
-	guildhall/ext/irregex.scm \
-	guildhall/ext/define-values.scm \
-	guildhall/ext/let-optionals.scm \
-	guildhall/ext/trc-testing.scm \
-	guildhall/ext/trc-testing/display-condition.scm \
-	guildhall/ext/trc-testing/limited-write.scm \
-	guildhall/ext/trc-testing/parameters.scm \
-	guildhall/ext/trc-testing/port-tracker.scm \
-	guildhall/ext/trc-testing/restart.scm \
-	guildhall/weinholt/compression/bitstream.scm \
-	guildhall/weinholt/compression/huffman.scm \
-	guildhall/weinholt/compression/inflate.scm \
-	guildhall/weinholt/compression/sliding-buffer.scm \
-	guildhall/weinholt/compression/zip.scm \
-	guildhall/weinholt/compression/zip/extra.scm \
-	guildhall/weinholt/crypto/crc.scm \
-	guildhall/weinholt/struct/pack.scm \
+	guild/ext/wt-tree.scm \
+	guild/spells/algebraic-types.scm \
+	guild/spells/algebraic-types/helpers.scm \
+	guild/spells/args-fold.scm \
+	guild/spells/condition.scm \
+	guild/spells/filesys.scm \
+	guild/spells/finite-types.scm \
+	guild/spells/hash-utils.scm \
+	guild/spells/logging.scm \
+	guild/spells/operations.scm \
+	guild/spells/pathname.scm \
+	guild/spells/process.scm \
+	guild/spells/process/compat.scm \
+	guild/spells/record-types.scm \
+	guild/spells/record-types/expand-drt.scm \
+	guild/spells/string-utils.scm \
+	guild/spells/syntax-utils.scm \
+	guild/spells/sysutils.scm \
+	guild/spells/xvector.scm \
+	guild/spells/zipper-tree.scm \
+	guild/ext/fmt.scm \
+	guild/ext/foof-loop.scm \
+	guild/ext/foof-loop/nested.scm \
+	guild/ext/irregex.scm \
+	guild/ext/define-values.scm \
+	guild/ext/let-optionals.scm \
+	guild/ext/trc-testing.scm \
+	guild/ext/trc-testing/display-condition.scm \
+	guild/ext/trc-testing/limited-write.scm \
+	guild/ext/trc-testing/parameters.scm \
+	guild/ext/trc-testing/port-tracker.scm \
+	guild/ext/trc-testing/restart.scm \
+	guild/weinholt/compression/bitstream.scm \
+	guild/weinholt/compression/huffman.scm \
+	guild/weinholt/compression/inflate.scm \
+	guild/weinholt/compression/sliding-buffer.scm \
+	guild/weinholt/compression/zip.scm \
+	guild/weinholt/compression/zip/extra.scm \
+	guild/weinholt/crypto/crc.scm \
+	guild/weinholt/struct/pack.scm \
 	\
-	guildhall/actions.scm \
-	guildhall/bundle.scm \
-	guildhall/build-info.scm \
-	guildhall/config.scm \
-	guildhall/database.scm \
-	guildhall/database/dependencies.scm \
-	guildhall/destination.scm \
-	guildhall/hooks.scm \
-	guildhall/inventory.scm \
-	guildhall/inventory/mapping.scm \
-	guildhall/package.scm \
-	guildhall/private/utils.scm \
-	guildhall/private/zip.scm \
-	guildhall/repository.scm \
-	guildhall/solver.scm \
-	guildhall/solver/choice.scm \
-	guildhall/solver/dummy-db.scm \
-	guildhall/solver/expression.scm \
-	guildhall/solver/internals.scm \
-	guildhall/solver/logging.scm \
-	guildhall/solver/promotions.scm \
-	guildhall/solver/search-graph.scm \
-	guildhall/solver/universe.scm \
-	guildhall/ui.scm \
-	guildhall/ui/cmdline.scm \
-	guildhall/ui/cmdline/base.scm \
-	guildhall/ui/cmdline/dependencies.scm \
-	guildhall/ui/cmdline/help.scm \
-	guildhall/ui/formatters.scm \
+	guild/actions.scm \
+	guild/bundle.scm \
+	guild/build-info.scm \
+	guild/config.scm \
+	guild/database.scm \
+	guild/database/dependencies.scm \
+	guild/destination.scm \
+	guild/hooks.scm \
+	guild/inventory.scm \
+	guild/inventory/mapping.scm \
+	guild/package.scm \
+	guild/private/utils.scm \
+	guild/private/zip.scm \
+	guild/repository.scm \
+	guild/solver.scm \
+	guild/solver/choice.scm \
+	guild/solver/dummy-db.scm \
+	guild/solver/expression.scm \
+	guild/solver/internals.scm \
+	guild/solver/logging.scm \
+	guild/solver/promotions.scm \
+	guild/solver/search-graph.scm \
+	guild/solver/universe.scm \
+	guild/ui.scm \
+	guild/ui/cmdline.scm \
+	guild/ui/cmdline/base.scm \
+	guild/ui/cmdline/dependencies.scm \
+	guild/ui/cmdline/help.scm \
+	guild/ui/formatters.scm \
 	\
 	scripts/hall.scm
 
@@ -80,19 +80,19 @@ SOURCES =					\
 # always nice to have source, so that's what we do.
 #
 NOCOMP_SOURCES = \
-	guildhall/ext/inc/foof-loop.scm \
-	guildhall/ext/inc/nested-foof-loop.scm \
-	guildhall/ext/inc/syn-param.scm \
-	guildhall/ext/inc/irregex-utils.scm \
-	guildhall/ext/inc/irregex-r6rs.scm \
-	guildhall/ext/inc/fmt-pretty.scm \
-	guildhall/ext/inc/mantissa.scm \
-	guildhall/ext/inc/fmt-column.scm \
-	guildhall/ext/inc/fmt.scm \
-	guildhall/ext/inc/test.scm \
-	guildhall/spells/private/condition.scm \
-	guildhall/spells/private/xvector.scm \
-	guildhall/private/hook-runner.sps
+	guild/ext/inc/foof-loop.scm \
+	guild/ext/inc/nested-foof-loop.scm \
+	guild/ext/inc/syn-param.scm \
+	guild/ext/inc/irregex-utils.scm \
+	guild/ext/inc/irregex-r6rs.scm \
+	guild/ext/inc/fmt-pretty.scm \
+	guild/ext/inc/mantissa.scm \
+	guild/ext/inc/fmt-column.scm \
+	guild/ext/inc/fmt.scm \
+	guild/ext/inc/test.scm \
+	guild/spells/private/condition.scm \
+	guild/spells/private/xvector.scm \
+	guild/private/hook-runner.sps
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
@@ -150,12 +150,12 @@ EXTRA_DIST += $(TESTS) $(TESTDATA)
 
 TESTS_ENVIRONMENT=srcdir=$(abs_top_srcdir)/tests/ $(top_builddir)/env guile --no-auto-compile -s 
 
-info_TEXINFOS = docs/guildhall.texi
-guildhall_TEXINFOS = \
+info_TEXINFOS = docs/guild-hall.texi
+guild_hall_TEXINFOS = \
 	docs/installation.texi \
 	docs/quickstart.texi \
 	docs/overview.texi \
 	docs/reference.texi \
 	docs/packaging.texi
 
-EXTRA_DIST += $(guildhall_TEXINFOS)
+EXTRA_DIST += $(guild_TEXINFOS)

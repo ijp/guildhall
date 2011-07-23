@@ -8,7 +8,7 @@ to instal software from the Guildhall.
 
 So, you've successfully installed the Guildhall, and were able to get
 the help message via @command{guild hall --help}? Then it's time to
-tell the guildhall where it can find software (@pxref{Packages}) to
+tell the guild where it can find software (@pxref{Packages}) to
 install. Create the file @file{~/.config/dorodango/config.scm} and add
 this line:
 
@@ -33,7 +33,7 @@ Fetching http://rotty.yi.org/doro/experimental/available.scm
 Loading available information for repository `experimental'
 @end verbatim
 
-Now the guildhall has obtained the information of available packages
+Now the guild has obtained the information of available packages
 from the repository. You can verify that by running @command{doro list
 --all}, which should produce output resembling the following:
 

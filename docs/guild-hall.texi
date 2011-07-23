@@ -1,0 +1,82 @@
+\input texinfo   @c -*-texinfo-*-
+@setfilename guild.info
+@settitle Guildhall Manual
+@include version.texi
+@set PACKAGE guile-guild
+
+@copying
+This manual is for Guildhall version @value{VERSION}.
+
+Copyright @copyright{} 2011 Free Software Foundation, Inc.
+Copyright @copyright{} 2010 Andreas Rottmann.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License, Version 3 or any
+later version published by the Free Software Foundation.
+@end quotation
+@end copying
+
+@titlepage
+@title Guildhall Manual
+@author Andreas Rottmann
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Dorodango
+
+This manual is for Guildhall version @value{VERSION}.
+@end ifnottex
+
+A guild is where guild members meet.  This Guildhall is a package
+manager written for Guile Scheme, providing a virtual space for Guile
+masters and journeyfolk to share code.
+
+Using the Guildhall, you can easily install and distribute collections
+of Scheme modules and programs.  The Guildhall can handle
+dependencies, so when a program requires several libraries, and each
+of those has further dependencies, all of the prerequisites for the
+program can be installed in one go.
+
+Guildhall is a port of Andreas Rottmann's Dorodango portable package
+manager for R6RS Scheme, adapted to better fit in with Guile Scheme
+environments.  It is compatible with the R6RS Scheme package archives
+that Dorodango uses.
+
+@menu
+* Getting Started:: Installation and a quick introduction
+* Overview:: Dorodango summed up
+* Reference:: The command-line interface
+* Packaging Guide:: How to create packages
+* Index:: Concept index
+@end menu
+
+@node Getting Started
+@chapter Getting Started
+
+@menu
+* Installation:: Installing dorodango
+* Quickstart:: A quick introduction
+@end menu
+
+@include installation.texi
+@include quickstart.texi
+
+@include overview.texi
+@include reference.texi
+@include packaging.texi
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye

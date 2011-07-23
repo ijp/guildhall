@@ -24,11 +24,11 @@
 #!r6rs
 
 (import (rnrs)
-        (guildhall ext trc-testing)
-        (guildhall spells pathname)
+        (guild ext trc-testing)
+        (guild spells pathname)
         (only (guile) getenv)
-        (guildhall package)
-        (guildhall bundle))
+        (guild package)
+        (guild bundle))
 
 (define (this-directory) (or (getenv "srcdir") "."))
 

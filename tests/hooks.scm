@@ -23,15 +23,15 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (guildhall spells pathname)
-        (guildhall spells filesys)
-        (guildhall ext trc-testing)
-        (guildhall spells logging)
-        (guildhall private utils)
-        (guildhall inventory)
-        (guildhall package)
-        (guildhall destination)
-        (guildhall hooks))
+        (guild spells pathname)
+        (guild spells filesys)
+        (guild ext trc-testing)
+        (guild spells logging)
+        (guild private utils)
+        (guild inventory)
+        (guild package)
+        (guild destination)
+        (guild hooks))
 
 (define debug-output? #f)
 

@@ -29,14 +29,14 @@
 ;;; Code:
 
 (import (rnrs)
-        (guildhall solver)
-        (guildhall solver dummy-db)
-        (guildhall solver universe)
-        (guildhall solver logging)
+        (guild solver)
+        (guild solver dummy-db)
+        (guild solver universe)
+        (guild solver logging)
         (ice-9 match)
-        (guildhall ext fmt)
-        (guildhall ext trc-testing)
-        (guildhall spells logging))
+        (guild ext fmt)
+        (guild ext trc-testing)
+        (guild spells logging))
 
 ;; Set this to `#t' to show the universe that the solver will operate
 ;; in.

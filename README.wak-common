@@ -1,8 +1,0 @@
-A set of libraries commonly used by the Wak project's ports. As
-indicated by use of the `(wak private ...)' library names, these are
-for use within Wak only.
-
-The libraries have been tested on Ikarus, Racket, Mosh and Guile.
-
-For version, description, dependencies and other metadata please refer
-to the file `pkg-list.scm'.

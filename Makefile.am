@@ -158,6 +158,6 @@ guild_hall_TEXINFOS = \
 	docs/reference.texi \
 	docs/packaging.texi
 
-EXTRA_DIST += $(guild_TEXINFOS)
+EXTRA_DIST += $(guild_hall_TEXINFOS)
 
 EXTRA_DIST += HACKING COPYING.GPL-3 COPYING.LGPL-3 COPYING.MIT COPYING.BSD

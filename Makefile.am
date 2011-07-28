@@ -76,6 +76,7 @@ SOURCES =					\
 	scripts/hall.scm \
 	scripts/list-packages.scm \
 	scripts/show.scm \
+	scripts/show-bundle.scm \
 	scripts/update-archive.scm
 
 # These files are `include'd by other files.  Given up-to-date .go

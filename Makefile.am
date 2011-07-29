@@ -76,6 +76,7 @@ SOURCES =					\
 	\
 	scripts/clean.scm \
 	scripts/config.scm \
+	scripts/create-bundle.scm \
 	scripts/hall.scm \
 	scripts/list-packages.scm \
 	scripts/install.scm \

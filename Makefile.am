@@ -81,7 +81,8 @@ SOURCES =					\
 	scripts/show.scm \
 	scripts/show-bundle.scm \
 	scripts/update.scm \
-	scripts/update-archive.scm
+	scripts/update-archive.scm \
+	scripts/upgrade.scm
 
 # These files are `include'd by other files.  Given up-to-date .go
 # files, installing them is not strictly necessary.  However it is

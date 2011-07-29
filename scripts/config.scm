@@ -83,7 +83,7 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-values (lambda () (parse-options mod args))
+  (call-with-values (lambda () (parse-options %mod args))
     (lambda (args config)
       (let ((n-operands (length args)))
         (cond

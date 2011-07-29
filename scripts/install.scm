@@ -106,7 +106,7 @@
   (call-with-values
       (lambda ()
         (parse-options
-         mod args
+         %mod args
          (make-option
           '("bundle" #\b)
           (lambda (arg) (set! bundles (append bundles (list arg))))

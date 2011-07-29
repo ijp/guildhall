@@ -64,7 +64,7 @@
   (call-with-values
       (lambda ()
         (parse-options
-         mod args
+         %mod args
          (make-option '("output" #\o)
                       (lambda (val) (set! output-filename val))
                       #:has-arg 'required)

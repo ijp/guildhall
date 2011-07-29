@@ -40,7 +40,7 @@
   (newline port))
 
 (define* (show-help mod #:optional (port (current-output-port)))
-  (show-usage port)
+  (show-usage mod port)
   (display (module-ref mod '%help) port))
 
 (define* (make-option names parser #:key has-arg)

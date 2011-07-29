@@ -77,8 +77,7 @@
   (call-with-values
       (lambda ()
         (parse-options
-         mod
-         args
+         %mod args
          (make-option
           '("all" #\a)
           (lambda (arg) (set! all? #t)))

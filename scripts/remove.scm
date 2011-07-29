@@ -60,7 +60,7 @@
   (call-with-values
       (lambda ()
         (parse-options
-         mod args
+         %mod args
          (make-option
           '("no-depends")
           (lambda (arg) (set! no-depends? #t)))))

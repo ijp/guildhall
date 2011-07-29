@@ -32,7 +32,11 @@
   #:use-module (guild config)
   #:use-module (guild ui formatters)
   #:use-module (srfi srfi-37)
-  #:export (show-usage make-option parse-options call-with-database*))
+  #:export (show-usage
+            make-option
+            parse-options
+            parse-options*
+            call-with-database*))
 
 (define* (show-usage mod #:optional (port (current-output-port)))
   (display "Usage: " port)
@@ -67,37 +71,50 @@
     (call-with-input-file (->namestring pathname)
       read-config)))
 
-(define (parse-options mod cmd-line . options)
-  (define common-options
+(define* (parse-options* mod cmd-line options #:key (config-options? #t))
+  (define help-options
     (list
      (option '("help" #\h) #f #f
-             (lambda (opt name val args config)
+             (lambda (opt name val args)
                (show-help mod)
-               (exit 0)))
+               (exit 0)))))
+  
+  (define config (default-config-location))
+
+  (define config-options
+    (list
      (option '("config" #\c) #t #f
-             (lambda (opt name val args config)
-               (values args val)))
+             (lambda (opt name val args)
+               (set! config val)
+               args))
      (option '("no-config") #f #f
              (lambda (opt name val args config)
-               (values args #f)))))
+               (set! config #f)
+               args))))
 
-  (call-with-values
-      (lambda ()
-        (args-fold cmd-line (append options common-options)
-                   (lambda (opt name arg args config)
-                     (display "unrecognized option: " (current-error-port))
-                     (display name (current-error-port))
-                     (newline (current-error-port))
-                     (show-usage mod (current-error-port))
-                     (exit 1))
-                   (lambda (operand args config)
-                     (values (append args (list operand)) config))
-                   '() (default-config-location)))
-    (lambda (args config)
-      (values args
-              (if config
-                  (read-config/guard config)
-                  (default-config))))))
+  (define logger-options '()) ; FIXME
+
+  (let ((args (args-fold cmd-line
+                         (append options
+                                 help-options
+                                 (if config-options? config-options '())
+                                 logger-options)
+                         (lambda (opt name arg args config)
+                           (display "unrecognized option: " (current-error-port))
+                           (display name (current-error-port))
+                           (newline (current-error-port))
+                           (show-usage mod (current-error-port))
+                           (exit 1))
+                         (lambda (operand args config)
+                           (cons operand args))
+                         '())))
+    (values (reverse args)
+            (if config
+                (read-config/guard config)
+                (default-config)))))
+
+(define (parse-options mod cmd-line . options)
+  (parse-options* mod cmd-line options))
 
 (define* (open-database* config #:key
                          (destination (config-default-name config))

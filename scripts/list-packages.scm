@@ -28,16 +28,13 @@
 
 (define-module (scripts list-packages)
   #:use-module (rnrs)
+  #:use-module (guild ui guild)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
-  #:use-module (guild spells pathname)
-  #:use-module (guild spells filesys)
   #:use-module (guild private utils)
   #:use-module (guild database)
   #:use-module (guild package)
-  #:use-module (guild config)
-  #:use-module (guild ui formatters)
-  #:use-module (srfi srfi-37))
+  #:use-module (guild ui formatters))
 
 (define %summary "List packages.")
 (define %synopsis "guild list-packages")
@@ -54,83 +51,6 @@
       --help           Print this help message.
       --version        Print version information.
 ")
-
-(define* (show-usage #:optional (port (current-output-port)))
-  (display "Usage: " port)
-  (display %synopsis port)
-  (newline port))
-
-(define* (show-help #:optional (port (current-output-port)))
-  (show-usage port)
-  (display %help port))
-
-(define options
-  (list
-   (option '("help" #\h) #f #f
-           (lambda (opt name val args all? config bundles)
-             (show-help)
-             (exit 0)))
-   (option '("all" #\a) #f #f
-           (lambda (opt name val args all? config bundles)
-             (values args #t config bundles)))
-   (option '("config" #\c) #t #f
-           (lambda (opt name val args all? config bundles)
-             (values args all? val bundles)))
-   (option '("no-config") #f #f
-           (lambda (opt name val args all? config bundles)
-             (values args all? #f bundles)))
-   (option '("bundle" #\b) #t #f
-           (lambda (opt name val args all? config bundles)
-             (values args all? config (append bundles (list val)))))))
-
-(define (parse-options cmd-line . seeds)
-  (apply args-fold cmd-line options
-         (lambda (opt name arg . seeds)
-           (display "unrecognized option: " (current-error-port))
-           (display name (current-error-port))
-           (newline (current-error-port))
-           (show-usage (current-error-port))
-           (exit 0))
-         (lambda (operand args . seeds)
-           (apply values (cons operand args) seeds))
-         '() seeds))
-
-(define* (open-database* config #:key
-                         (destination (config-default-name config))
-                         (repositories '()))
-  (let* ((item (if destination
-                   (or (config-ref config destination)
-                       (fatal (cat "no such destination configured: " destination)))
-                   (config-default-item config)))
-         (location (config-item-database-location item)))
-    (guard (c ((database-locked-error? c)
-               (fatal (cat "database locked: " (dsp-pathname location)))))
-      (open-database location
-                     (config-item-destination item)
-                     (append repositories (config-item-repositories item))
-                     (config-item-cache-directory item)))))
-
-(define (read-config/guard pathname)
-  (guard (c ((i/o-file-does-not-exist-error? c)
-             (fatal (cat "specified config file `"
-                         (dsp-pathname pathname) "' does not exist."))))
-    (call-with-input-file (->namestring pathname)
-      read-config)))
-
-(define (call-with-database* config proc)
-  (call-with-database
-      (open-database* (if config
-                          (read-config/guard config)
-                          (default-config)))
-    (lambda (db)
-      (guard (c ((error? c)
-                 (close-database db)
-                 (raise c)))
-        (proc db)))))
-
-;; This should be different on non-POSIX systems, I guess
-(define (default-config-location)
-  (home-pathname '((".config" "dorodango") "config.scm")))
 
 (define (dsp-db-item item)
   (dsp-package (database-item-package item)
@@ -150,9 +70,23 @@
             " " (package-synopsis package))
        st))))
 
-(define (process-command-line cmd-line)
-  (call-with-values (lambda () (parse-options cmd-line #f (default-config-location) '()))
-    (lambda (args all? config bundles)
+(define %mod (current-module))
+(define (main . args)
+  (define all? #f)
+  (define bundles '())
+  (call-with-values
+      (lambda ()
+        (parse-options
+         mod
+         args
+         (make-option
+          '("all" #\a)
+          (lambda (arg) (set! all? #t)))
+         (make-option
+          '("bundle" #\b)
+          (lambda (arg) (set! bundles (append bundles (list arg))))
+          #:has-arg 'required)))
+    (lambda (args config)
       (call-with-database* config
         (lambda (db)
           (database-add-bundles! db bundles)
@@ -161,10 +95,7 @@
                    (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
                   ((find database-item-installed? items)
                    => (lambda (installed)
-                        (fmt #t (dsp-db-item/short installed) "\n"))))))))))
-
-(define (main . args)
-  (process-command-line args)
+                        (fmt #t (dsp-db-item/short installed) "\n")))))))))
   (exit 0))
 
 ;; Local Variables:

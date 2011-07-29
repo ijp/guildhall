@@ -1,4 +1,4 @@
-;;; show-bundle.scm --- Dorodango for Guile
+;;; update.scm --- Dorodango for Guile
 
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
@@ -28,13 +28,14 @@
 
 (define-module (scripts update)
   #:use-module (rnrs)
+  #:use-module (guild ui guild)
   #:use-module (guild ext fmt)
-  #:use-module (guild spells pathname)
-  #:use-module (guild spells filesys)
+  #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)
   #:use-module (guild database)
-  #:use-module (guild config)
-  #:use-module (srfi srfi-37))
+  #:use-module (guild package)
+  #:use-module (guild bundle)
+  #:use-module (guild ui formatters))
 
 (define %summary "Update repository information.")
 (define %synopsis "guild update")
@@ -48,95 +49,23 @@
       --version        Print version information.
 ")
 
-(define* (show-usage #:optional (port (current-output-port)))
-  (display "Usage: " port)
-  (display %synopsis port)
-  (newline port))
-
-(define* (show-help #:optional (port (current-output-port)))
-  (show-usage port)
-  (display %help port))
-
-(define options
-  (list
-   (option '("help" #\h) #f #f
-           (lambda (opt name val args config)
-             (show-help)
-             (exit 0)))
-   (option '("config" #\c) #t #f
-           (lambda (opt name val args config)
-             (values args val)))
-   (option '("no-config") #f #f
-           (lambda (opt name val args config)
-             (values args #f)))))
-
-(define (parse-options cmd-line . seeds)
-  (apply args-fold cmd-line options
-         (lambda (opt name arg . seeds)
-           (display "unrecognized option: " (current-error-port))
-           (display name (current-error-port))
-           (newline (current-error-port))
-           (show-usage (current-error-port))
-           (exit 0))
-         (lambda (operand args . seeds)
-           (apply values (cons operand args) seeds))
-         '() seeds))
-
-(define* (open-database* config #:key
-                         (destination (config-default-name config))
-                         (repositories '()))
-  (let* ((item (if destination
-                   (or (config-ref config destination)
-                       (fatal (cat "no such destination configured: " destination)))
-                   (config-default-item config)))
-         (location (config-item-database-location item)))
-    (guard (c ((database-locked-error? c)
-               (fatal (cat "database locked: " (dsp-pathname location)))))
-      (open-database location
-                     (config-item-destination item)
-                     (append repositories (config-item-repositories item))
-                     (config-item-cache-directory item)))))
-
-(define (read-config/guard pathname)
-  (guard (c ((i/o-file-does-not-exist-error? c)
-             (fatal (cat "specified config file `"
-                         (dsp-pathname pathname) "' does not exist."))))
-    (call-with-input-file (->namestring pathname)
-      read-config)))
-
-(define (call-with-database* config proc)
-  (call-with-database
-      (open-database* (if config
-                          (read-config/guard config)
-                          (default-config)))
-    (lambda (db)
-      (with-throw-handler #t
-        (lambda ()
-          (proc db))
-        (lambda _
-          (close-database db))))))
-
-;; This should be different on non-POSIX systems, I guess
-(define (default-config-location)
-  (home-pathname '((".config" "dorodango") "config.scm")))
-
-(define (process-command-line cmd-line)
-  (call-with-values (lambda () (parse-options cmd-line (default-config-location)))
+(define %mod (current-module))
+(define (main . args)
+  (call-with-values (lambda () (parse-options mod args))
     (lambda (args config)
       (call-with-database* config
         (lambda (db)
-          (if (null? args)
-              (database-update! db)
-              (with-output-to-port (current-error-port)
-                (lambda ()
-                  (display "unexpected arguments: ")
-                  (display (string-join args " "))
-                  (newline)
-                  (show-usage)
-                  (exit 1)))))))))
-
-(define (main . args)
-  (process-command-line args)
+          (cond
+           ((null? args)
+            (database-update! db))
+           (else
+            (with-output-to-port (current-error-port)
+              (lambda ()
+                (display "unexpected arguments: ")
+                (display (string-join args " "))
+                (newline)
+                (show-usage %mod)
+                (exit 1)))))))))
   (exit 0))
 
 ;; Local Variables:

@@ -72,6 +72,7 @@ SOURCES =					\
 	guild/ui/cmdline/dependencies.scm \
 	guild/ui/cmdline/help.scm \
 	guild/ui/formatters.scm \
+	guild/ui/guild.scm \
 	\
 	scripts/hall.scm \
 	scripts/list-packages.scm \

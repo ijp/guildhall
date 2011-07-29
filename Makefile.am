@@ -81,6 +81,7 @@ SOURCES =					\
 	scripts/list-packages.scm \
 	scripts/install.scm \
 	scripts/remove.scm \
+	scripts/scan-bundles.scm \
 	scripts/show.scm \
 	scripts/show-bundle.scm \
 	scripts/update.scm \

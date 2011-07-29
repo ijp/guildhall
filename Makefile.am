@@ -84,6 +84,7 @@ SOURCES =					\
 	scripts/scan-bundles.scm \
 	scripts/show.scm \
 	scripts/show-bundle.scm \
+	scripts/symlink-bundle.scm \
 	scripts/update.scm \
 	scripts/update-archive.scm \
 	scripts/upgrade.scm

@@ -75,6 +75,7 @@ SOURCES =					\
 	guild/ui/guild.scm \
 	\
 	scripts/clean.scm \
+	scripts/config.scm \
 	scripts/hall.scm \
 	scripts/list-packages.scm \
 	scripts/install.scm \

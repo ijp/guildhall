@@ -76,6 +76,7 @@ SOURCES =					\
 	\
 	scripts/hall.scm \
 	scripts/list-packages.scm \
+	scripts/install.scm \
 	scripts/show.scm \
 	scripts/show-bundle.scm \
 	scripts/update.scm \

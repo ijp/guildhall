@@ -107,13 +107,12 @@
       (lambda ()
         (parse-options
          %mod args
-         (make-option
+         (make-option/arg
           '("bundle" #\b)
-          (lambda (arg) (set! bundles (append bundles (list arg))))
-          #:has-arg 'required)
+          (lambda (arg) (set! bundles (append bundles (list arg)))))
          (make-option
           '("no-depends")
-          (lambda (arg) (set! no-depends? #t)))))
+          (lambda () (set! no-depends? #t)))))
     (lambda (packages config)
       (call-with-database* config
         (lambda (db)

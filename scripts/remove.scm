@@ -63,7 +63,7 @@
          %mod args
          (make-option
           '("no-depends")
-          (lambda (arg) (set! no-depends? #t)))))
+          (lambda () (set! no-depends? #t)))))
     (lambda (packages config)
       (call-with-database* config
         (lambda (db)

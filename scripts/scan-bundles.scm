@@ -61,9 +61,9 @@
       (lambda ()
         (parse-options
          %mod args
-         (make-option '("output" #\o)
-                      (lambda (val)
-                        (set! output (open-file-output-port val))))))
+         (make-option/arg
+          '("output" #\o)
+          (lambda (val) (set! output (open-file-output-port val))))))
     (lambda (args config)
       (iterate! (for directory (in-list args))
           (for entry (in-list (scan-bundles-in-directory directory directory)))

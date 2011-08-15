@@ -80,11 +80,10 @@
          %mod args
          (make-option
           '("all" #\a)
-          (lambda (arg) (set! all? #t)))
-         (make-option
+          (lambda () (set! all? #t)))
+         (make-option/arg
           '("bundle" #\b)
-          (lambda (arg) (set! bundles (append bundles (list arg))))
-          #:has-arg 'required)))
+          (lambda (arg) (set! bundles (append bundles (list arg)))))))
     (lambda (args config)
       (call-with-database* config
         (lambda (db)

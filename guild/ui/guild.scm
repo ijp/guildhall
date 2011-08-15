@@ -34,6 +34,7 @@
   #:use-module (srfi srfi-37)
   #:export (show-usage
             make-option
+            make-option/arg
             parse-options
             parse-options*
             call-with-database*))
@@ -47,18 +48,17 @@
   (show-usage mod port)
   (display (module-ref mod '%help) port))
 
-(define* (make-option names parser #:key has-arg)
-  (option names
-          (case has-arg
-            ((required) #t)
-            ((optional #f) #f)
-            (else (error "unexpected #:has-arg" has-arg)))
-          (case has-arg
-            ((optional) #t)
-            (else #f))
-          (lambda (opt name val args config)
-            (parser val)
-            (values args config))))
+(define (make-option names handler)
+  (option names #f #f
+          (lambda (opt name val args)
+            (handler)
+            args)))
+
+(define (make-option/arg names handler)
+  (option names #t #f 
+          (lambda (opt name val args)
+            (handler val)
+            args)))
 
 ;; This should be different on non-POSIX systems, I guess
 (define (default-config-location)
@@ -74,38 +74,40 @@
 (define* (parse-options* mod cmd-line options #:key (config-options? #t))
   (define help-options
     (list
-     (option '("help" #\h) #f #f
-             (lambda (opt name val args)
-               (show-help mod)
-               (exit 0)))))
+     (make-option '("help" #\h)
+                  (lambda ()
+                    (show-help mod)
+                    (exit 0)))))
   
   (define config (default-config-location))
 
   (define config-options
     (list
-     (option '("config" #\c) #t #f
-             (lambda (opt name val args)
-               (set! config val)
-               args))
-     (option '("no-config") #f #f
-             (lambda (opt name val args config)
-               (set! config #f)
-               args))))
+     (make-option/arg '("config" #\c)
+                      (lambda (val) (set! config val)))
+     (make-option '("no-config")
+                  (lambda () (set! config #f)))))
+  
+  (define log-level 'info)
 
-  (define logger-options '()) ; FIXME
-
+  (define logger-options
+    (list
+     (make-option/arg '("log-level" #\l)
+                      (lambda (arg)
+                        (set! log-level (string->symbol arg))))))
+  
   (let ((args (args-fold cmd-line
                          (append options
                                  help-options
                                  (if config-options? config-options '())
                                  logger-options)
-                         (lambda (opt name arg args config)
+                         (lambda (opt name arg args)
                            (display "unrecognized option: " (current-error-port))
                            (display name (current-error-port))
                            (newline (current-error-port))
                            (show-usage mod (current-error-port))
                            (exit 1))
-                         (lambda (operand args config)
+                         (lambda (operand args)
                            (cons operand args))
                          '())))
     (values (reverse args)

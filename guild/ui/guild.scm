@@ -26,6 +26,7 @@
   #:use-module (guild ext foof-loop)
   #:use-module (guild spells pathname)
   #:use-module (guild spells filesys)
+  #:use-module (guild spells logging)
   #:use-module (guild private utils)
   #:use-module (guild database)
   #:use-module (guild package)
@@ -70,6 +71,24 @@
     (call-with-input-file (->namestring pathname)
       read-config)))
 
+(define (cmdline-log-handler entry)
+  (let ((level-name (log-entry-level-name entry))
+        (default-level? (eq? (log-entry-level-name entry) 'info))
+        (object (log-entry-object entry)))
+    (define (show port)
+      (if (procedure? object)
+          (object port)
+          (display object port))
+      (newline port)
+      (flush-output-port port))
+    (cond
+     (default-level?
+      (show (current-output-port)))
+     (else
+      (display level-name (current-error-port))
+      (display ": " (current-error-port))
+      (show (current-error-port))))))
+
 (define* (call-with-parsed-options mod cmd-line options proc
                                    #:key (config-options? #t))
   (define help-options
@@ -80,7 +99,6 @@
                     (exit 0)))))
   
   (define config (default-config-location))
-
   (define config-options
     (list
      (make-option/arg '("config" #\c)
@@ -89,13 +107,14 @@
                   (lambda () (set! config #f)))))
   
   (define log-level 'info)
-
   (define logger-options
     (list
      (make-option/arg '("log-level" #\l)
                       (lambda (arg)
-                        (set! log-level (string->symbol arg))))))
-  
+                        (set! log-level
+                              (or (string->number arg)
+                                  (string->symbol arg)))))))
+
   (let ((args (args-fold cmd-line
                          (append options
                                  help-options
@@ -110,10 +129,12 @@
                          (lambda (operand args)
                            (cons operand args))
                          '())))
-    (proc (reverse args)
-          (if config
-              (read-config/guard config)
-              (default-config)))))
+    (let-logger-properties ((logger:dorodango
+                             `((handlers (,log-level ,cmdline-log-handler)))))
+      (proc (reverse args)
+            (if config
+                (read-config/guard config)
+                (default-config))))))
 
 (define* (open-database* config #:key
                          (destination (config-default-name config))

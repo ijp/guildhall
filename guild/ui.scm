@@ -1,5 +1,6 @@
 ;;; ui.sls --- dorodango UI operations
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -33,20 +34,23 @@
           ui/prompt)
   (import (rnrs)
           (srfi :39 parameters)
+          (guild ext fmt)
           (guild spells operations))
 
 (define-operation (ui/message ui . formats))
 (define-operation (ui/y-or-n ui default message))
 (define-operation (ui/prompt ui message choose-yes choices . maybe-choose-yes))
 
-(define (make-null-ui)
+(define (make-default-ui)
   (object #f
     ((ui/message ui . formats)
+     (fmt #t (cat (apply-cat formats) nl))
+     (flush-output-port (current-output-port))
      (values))
     ((ui/y-or-n ui default message . maybe-choose-yes)
      default)))
 
-(define current-ui (make-parameter (make-null-ui)))
+(define current-ui (make-parameter (make-default-ui)))
 
 (define (make-ui-wrapper operation)
   (lambda args

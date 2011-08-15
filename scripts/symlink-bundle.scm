@@ -70,39 +70,38 @@
   (define deep? #f)
   (define only #f)
   (define except #f)
-  (call-with-values
-      (lambda ()
-        (parse-options
-         %mod args
-         (make-option '("force")
-                      (lambda () (set! force? #t)))
-         (make-option '("deep")
-                      (lambda () (set! deep? #t)))
-         (make-option/arg '("include")
-                          (lambda (val)
-                            (set! only (string->package-list val))))
-         (make-option/arg '("exclude")
-                          (lambda (val)
-                            (set! except (string->package-list val))))))
-    (lambda (args config)
-      (match args
-        ((bundle-directory target-directory)
-         (symlink-bundle bundle-directory
-                         target-directory
-                         force?
-                         deep?
-                         (lambda (package)
-                           (cond ((and only except)
-                                  (and (memq (package-name package) only)
-                                       (not (memq (package-name package) except))))
-                                 (only
-                                  (memq (package-name package) only))
-                                 (except
-                                  (not (memq (package-name package) except)))
-                                 (else
-                                  #t)))))
-        (_
-         (fatal "`symlink' expects two arguments")))))
+  (call-with-parsed-options
+   %mod args
+   (list
+    (make-option '("force")
+                 (lambda () (set! force? #t)))
+    (make-option '("deep")
+                 (lambda () (set! deep? #t)))
+    (make-option/arg '("include")
+                     (lambda (val)
+                       (set! only (string->package-list val))))
+    (make-option/arg '("exclude")
+                     (lambda (val)
+                       (set! except (string->package-list val)))))
+   (lambda (args config)
+     (match args
+       ((bundle-directory target-directory)
+        (symlink-bundle bundle-directory
+                        target-directory
+                        force?
+                        deep?
+                        (lambda (package)
+                          (cond ((and only except)
+                                 (and (memq (package-name package) only)
+                                      (not (memq (package-name package) except))))
+                                (only
+                                 (memq (package-name package) only))
+                                (except
+                                 (not (memq (package-name package) except)))
+                                (else
+                                 #t)))))
+       (_
+        (fatal "`symlink' expects two arguments")))))
   
   (exit 0))
 

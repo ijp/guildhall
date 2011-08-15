@@ -103,16 +103,14 @@
 (define (main . args)
   (define bundles '())
   (define no-depends? #f)
-  (call-with-values
-      (lambda ()
-        (parse-options
-         %mod args
-         (make-option/arg
-          '("bundle" #\b)
-          (lambda (arg) (set! bundles (append bundles (list arg)))))
-         (make-option
-          '("no-depends")
-          (lambda () (set! no-depends? #t)))))
+  (call-with-parsed-options
+      %mod args
+      (list (make-option/arg
+             '("bundle" #\b)
+             (lambda (arg) (set! bundles (append bundles (list arg)))))
+            (make-option
+             '("no-depends")
+             (lambda () (set! no-depends? #t))))
     (lambda (packages config)
       (call-with-database* config
         (lambda (db)
@@ -126,5 +124,5 @@
   (exit 0))
 
 ;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
+;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1) (call-with-parsed-options 3))
 ;; End:

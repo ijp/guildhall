@@ -54,7 +54,7 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-values (lambda () (parse-options %mod args))
+  (call-with-parsed-options %mod args '()
     (lambda (packages config)
       (call-with-database* config
         (lambda (db)
@@ -65,8 +65,8 @@
                    (not (database-item-installed? item))
                    (database-item-package item))))
           (loop ((for package-name items (in-database db))
-             (for to-upgrade (listing (select-upgrade items) => values)))
-        => (apply-actions db to-upgrade '()))))))
+                 (for to-upgrade (listing (select-upgrade items) => values)))
+            => (apply-actions db to-upgrade '()))))))
   (exit 0))
 
 ;; Local Variables:

@@ -35,8 +35,7 @@
   #:export (show-usage
             make-option
             make-option/arg
-            parse-options
-            parse-options*
+            call-with-parsed-options
             call-with-database*))
 
 (define* (show-usage mod #:optional (port (current-output-port)))
@@ -71,7 +70,8 @@
     (call-with-input-file (->namestring pathname)
       read-config)))
 
-(define* (parse-options* mod cmd-line options #:key (config-options? #t))
+(define* (call-with-parsed-options mod cmd-line options proc
+                                   #:key (config-options? #t))
   (define help-options
     (list
      (make-option '("help" #\h)
@@ -110,13 +110,10 @@
                          (lambda (operand args)
                            (cons operand args))
                          '())))
-    (values (reverse args)
-            (if config
-                (read-config/guard config)
-                (default-config)))))
-
-(define (parse-options mod cmd-line . options)
-  (parse-options* mod cmd-line options))
+    (proc (reverse args)
+          (if config
+              (read-config/guard config)
+              (default-config)))))
 
 (define* (open-database* config #:key
                          (destination (config-default-name config))

@@ -74,16 +74,15 @@
 (define (main . args)
   (define all? #f)
   (define bundles '())
-  (call-with-values
-      (lambda ()
-        (parse-options
-         %mod args
-         (make-option
-          '("all" #\a)
-          (lambda () (set! all? #t)))
-         (make-option/arg
-          '("bundle" #\b)
-          (lambda (arg) (set! bundles (append bundles (list arg)))))))
+  (call-with-parsed-options
+      %mod args
+      (list
+       (make-option
+        '("all" #\a)
+        (lambda () (set! all? #t)))
+       (make-option/arg
+        '("bundle" #\b)
+        (lambda (arg) (set! bundles (append bundles (list arg))))))
     (lambda (args config)
       (call-with-database* config
         (lambda (db)

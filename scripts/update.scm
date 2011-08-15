@@ -51,7 +51,7 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-values (lambda () (parse-options %mod args))
+  (call-with-parsed-options %mod args '()
     (lambda (args config)
       (call-with-database* config
         (lambda (db)

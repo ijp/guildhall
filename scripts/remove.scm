@@ -57,13 +57,11 @@
 (define %mod (current-module))
 (define (main . args)
   (define no-depends? #f)
-  (call-with-values
-      (lambda ()
-        (parse-options
-         %mod args
-         (make-option
-          '("no-depends")
-          (lambda () (set! no-depends? #t)))))
+  (call-with-parsed-options
+      %mod args
+      (list (make-option
+             '("no-depends")
+             (lambda () (set! no-depends? #t))))
     (lambda (packages config)
       (call-with-database* config
         (lambda (db)

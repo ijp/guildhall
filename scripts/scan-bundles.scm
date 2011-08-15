@@ -57,13 +57,12 @@
 (define %mod (current-module))
 (define (main . args)
   (define output (current-output-port))
-  (call-with-values
-      (lambda ()
-        (parse-options
-         %mod args
-         (make-option/arg
-          '("output" #\o)
-          (lambda (val) (set! output (open-file-output-port val))))))
+  (call-with-parsed-options
+      %mod args
+      (list
+       (make-option/arg
+        '("output" #\o)
+        (lambda (val) (set! output (open-file-output-port val)))))
     (lambda (args config)
       (iterate! (for directory (in-list args))
           (for entry (in-list (scan-bundles-in-directory directory directory)))

@@ -61,18 +61,17 @@
   (define output-filename #f)
   (define output-directory #f)
   (define version '())
-  (call-with-values
-      (lambda ()
-        (parse-options
-         %mod args
-         (make-option/arg '("output" #\o)
-                          (lambda (val) (set! output-filename val)))
-         (make-option/arg '("directory" #\d)
-                          (lambda (val)
-                            (set! output-directory (pathname-as-directory val))))
-         (make-option/arg '("append-version")
-                          (lambda (val)
-                            (set! version (string->package-version val))))))
+  (call-with-parsed-options
+      %mod args
+      (list
+       (make-option/arg '("output" #\o)
+                        (lambda (val) (set! output-filename val)))
+       (make-option/arg '("directory" #\d)
+                        (lambda (val)
+                          (set! output-directory (pathname-as-directory val))))
+       (make-option/arg '("append-version")
+                        (lambda (val)
+                          (set! version (string->package-version val)))))
     (lambda (operands config)
       (define (compute-bundle-filename packages)
         (match packages

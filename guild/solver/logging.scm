@@ -1,5 +1,6 @@
 ;;; logging.scm --- Dependency solver, logging utilities
 
+;; Copyright (C) 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
@@ -50,7 +51,7 @@
           (guild solver choice))
 
 (define logger:dorodango.solver (make-logger logger:dorodango 'solver))
-(define log/info (make-fmt-log logger:dorodango.solver 'info))
+(define log/info (make-fmt-log logger:dorodango.solver 19000)) ; 'info minus 1000
 (define log/debug (make-fmt-log logger:dorodango.solver 'debug))
 (define log/trace (make-fmt-log logger:dorodango.solver 'trace))
 

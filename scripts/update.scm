@@ -51,23 +51,17 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options %mod args '()
-    (lambda (args config)
-      (call-with-database* config
-        (lambda (db)
-          (cond
-           ((null? args)
-            (database-update! db))
-           (else
-            (with-output-to-port (current-error-port)
-              (lambda ()
-                (display "unexpected arguments: ")
-                (display (string-join args " "))
-                (newline)
-                (show-usage %mod)
-                (exit 1)))))))))
+  (call-with-parsed-options+db %mod args '()
+    (lambda (args config db)
+      (cond
+       ((null? args)
+        (database-update! db))
+       (else
+        (with-output-to-port (current-error-port)
+          (lambda ()
+            (display "unexpected arguments: ")
+            (display (string-join args " "))
+            (newline)
+            (show-usage %mod)
+            (exit 1)))))))
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

@@ -78,21 +78,15 @@
 (define %mod (current-module))
 (define (main . args)
   (define bundles '())
-  (call-with-parsed-options
+  (call-with-parsed-options+db
       %mod args
       (list
        (make-option/arg
         '("bundle" #\b)
         (lambda (arg) (set! bundles (append bundles (list arg))))))
-    (lambda (packages config)
-      (call-with-database* config
-        (lambda (db)
-          (database-add-bundles! db bundles)
-          (fmt #t (fmt-join dsp-db-item
-                            (find-db-items db packages)
-                            "\n"))))))
+    (lambda (packages config db)
+      (database-add-bundles! db bundles)
+      (fmt #t (fmt-join dsp-db-item
+                        (find-db-items db packages)
+                        "\n"))))
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

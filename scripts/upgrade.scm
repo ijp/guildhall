@@ -54,21 +54,15 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options %mod args '()
-    (lambda (packages config)
-      (call-with-database* config
-        (lambda (db)
-          (define (select-upgrade items)
-            (let ((item (car items)))
-              (and item
-                   (exists database-item-installed? items)
-                   (not (database-item-installed? item))
-                   (database-item-package item))))
-          (loop ((for package-name items (in-database db))
-                 (for to-upgrade (listing (select-upgrade items) => values)))
-            => (apply-actions db to-upgrade '()))))))
+  (call-with-parsed-options+db %mod args '()
+    (lambda (packages config db)
+      (define (select-upgrade items)
+        (let ((item (car items)))
+          (and item
+               (exists database-item-installed? items)
+               (not (database-item-installed? item))
+               (database-item-package item))))
+      (loop ((for package-name items (in-database db))
+             (for to-upgrade (listing (select-upgrade items) => values)))
+        => (apply-actions db to-upgrade '()))))
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

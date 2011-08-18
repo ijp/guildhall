@@ -51,15 +51,10 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options %mod args '()
-    (lambda (args config)
-      (call-with-database* config
-        (lambda (db)
-          (loop ((for bundle-location (in-list args)))
-            (let ((bundle (open-input-bundle bundle-location)))
-              (fmt #t (dsp-bundle bundle))))))))
+  (call-with-parsed-options+db %mod args '()
+    (lambda (args config db)
+      (loop ((for bundle-location (in-list args)))
+        (let ((bundle (open-input-bundle bundle-location)))
+          (fmt #t (dsp-bundle bundle))))))
   (exit 0))
 
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

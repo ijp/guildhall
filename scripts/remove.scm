@@ -57,34 +57,28 @@
 (define %mod (current-module))
 (define (main . args)
   (define no-depends? #f)
-  (call-with-parsed-options
+  (call-with-parsed-options+db
       %mod args
       (list (make-option
              '("no-depends")
              (lambda () (set! no-depends? #t))))
-    (lambda (packages config)
-      (call-with-database* config
-        (lambda (db)
-          (define (not-installed-error package-name)
-            (fatal (cat "package `" package-name "' is not installed.")))
-          (cond
-           (no-depends?
-            (loop ((for package-name (in-list packages)))
-              (unless (database-remove! db (string->symbol package-name))
-                (not-installed-error package-name))))
-           (else
-            (loop ((for package-string (in-list packages))
-                   (let-values (package-name is-installed?)
-                     (let ((name (string->symbol package-string)))
-                       (values name
-                               (and (database-lookup db name 'installed) #t))))
-                   (for to-remove (listing package-name
-                                           (if is-installed?))))
-              => (apply-actions db '() to-remove)
-              (unless is-installed?
-                (not-installed-error package-string)))))))))
+    (lambda (packages config db)
+      (define (not-installed-error package-name)
+        (fatal (cat "package `" package-name "' is not installed.")))
+      (cond
+       (no-depends?
+        (loop ((for package-name (in-list packages)))
+          (unless (database-remove! db (string->symbol package-name))
+            (not-installed-error package-name))))
+       (else
+        (loop ((for package-string (in-list packages))
+               (let-values (package-name is-installed?)
+                 (let ((name (string->symbol package-string)))
+                   (values name
+                           (and (database-lookup db name 'installed) #t))))
+               (for to-remove (listing package-name
+                                       (if is-installed?))))
+          => (apply-actions db '() to-remove)
+          (unless is-installed?
+            (not-installed-error package-string)))))))
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

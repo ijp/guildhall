@@ -74,7 +74,7 @@
 (define (main . args)
   (define all? #f)
   (define bundles '())
-  (call-with-parsed-options
+  (call-with-parsed-options+db
       %mod args
       (list
        (make-option
@@ -83,18 +83,12 @@
        (make-option/arg
         '("bundle" #\b)
         (lambda (arg) (set! bundles (append bundles (list arg))))))
-    (lambda (args config)
-      (call-with-database* config
-        (lambda (db)
-          (database-add-bundles! db bundles)
-          (loop ((for package items (in-database db (sorted-by symbol<?))))
-            (cond (all?
-                   (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
-                  ((find database-item-installed? items)
-                   => (lambda (installed)
-                        (fmt #t (dsp-db-item/short installed) "\n")))))))))
+    (lambda (args config db)
+      (database-add-bundles! db bundles)
+      (loop ((for package items (in-database db (sorted-by symbol<?))))
+        (cond (all?
+               (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
+              ((find database-item-installed? items)
+               => (lambda (installed)
+                    (fmt #t (dsp-db-item/short installed) "\n")))))))
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

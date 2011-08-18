@@ -104,7 +104,3 @@
         (fatal "`symlink' expects two arguments")))))
   
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

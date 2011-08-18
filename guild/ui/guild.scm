@@ -37,6 +37,7 @@
             make-option
             make-option/arg
             call-with-parsed-options
+            call-with-parsed-options+db
             call-with-database*))
 
 (define* (show-usage mod #:optional (port (current-output-port)))
@@ -168,3 +169,24 @@
           (proc db))
         (lambda _
           (close-database db))))))
+
+(define* (call-with-parsed-options+db mod cmd-line options proc)
+  (define dest #f)
+  (call-with-parsed-options mod cmd-line
+                            (cons (make-option/arg
+                                   '("dest" #\d)
+                                   (lambda (arg)
+                                     (set! dest (string->symbol arg))))
+                                  options)
+    (lambda (args config)
+      (call-with-database (open-database* config #:destination dest)
+        (lambda (db)
+          (with-throw-handler #t
+            (lambda ()
+              (proc args config db))
+            (lambda _
+              (close-database db))))))))
+
+;; Local Variables:
+;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1) (call-with-parsed-options 3) (call-with-parsed-options+db 3))
+;; End:

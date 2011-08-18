@@ -34,7 +34,6 @@
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)
-  #:use-module (guild database)
   #:use-module (guild package)
   #:use-module (guild bundle)
   #:use-module (guild actions)
@@ -103,7 +102,3 @@
                            packages-list
                            need-rewrite?))))))
   (exit 0))
-
-;; Local Variables:
-;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1))
-;; End:

@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
-@setfilename guild-hall.info
+@setfilename sigil.info
 @settitle Guild-Hall Manual
 @include version.texi
-@set PACKAGE guild-hall
+@set PACKAGE sigil
 
 @copying
 This manual is for Guild-Hall version @value{VERSION}.
@@ -31,12 +31,12 @@ later version published by the Free Software Foundation.
 
 @ifnottex
 @node Top
-@top Guild-hall
+@top Sigil
 
 This manual is for Guild-Hall version @value{VERSION}.
 @end ifnottex
 
-Guild-hall is a package manager written for Guile Scheme.
+Sigil is a package manager written for Guile Scheme.
 
 A guild hall is where guild members meet.  This package builds a guild
 hall for Guile, providing a virtual space for Guile masters and
@@ -48,7 +48,7 @@ dependencies, so when a program requires several libraries, and each
 of those has further dependencies, all of the prerequisites for the
 program can be installed in one go.
 
-Guild-hall is a port of Andreas Rottmann's Dorodango portable package
+Sigil is a port of Andreas Rottmann's Dorodango portable package
 manager for R6RS Scheme, adapted to better fit in with Guile Scheme
 environments.  It is compatible with the R6RS Scheme package archives
 that Dorodango uses.

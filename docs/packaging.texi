@@ -313,12 +313,12 @@ hook options and body:
 <hook-body> -> (import <library-reference>+) <definitions> <expressions>
 @end verbatim
 
-Hooks are not evaluated and executed by guild-hall itself, since
-guild-hall may be installed in a different destination than that which
+Hooks are not evaluated and executed by sigil itself, since
+sigil may be installed in a different destination than that which
 the package in question should be installed into. Evaluating hooks in
-guild-hall's own context would hence pose the problem that the hook
+sigil's own context would hence pose the problem that the hook
 could rely neither on libraries provided by its package nor its
-dependencies. For this reason, guild-hall spawns a small helper
+dependencies. For this reason, sigil spawns a small helper
 program.  With this way of proceeding, an installation hook may
 @code{import} libraries that are part of the package or its
 dependencies.

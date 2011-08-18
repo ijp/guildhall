@@ -165,14 +165,14 @@ EXTRA_DIST += $(TESTS) $(TESTDATA)
 
 TESTS_ENVIRONMENT=srcdir=$(abs_top_srcdir)/tests/ $(top_builddir)/env guile --no-auto-compile -s 
 
-info_TEXINFOS = docs/guild-hall.texi
-guild_hall_TEXINFOS = \
+info_TEXINFOS = docs/sigil.texi
+sigil_TEXINFOS = \
 	docs/installation.texi \
 	docs/quickstart.texi \
 	docs/overview.texi \
 	docs/reference.texi \
 	docs/packaging.texi
 
-EXTRA_DIST += $(guild_hall_TEXINFOS)
+EXTRA_DIST += $(sigil_TEXINFOS)
 
 EXTRA_DIST += HACKING COPYING.GPL-3 COPYING.LGPL-3 COPYING.MIT COPYING.BSD

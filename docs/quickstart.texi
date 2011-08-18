@@ -6,7 +6,7 @@ to instal software from the guild hall.
 
 @subheading Configuration
 
-So, you've successfully installed guild-hall, and were able to get the
+So, you've successfully installed sigil, and were able to get the
 help message via @command{guild hall --help}? Then it's time to tell
 the guild where it can find software (@pxref{Packages}) to
 install. Create the file @file{~/.config/dorodango/config.scm} and add

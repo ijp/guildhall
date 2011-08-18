@@ -31,6 +31,7 @@
   #:use-module (guild database)
   #:use-module (guild package)
   #:use-module (guild config)
+  #:use-module (guild repository)
   #:use-module (guild ui formatters)
   #:use-module (srfi srfi-37)
   #:export (show-usage
@@ -172,14 +173,25 @@
 
 (define* (call-with-parsed-options+db mod cmd-line options proc)
   (define dest #f)
+  (define repos '())
   (call-with-parsed-options mod cmd-line
-                            (cons (make-option/arg
-                                   '("dest" #\d)
-                                   (lambda (arg)
-                                     (set! dest (string->symbol arg))))
-                                  options)
+                            (append
+                             (list
+                              (make-option/arg
+                               '("dest" #\d)
+                               (lambda (arg)
+                                 (set! dest (string->symbol arg))))
+                              (make-option/arg
+                               '("repo" #\r)
+                               (lambda (arg)
+                                 (set! repos
+                                       (append
+                                        repos
+                                        (list (uri-string->repository arg)))))))
+                             options)
     (lambda (args config)
-      (call-with-database (open-database* config #:destination dest)
+      (call-with-database (open-database* config #:destination dest
+                                          #:repositories repos)
         (lambda (db)
           (with-throw-handler #t
             (lambda ()

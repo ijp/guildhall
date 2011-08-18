@@ -54,15 +54,24 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options+db %mod args '()
-    (lambda (packages config db)
+  (define assume-yes? #f)
+  (define non-interactive? #f)
+  (call-with-parsed-options+db
+      %mod args
+      (list (make-option '("yes" #\y)
+                         (lambda () (set! assume-yes? #t)))
+            (make-option '("non-interactive" #\n)
+                         (lambda () (set! non-interactive? #t))))
+   (lambda (packages config db)
       (define (select-upgrade items)
         (let ((item (car items)))
           (and item
                (exists database-item-installed? items)
                (not (database-item-installed? item))
                (database-item-package item))))
-      (loop ((for package-name items (in-database db))
-             (for to-upgrade (listing (select-upgrade items) => values)))
-        => (apply-actions db to-upgrade '()))))
+      (call-with-cmdline-ui assume-yes? non-interactive?
+        (lambda ()
+          (loop ((for package-name items (in-database db))
+                 (for to-upgrade (listing (select-upgrade items) => values)))
+            => (apply-actions db to-upgrade '()))))))
   (exit 0))

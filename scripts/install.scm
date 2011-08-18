@@ -78,15 +78,6 @@
           (else
            (database-item-package item)))))
 
-(define (install-command vals)
-  (let ((bundle-locations (opt-ref/list vals 'bundles))
-        (packages (opt-ref/list vals 'operands))
-        (no-depends? (assq-ref vals 'no-depends?)))
-    (call-with-database* vals
-      (lambda (db)
-        (database-add-bundles! db bundle-locations)
-        ))))
-
 (define (install/no-depends db to-install)
   (loop ((for package (in-list to-install)))
     (cond ((database-unpack! db package)
@@ -103,18 +94,26 @@
 (define (main . args)
   (define bundles '())
   (define no-depends? #f)
-  (call-with-parsed-options
+  (define assume-yes? #f)
+  (define non-interactive? #f)
+  (call-with-parsed-options+db
       %mod args
       (list (make-option/arg
              '("bundle" #\b)
              (lambda (arg) (set! bundles (append bundles (list arg)))))
             (make-option
              '("no-depends")
-             (lambda () (set! no-depends? #t))))
-    (lambda (packages config)
-      (call-with-database* config
-        (lambda (db)
-          (database-add-bundles! db bundles)
+             (lambda () (set! no-depends? #t)))
+            (make-option
+             '("yes" #\y)
+             (lambda () (set! assume-yes? #t)))
+            (make-option
+             '("non-interactive" #\n)
+             (lambda () (set! non-interactive? #t))))
+    (lambda (packages config db)
+      (database-add-bundles! db bundles)
+      (call-with-cmdline-ui assume-yes? non-interactive?
+        (lambda ()
           (loop ((for package (in-list packages))
                  (for to-install (listing (select-package/string db package))))
             => (cond (no-depends?

@@ -32,6 +32,9 @@
   #:use-module (guild package)
   #:use-module (guild config)
   #:use-module (guild repository)
+  #:use-module (guild ui cmdline base) ; FIXME
+  #:use-module (guild ui) ; FIXME
+  #:use-module (srfi srfi-39) ; FIXME
   #:use-module (guild ui formatters)
   #:use-module (srfi srfi-37)
   #:export (show-usage
@@ -39,7 +42,9 @@
             make-option/arg
             call-with-parsed-options
             call-with-parsed-options+db
-            call-with-database*))
+            call-with-database*
+            call-with-cmdline-ui ; FIXME
+            ))
 
 (define* (show-usage mod #:optional (port (current-output-port)))
   (display "Usage: " port)
@@ -198,6 +203,12 @@
               (proc args config db))
             (lambda _
               (close-database db))))))))
+
+(define (call-with-cmdline-ui assume-yes? non-interactive? proc)
+  (parameterize ((current-ui (make-cmdline-ui
+                              `((assume-yes? . ,assume-yes?)
+                                (non-interactive? . ,non-interactive?)))))
+    (proc)))
 
 ;; Local Variables:
 ;; scheme-indent-styles: ((call-with-database* 1) (call-with-database 1) (call-with-parsed-options 3) (call-with-parsed-options+db 3))

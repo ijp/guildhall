@@ -99,12 +99,16 @@
                     (exit 0)))))
   
   (define config (default-config-location))
+  (define prefix #f)
   (define config-options
     (list
      (make-option/arg '("config" #\c)
                       (lambda (val) (set! config val)))
      (make-option '("no-config")
-                  (lambda () (set! config #f)))))
+                  (lambda () (set! config #f)))
+     (make-option/arg '("prefix")
+                      (lambda (arg)
+                        (set! prefix arg)))))
   
   (define log-level 'info)
   (define logger-options
@@ -132,9 +136,14 @@
     (let-logger-properties ((logger:dorodango
                              `((handlers (,log-level ,cmdline-log-handler)))))
       (proc (reverse args)
-            (if config
-                (read-config/guard config)
-                (default-config))))))
+            (let ((config (if config
+                              (read-config/guard config)
+                              (default-config))))
+              (if prefix
+                  (make-prefix-config
+                   prefix
+                   (config-item-repositories (config-default-item config)))
+                  config))))))
 
 (define* (open-database* config #:key
                          (destination (config-default-name config))

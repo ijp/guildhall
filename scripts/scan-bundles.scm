@@ -30,6 +30,7 @@
   #:use-module (rnrs)
   #:use-module (ice-9 match)
   #:use-module (guild cli)
+  #:use-module (guild cli config)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
   #:use-module (guild ext foof-loop nested)
@@ -57,7 +58,7 @@
 (define %mod (current-module))
 (define (main . args)
   (define output (current-output-port))
-  (call-with-parsed-options
+  (call-with-parsed-options/config
       %mod args
       (list
        (make-option/arg

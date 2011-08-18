@@ -24,16 +24,11 @@
 ;; This is the command-line interface to dorodango.
 
 ;;; Code:
-#!r6rs
 
 (define-module (scripts clean)
-  #:use-module (rnrs)
   #:use-module (guild cli)
-  #:use-module (guild ext fmt)
-  #:use-module (guild ext foof-loop)
-  #:use-module (guild private utils)
-  #:use-module (guild database)
-  #:use-module (guild ui formatters))
+  #:use-module (guild cli db)
+  #:use-module (guild database))
 
 (define %summary "Clean the package cache.")
 (define %synopsis "guild clean")
@@ -49,7 +44,7 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options+db %mod args '()
+  (call-with-parsed-options/config+db %mod args '()
     (lambda (args config db)
       (cond
        ((null? args)

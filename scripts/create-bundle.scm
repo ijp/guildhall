@@ -31,8 +31,8 @@
   #:use-module (ice-9 match)
   #:use-module (guild spells pathname)
   #:use-module (guild cli)
+  #:use-module (guild cli config)
   #:use-module (guild ext fmt)
-  #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)
   #:use-module (guild package)
   #:use-module (guild bundle)
@@ -60,7 +60,7 @@
   (define output-filename #f)
   (define output-directory #f)
   (define version '())
-  (call-with-parsed-options
+  (call-with-parsed-options/config
       %mod args
       (list
        (make-option/arg '("output" #\o)

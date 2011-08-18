@@ -24,21 +24,16 @@
 ;; This is the command-line interface to dorodango.
 
 ;;; Code:
-#!r6rs
 
 (define-module (scripts symlink-bundle)
-  #:use-module (rnrs)
   #:use-module (ice-9 match)
   #:use-module (guild cli)
   #:use-module (guild ext fmt)
-  #:use-module (guild ext foof-loop)
-  #:use-module (guild ext foof-loop nested)
   #:use-module (guild private utils)
   #:use-module (guild actions)
   #:use-module (guild database)
   #:use-module (guild package)
-  #:use-module (guild bundle)
-  #:use-module (guild ui formatters))
+  #:use-module (guild bundle))
 
 (define %summary "Create symbolic links for a bundle.")
 (define %synopsis "guild symlink-bundle BUNDLE-DIRECTORY TARGET-DIRECTORY")
@@ -52,9 +47,6 @@
 
   PACKAGES should be a space or comma separated list.
 
-  -c, --config=FILE    Use configuration file FILE, instead of the
-                       default.
-      --no-config      Do not read a configuration file.
       --help           Print this help message.
       --version        Print version information.
 ")
@@ -83,7 +75,7 @@
     (make-option/arg '("exclude")
                      (lambda (val)
                        (set! except (string->package-list val)))))
-   (lambda (args config)
+   (lambda (args)
      (match args
        ((bundle-directory target-directory)
         (symlink-bundle bundle-directory

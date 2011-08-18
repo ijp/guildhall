@@ -24,18 +24,17 @@
 ;; This is the command-line interface to dorodango.
 
 ;;; Code:
-#!r6rs
 
 (define-module (scripts remove)
   #:use-module (rnrs)
   #:use-module (guild cli)
+  #:use-module (guild cli ui)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)
   #:use-module (guild hooks)
   #:use-module (guild database)
   #:use-module (guild package)
-  #:use-module (guild ui)
   #:use-module (guild ui cmdline dependencies)
   #:use-module (guild ui formatters)
   #:use-module (ice-9 receive))
@@ -57,19 +56,11 @@
 (define %mod (current-module))
 (define (main . args)
   (define no-depends? #f)
-  (define assume-yes? #f)
-  (define non-interactive? #f)
-  (call-with-parsed-options+db
+  (call-with-parsed-options/config+db/ui
       %mod args
       (list (make-option
              '("no-depends")
-             (lambda () (set! no-depends? #t)))
-            (make-option
-             '("yes" #\y)
-             (lambda () (set! assume-yes? #t)))
-            (make-option
-             '("non-interactive" #\n)
-             (lambda () (set! non-interactive? #t))))
+             (lambda () (set! no-depends? #t))))
     (lambda (packages config db)
       (define (not-installed-error package-name)
         (fatal (cat "package `" package-name "' is not installed.")))
@@ -79,16 +70,14 @@
           (unless (database-remove! db (string->symbol package-name))
             (not-installed-error package-name))))
        (else
-        (call-with-cmdline-ui assume-yes? non-interactive?
-          (lambda ()
-            (loop ((for package-string (in-list packages))
-                   (let-values (package-name is-installed?)
-                     (let ((name (string->symbol package-string)))
-                       (values name
-                               (and (database-lookup db name 'installed) #t))))
-                   (for to-remove (listing package-name
-                                           (if is-installed?))))
-              => (apply-actions db '() to-remove)
-              (unless is-installed?
-                (not-installed-error package-string)))))))))
+        (loop ((for package-string (in-list packages))
+               (let-values (package-name is-installed?)
+                 (let ((name (string->symbol package-string)))
+                   (values name
+                           (and (database-lookup db name 'installed) #t))))
+               (for to-remove (listing package-name
+                                       (if is-installed?))))
+          => (apply-actions db '() to-remove)
+          (unless is-installed?
+            (not-installed-error package-string)))))))
   (exit 0))

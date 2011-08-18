@@ -24,10 +24,8 @@
 ;; This is the command-line interface to dorodango.
 
 ;;; Code:
-#!r6rs
 
 (define-module (scripts show-bundle)
-  #:use-module (rnrs)
   #:use-module (guild cli)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
@@ -51,8 +49,8 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options+db %mod args '()
-    (lambda (args config db)
+  (call-with-parsed-options %mod args '()
+    (lambda (args)
       (loop ((for bundle-location (in-list args)))
         (let ((bundle (open-input-bundle bundle-location)))
           (fmt #t (dsp-bundle bundle))))))

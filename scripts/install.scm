@@ -24,11 +24,11 @@
 ;; This is the command-line interface to dorodango.
 
 ;;; Code:
-#!r6rs
 
 (define-module (scripts install)
-  #:use-module (rnrs)
+  #:use-module (srfi srfi-34)
   #:use-module (guild cli)
+  #:use-module (guild cli ui)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)
@@ -94,32 +94,22 @@
 (define (main . args)
   (define bundles '())
   (define no-depends? #f)
-  (define assume-yes? #f)
-  (define non-interactive? #f)
-  (call-with-parsed-options+db
+  (call-with-parsed-options/config+db/ui
       %mod args
       (list (make-option/arg
              '("bundle" #\b)
              (lambda (arg) (set! bundles (append bundles (list arg)))))
             (make-option
              '("no-depends")
-             (lambda () (set! no-depends? #t)))
-            (make-option
-             '("yes" #\y)
-             (lambda () (set! assume-yes? #t)))
-            (make-option
-             '("non-interactive" #\n)
-             (lambda () (set! non-interactive? #t))))
+             (lambda () (set! no-depends? #t))))
     (lambda (packages config db)
       (database-add-bundles! db bundles)
-      (call-with-cmdline-ui assume-yes? non-interactive?
-        (lambda ()
-          (loop ((for package (in-list packages))
-                 (for to-install (listing (select-package/string db package))))
-            => (cond (no-depends?
-                      (install/no-depends db to-install))
-                     (else
-                      (apply-actions db to-install '()))))))))
+      (loop ((for package (in-list packages))
+             (for to-install (listing (select-package/string db package))))
+        => (cond (no-depends?
+                  (install/no-depends db to-install))
+                 (else
+                  (apply-actions db to-install '()))))))
   (exit 0))
 
 ;; Local Variables:

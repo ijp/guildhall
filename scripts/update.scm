@@ -27,15 +27,9 @@
 #!r6rs
 
 (define-module (scripts update)
-  #:use-module (rnrs)
   #:use-module (guild cli)
-  #:use-module (guild ext fmt)
-  #:use-module (guild ext foof-loop)
-  #:use-module (guild private utils)
-  #:use-module (guild database)
-  #:use-module (guild package)
-  #:use-module (guild bundle)
-  #:use-module (guild ui formatters))
+  #:use-module (guild cli ui)
+  #:use-module (guild database))
 
 (define %summary "Update repository information.")
 (define %synopsis "guild update")
@@ -51,7 +45,7 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options+db %mod args '()
+  (call-with-parsed-options/config+db/ui %mod args '()
     (lambda (args config db)
       (cond
        ((null? args)

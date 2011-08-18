@@ -67,6 +67,9 @@ SOURCES =					\
 	guild/solver/search-graph.scm \
 	guild/solver/universe.scm \
 	guild/cli.scm \
+	guild/cli/config.scm \
+	guild/cli/db.scm \
+	guild/cli/ui.scm \
 	guild/ui.scm \
 	guild/ui/cmdline/base.scm \
 	guild/ui/cmdline/dependencies.scm \

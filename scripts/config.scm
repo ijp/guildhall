@@ -24,13 +24,11 @@
 ;; This is the command-line interface to dorodango.
 
 ;;; Code:
-#!r6rs
 
 (define-module (scripts config)
-  #:use-module (rnrs)
   #:use-module (guild cli)
+  #:use-module (guild cli config)
   #:use-module (guild ext fmt)
-  #:use-module (guild ext foof-loop)
   #:use-module (guild spells pathname)
   #:use-module (guild private utils)
   #:use-module (guild config)
@@ -83,7 +81,7 @@
 
 (define %mod (current-module))
 (define (main . args)
-  (call-with-parsed-options %mod args '()
+  (call-with-parsed-options/config %mod args '()
     (lambda (args config)
       (let ((n-operands (length args)))
         (cond

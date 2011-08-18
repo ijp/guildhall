@@ -28,7 +28,7 @@
 
 (define-module (scripts list-packages)
   #:use-module (rnrs)
-  #:use-module (guild ui guild)
+  #:use-module (guild cli)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)

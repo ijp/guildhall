@@ -30,7 +30,7 @@
   #:use-module (rnrs)
   #:use-module (ice-9 match)
   #:use-module (guild spells pathname)
-  #:use-module (guild ui guild)
+  #:use-module (guild cli)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)
   #:use-module (guild private utils)

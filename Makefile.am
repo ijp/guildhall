@@ -66,18 +66,16 @@ SOURCES =					\
 	guild/solver/promotions.scm \
 	guild/solver/search-graph.scm \
 	guild/solver/universe.scm \
+	guild/cli.scm \
 	guild/ui.scm \
-	guild/ui/cmdline.scm \
 	guild/ui/cmdline/base.scm \
 	guild/ui/cmdline/dependencies.scm \
 	guild/ui/cmdline/help.scm \
 	guild/ui/formatters.scm \
-	guild/ui/guild.scm \
 	\
 	scripts/clean.scm \
 	scripts/config.scm \
 	scripts/create-bundle.scm \
-	scripts/hall.scm \
 	scripts/list-packages.scm \
 	scripts/install.scm \
 	scripts/remove.scm \

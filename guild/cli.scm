@@ -20,7 +20,7 @@
 ;;; Commentary:
 
 ;;; Code:
-(define-module (guild ui guild)
+(define-module (guild cli)
   #:use-module (rnrs)
   #:use-module (guild ext fmt)
   #:use-module (guild ext foof-loop)

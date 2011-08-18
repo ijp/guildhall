@@ -10,8 +10,8 @@
 *.go
 /configure
 /env
-/guild/build-info.scm
+/sigil/build-info.scm
 /docs/.dirstamp
-/docs/guild.info
+/docs/sigil.info
 /docs/stamp-vti
 /docs/version.texi

@@ -23,8 +23,8 @@
 
 (import (rnrs)
         (only (srfi :1) append-map)
-        (guild ext trc-testing)
-        (guild package))
+        (sigil ext trc-testing)
+        (sigil package))
 
 (define-test-suite package-tests
   "Package datastructures")

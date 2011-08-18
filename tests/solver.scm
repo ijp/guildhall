@@ -29,14 +29,14 @@
 ;;; Code:
 
 (import (rnrs)
-        (guild solver)
-        (guild solver dummy-db)
-        (guild solver universe)
-        (guild solver logging)
+        (sigil solver)
+        (sigil solver dummy-db)
+        (sigil solver universe)
+        (sigil solver logging)
         (ice-9 match)
-        (guild ext fmt)
-        (guild ext trc-testing)
-        (guild spells logging))
+        (sigil ext fmt)
+        (sigil ext trc-testing)
+        (sigil spells logging))
 
 ;; Set this to `#t' to show the universe that the solver will operate
 ;; in.

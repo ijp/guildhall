@@ -26,9 +26,9 @@
 ;;; Code:
 
 (define-module (scripts clean)
-  #:use-module (guild cli)
-  #:use-module (guild cli db)
-  #:use-module (guild database))
+  #:use-module (sigil cli)
+  #:use-module (sigil cli db)
+  #:use-module (sigil database))
 
 (define %summary "Clean the package cache.")
 (define %synopsis "guild clean")

@@ -26,14 +26,14 @@
 ;;; Code:
 
 (define-module (scripts show)
-  #:use-module (guild cli)
-  #:use-module (guild cli db)
-  #:use-module (guild ext fmt)
-  #:use-module (guild ext foof-loop)
-  #:use-module (guild private utils)
-  #:use-module (guild database)
-  #:use-module (guild package)
-  #:use-module (guild ui formatters))
+  #:use-module (sigil cli)
+  #:use-module (sigil cli db)
+  #:use-module (sigil ext fmt)
+  #:use-module (sigil ext foof-loop)
+  #:use-module (sigil private utils)
+  #:use-module (sigil database)
+  #:use-module (sigil package)
+  #:use-module (sigil ui formatters))
 
 (define %summary "Show package information.")
 (define %synopsis "guild show [--bundle=BUNDLE]... PACKAGE...")

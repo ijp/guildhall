@@ -27,9 +27,9 @@
 #!r6rs
 
 (define-module (scripts update)
-  #:use-module (guild cli)
-  #:use-module (guild cli ui)
-  #:use-module (guild database))
+  #:use-module (sigil cli)
+  #:use-module (sigil cli ui)
+  #:use-module (sigil database))
 
 (define %summary "Update repository information.")
 (define %synopsis "guild update")

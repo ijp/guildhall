@@ -11,8 +11,8 @@ nested-foof-loop: http://mumble.net/~campbell/tmp/nested-foof-loop.txt
 syn-param: http://mumble.net/~campbell/scheme/syn-param.scm
 ocelotl: git://rotty.xx.vu/scheme/ocelotl.git
 
-Code from these external projects has been imported under the (guild ext
-...), (guild weinholt ...), and (guild spells ...) namespaces.  The
+Code from these external projects has been imported under the (sigil ext
+...), (sigil weinholt ...), and (sigil spells ...) namespaces.  The
 copyright implications are detailed in AUTHORS, but I figured this URL
 list would be good for the hacker, to find documentation on these
 external libraries.

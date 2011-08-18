@@ -31,24 +31,24 @@
           (srfi :39 parameters)
           (srfi :45 lazy)
           (srfi :67 compare-procedures)
-          (guild ext fmt)
-          (guild ext foof-loop)
-          (guild ext foof-loop nested)
+          (sigil ext fmt)
+          (sigil ext foof-loop)
+          (sigil ext foof-loop nested)
           (only (guile) and=>)
-          (guild spells process)
-          (guild spells pathname)
-          (guild spells filesys)
-          (guild spells sysutils)
+          (sigil spells process)
+          (sigil spells pathname)
+          (sigil spells filesys)
+          (sigil spells sysutils)
           (ice-9 match)
-          (guild spells args-fold)
-          (guild spells record-types)
-          (only (guild private utils)
+          (sigil spells args-fold)
+          (sigil spells record-types)
+          (only (sigil private utils)
                 in-hashtable
                 location->pathname
                 pathname->location
                 pathname-add-type)
-          (guild bundle)
-          (guild package)))
+          (sigil bundle)
+          (sigil package)))
 
 
 ;;; Archive

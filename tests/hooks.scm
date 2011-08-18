@@ -23,15 +23,15 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (guild spells pathname)
-        (guild spells filesys)
-        (guild ext trc-testing)
-        (guild spells logging)
-        (guild private utils)
-        (guild inventory)
-        (guild package)
-        (guild destination)
-        (guild hooks))
+        (sigil spells pathname)
+        (sigil spells filesys)
+        (sigil ext trc-testing)
+        (sigil spells logging)
+        (sigil private utils)
+        (sigil inventory)
+        (sigil package)
+        (sigil destination)
+        (sigil hooks))
 
 (define debug-output? #f)
 

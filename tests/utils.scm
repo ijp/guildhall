@@ -1,9 +1,9 @@
 (import (except (rnrs) delete-file file-exists?)
         (srfi :8 receive)
-        (guild ext trc-testing)
-        (guild spells filesys)
-        (guild spells pathname)
-        (guild private utils))
+        (sigil ext trc-testing)
+        (sigil spells filesys)
+        (sigil spells pathname)
+        (sigil private utils))
 
 
 (define-test-suite utils-tests

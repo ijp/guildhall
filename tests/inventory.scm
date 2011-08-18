@@ -25,10 +25,10 @@
 (import (rnrs)
         (srfi :8 receive)
         (only (guile) and=>)
-        (guild ext foof-loop)
-        (guild ext trc-testing)
-        (guild inventory)
-        (guild inventory mapping))
+        (sigil ext foof-loop)
+        (sigil ext trc-testing)
+        (sigil inventory)
+        (sigil inventory mapping))
 
 ;;; Utilities
 

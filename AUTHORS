@@ -23,91 +23,91 @@ though the header on the file will tell you for sure.
 See the COPYING.* files for the full licenses.
 
 Author: Andreas Rottmann <a.rottmann@gmx.at>
-Files: guild/ext/define-values.scm
+Files: sigil/ext/define-values.scm
 License: MIT
 
 Author: Olin Shivers
-Files: guild/ext/let-optionals.scm
+Files: sigil/ext/let-optionals.scm
 License: BSD
 
 Author: Andreas Rottmann
-Files: guild/ext/fmt.scm
+Files: sigil/ext/fmt.scm
 License: BSD
 
 Author: Alex Shinn
-Files: guild/ext/inc/{mantissa,fmt,fmt-pretty,fmt-column}.scm
+Files: sigil/ext/inc/{mantissa,fmt,fmt-pretty,fmt-column}.scm
 License: BSD
 
 Author: Taylor Campbell
-Files: guild/ext/inc/syn-param.scm
+Files: sigil/ext/inc/syn-param.scm
 License: Public Domain
 
 Author: Andreas Rottmann
-Files: guild/ext/foof-loop.scm, guild/ext/foof-loop/nested.scm
+Files: sigil/ext/foof-loop.scm, sigil/ext/foof-loop/nested.scm
 License: BSD
 
 Author: Taylor Campbell
-Files: guild/ext/inc/{nested-,}foof-loop.scm
+Files: sigil/ext/inc/{nested-,}foof-loop.scm
 License: BSD
 
 Author: Andreas Rottmann
-Files: guild/ext/irregex.scm
+Files: sigil/ext/irregex.scm
 License: BSD
 
 Author: Alex Shinn
-Files: guild/ext/inc/irregex-{r6rs,utils}.scm
+Files: sigil/ext/inc/irregex-{r6rs,utils}.scm
 License: BSD
 
 Author: Andreas Rottmann
 Author: Taylor Campbell
-Files: guild/ext/trc-testing.scm
-Files: guild/ext/trc-testing/parameters.scm
-Files: guild/ext/inc/test.scm
+Files: sigil/ext/trc-testing.scm
+Files: sigil/ext/trc-testing/parameters.scm
+Files: sigil/ext/inc/test.scm
 License: LGPLv3+
 
 Author: Andreas Rottmann
 Author: Taylor Campbell
-Files: guild/ext/trc-testing/restart.scm
+Files: sigil/ext/trc-testing/restart.scm
 License: Public Domain
 
 Author: Andreas Rottmann
-Files: guild/ext/trc-testing/port-tracker.scm
-Files: guild/ext/trc-testing/display-condition.scm
+Files: sigil/ext/trc-testing/port-tracker.scm
+Files: sigil/ext/trc-testing/display-condition.scm
 License: BSD
 
 Author: Richard Kelsey
 Author: Jonathan Rees
-Files: guild/ext/trc-testing/limited-write.scm
+Files: sigil/ext/trc-testing/limited-write.scm
 License: BSD
 
 Author: Andreas Rottmann
 Author: Massachusetts Institute of Technology
 Author: Stephen Adams
-Files: guild/ext/wt-tree.scm
+Files: sigil/ext/wt-tree.scm
 License: GPLv2+
 
 Author: Andreas Rottmann
-Files: guild/spells/*
+Files: sigil/spells/*
 License: BSD
 
 Author: Anthony Carrico
-Files: guild/spells/args-fold.scm
+Files: sigil/spells/args-fold.scm
 License: BSD
 
 Author: Richard Kelsey
 Author: Jonathan Rees
-Files: guild/spells/private/condition.scm
+Files: sigil/spells/private/condition.scm
 License: BSD
 
 Author: Taylor Campbell
-Files: guild/spells/record-types/expand-drt.scm,
-       guild/spells/private/xvector.scm
+Files: sigil/spells/record-types/expand-drt.scm,
+       sigil/spells/private/xvector.scm
 License: BSD
 
 Author: Göran Weinholt
-Files: guild/weinholt/*
+Files: sigil/weinholt/*
 License: GPLv3+
 
 Author: Andreas Rottmann
-Files: guild/weinholt/compression/sliding-buffer.scm
+Files: sigil/weinholt/compression/sliding-buffer.scm
 License: GPLv3+

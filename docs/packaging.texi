@@ -7,7 +7,7 @@ should make yourself familiar with the overall concepts of the guild
 hall (@pxref{Overview}) as prerequiste to this chapter.
 
 @menu
-* A simple Example: Simple Packaging Example. Packaging in a nutshell
+* Simple Packaging Example:: Packaging in a nutshell
 * The Metadata File:: The gory details
 @end menu
 

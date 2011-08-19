@@ -95,7 +95,7 @@ questions, even risky ones.
 The following commands gather information; either from the package
 database, uninstalled bundles, or about the configuration.
 
-@deffn Command list
+@deffn Command list-packages
 
 Produces a list of packages, along with their installation status and
 version on standard output.

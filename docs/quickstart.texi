@@ -33,8 +33,8 @@ Loading available information for repository `experimental'
 @end verbatim
 
 Now you have obtained the information of available packages from the
-hall. You can verify that by running @command{guild list --all},
-which should produce output resembling the following:
+hall. You can verify that by running @command{guild list-packages
+--all}, which should produce output resembling the following:
 
 @verbatim
 u conjure                    0-20091204

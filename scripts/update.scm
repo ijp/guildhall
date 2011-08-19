@@ -27,15 +27,14 @@
 #!r6rs
 
 (define-module (scripts update)
+  #:autoload (scripts help) (show-usage)
   #:use-module (sigil cli)
   #:use-module (sigil cli ui)
   #:use-module (sigil database))
 
 (define %summary "Update repository information.")
-(define %synopsis "guild update")
-(define %help
-  "Update repository information.
-
+(define %synopsis "update")
+(define %help "
   -c, --config=FILE    Use configuration file FILE, instead of the
                        default.
       --no-config      Do not read a configuration file.
@@ -56,6 +55,6 @@
             (display "unexpected arguments: ")
             (display (string-join args " "))
             (newline)
-            (show-usage %mod)
+            (show-usage %mod "update")
             (exit 1)))))))
   (exit 0))

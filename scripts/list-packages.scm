@@ -36,11 +36,9 @@
   #:use-module (sigil package)
   #:use-module (sigil ui formatters))
 
-(define %summary "List packages.")
-(define %synopsis "guild list-packages")
-(define %help
-  "List available packages.
-
+(define %summary "List available packages.")
+(define %synopsis "list-packages")
+(define %help "
   -a, --all            Show all packages, including uninstalled but
                        available ones.
   -c, --config=FILE    Use configuration file FILE, instead of the

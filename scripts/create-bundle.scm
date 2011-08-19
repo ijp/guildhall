@@ -40,10 +40,8 @@
   #:use-module (sigil ui formatters))
 
 (define %summary "Create a bundle.")
-(define %synopsis "guild create-bundle DIRECTORY...")
-(define %help
-  "Create a bundle.
-
+(define %synopsis "create-bundle DIRECTORY...")
+(define %help "
   -o, --output=FILE    Bundle filename.
   -d, --directory=DIR  Output directory when using implicit filename.
       --append-version=V  Append V to each package's version.

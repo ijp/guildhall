@@ -36,10 +36,8 @@
   #:use-module (sigil ui formatters))
 
 (define %summary "Show bundle contents.")
-(define %synopsis "guild show-bundle BUNDLE...")
-(define %help
-  "Show bundle contents.
-
+(define %synopsis "show-bundle BUNDLE...")
+(define %help "
   -c, --config=FILE    Use configuration file FILE, instead of the
                        default.
       --no-config      Do not read a configuration file.

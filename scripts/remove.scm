@@ -39,11 +39,9 @@
   #:use-module (sigil ui formatters)
   #:use-module (ice-9 receive))
 
-(define %summary "Remove packages...")
-(define %synopsis "guild remove PACKAGE...")
-(define %help
-  "Remove installed packages.
-
+(define %summary "Remove installed packages.")
+(define %synopsis "remove PACKAGE...")
+(define %help "
       --no-depends     Ignore dependencies.
 
   -c, --config=FILE    Use configuration file FILE, instead of the

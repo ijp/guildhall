@@ -26,6 +26,7 @@
 ;;; Code:
 
 (define-module (scripts config)
+  #:autoload (scripts help) (show-usage)
   #:use-module (sigil cli)
   #:use-module (sigil cli config)
   #:use-module (sigil ext fmt)
@@ -38,10 +39,8 @@
   #:use-module (sigil ui formatters))
 
 (define %summary "Show configuration.")
-(define %synopsis "guild config\nguild config destination PACKAGE CATEGORY [FILENAME]")
-(define %help
-  "Show configuration.
-
+(define %synopsis "config\nconfig destination PACKAGE CATEGORY [FILENAME]")
+(define %help "
   -c, --config=FILE    Use configuration file FILE, instead of the
                        default.
       --no-config      Do not read a configuration file.
@@ -98,6 +97,6 @@
               (display "unexpected arguments: ")
               (display (string-join args " "))
               (newline)
-              (show-usage %mod)
+              (show-usage %mod "config")
               (exit 1))))))))
   (exit 0))

@@ -26,15 +26,14 @@
 ;;; Code:
 
 (define-module (scripts clean)
+  #:autoload (scripts help) (show-usage)
   #:use-module (sigil cli)
   #:use-module (sigil cli db)
   #:use-module (sigil database))
 
 (define %summary "Clean the package cache.")
-(define %synopsis "guild clean")
-(define %help
-  "Clean the package cache.
-
+(define %synopsis "clean")
+(define %help "
   -c, --config=FILE    Use configuration file FILE, instead of the
                        default.
       --no-config      Do not read a configuration file.
@@ -55,6 +54,6 @@
             (display "unexpected arguments: ")
             (display (string-join args " "))
             (newline)
-            (show-usage %mod)
+            (show-usage %mod "clean")
             (exit 1)))))))
   (exit 0))

@@ -42,10 +42,8 @@
   #:use-module (sigil ui formatters))
 
 (define %summary "Scan directories for bundles.")
-(define %synopsis "guild scan-bundles DIRECTORY...")
-(define %help
-  "Scan one or more directories for bundles.
-
+(define %synopsis "scan-bundles DIRECTORY...")
+(define %help "
   -o, --output=FILE    Write the scan results to FILE.
 
   -c, --config=FILE    Use configuration file FILE, instead of the

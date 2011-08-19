@@ -36,10 +36,8 @@
   #:use-module (sigil ui formatters))
 
 (define %summary "Show package information.")
-(define %synopsis "guild show [--bundle=BUNDLE]... PACKAGE...")
-(define %help
-  "Show package information.
-
+(define %synopsis "show [--bundle=BUNDLE]... PACKAGE...")
+(define %help "
   -b, --bundle=BUNDLE  Temporarily add BUNDLE's contents to the package
                        database.
 

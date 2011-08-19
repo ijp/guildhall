@@ -23,20 +23,11 @@
 (define-module (sigil cli)
   #:use-module (sigil spells logging)
   #:use-module (sigil private utils)
+  #:autoload (scripts help) (show-help show-usage)
   #:use-module (srfi srfi-37)
-  #:export (show-usage
-            make-option
+  #:export (make-option
             make-option/arg
             call-with-parsed-options))
-
-(define* (show-usage mod #:optional (port (current-output-port)))
-  (display "Usage: " port)
-  (display (module-ref mod '%synopsis) port)
-  (newline port))
-
-(define* (show-help mod #:optional (port (current-output-port)))
-  (show-usage mod port)
-  (display (module-ref mod '%help) port))
 
 (define (make-option names handler)
   (option names #f #f

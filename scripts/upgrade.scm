@@ -37,10 +37,8 @@
   #:use-module (ice-9 receive))
 
 (define %summary "Upgrade all packages.")
-(define %synopsis "guild upgrade")
-(define %help
-  "Upgrade all packages.
-
+(define %synopsis "upgrade")
+(define %help "
   -c, --config=FILE    Use configuration file FILE, instead of the
                        default.
       --no-config      Do not read a configuration file.

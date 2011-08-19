@@ -41,10 +41,8 @@
   #:use-module (ice-9 receive))
 
 (define %summary "Install new packages.")
-(define %synopsis "guild install [--bundle=BUNDLE]... PACKAGE...")
-(define %help
-  "Install new packages.
-
+(define %synopsis "install [--bundle=BUNDLE]... PACKAGE...")
+(define %help "
   -b, --bundle=BUNDLE  Additionally consider packages from BUNDLE.
       --no-depends     Ignore dependencies.
 

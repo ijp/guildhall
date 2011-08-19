@@ -36,10 +36,8 @@
   #:use-module (sigil bundle))
 
 (define %summary "Create symbolic links for a bundle.")
-(define %synopsis "guild symlink-bundle BUNDLE-DIRECTORY TARGET-DIRECTORY")
-(define %help
-  "Create symbolic links for a bundle.
-
+(define %synopsis "symlink-bundle BUNDLE-DIRECTORY TARGET-DIRECTORY")
+(define %help "
       --force             Force operation.
       --deep              Only symlink files.
       --include=PACKAGES  Only consider PACKAGES.

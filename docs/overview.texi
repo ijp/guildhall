@@ -1,29 +1,19 @@
 @node Overview
 @chapter Overview
 @cindex packages
-@cindex bundles
 
-The guild hall is accessed via the @command{guild hall} command-line
-interface, which allows you to automatically download, install, remove
-and upgrade R6RS library collections and programs that might be
-included with them.
+Sigil extends the @command{guild} program, provided by Guile, with a
+number of sub-comands that let you download, install, remove
+and upgrade Scheme modules and programs.
 
-A library collection, possibly including programs and documentation,
-together with some metadata, which, for example, describes the
-dependencies on other software, is called a package. Packages are
-distributed in ZIP files referred to as ``bundles''; each bundle may
-contain one or more packages.
-
-If you already are familiar with other package managers, such as
-Debian's APT, having more than one package bundled in the same file
-might seem unusual to you, but don't worry: bundles are mostly
-transparent to the user. Most of the time, you will deal with
-packages, and bundles are of concern mostly when packaging your or
-other people's software for the guild.
+The unit of installable software is the @dfn{package}: a collection of
+modules, possibly including programs and documentation, together with
+some metadata.
 
 @menu
-* Packages:: Anatomy of a Package
-* Destinations:: Where a the Files of a Package go
+* Packages:: Anatomy of a package
+* Bundles:: ZIP files holding one or more packages
+* Destinations:: Where the files of a package go
 * Repositories:: Where packages come from
 @end menu
 
@@ -33,14 +23,14 @@ other people's software for the guild.
 @cindex category
 @cindex file, category
 
-A package is the "unit of software" that the guild works with. It has
-a name, and a version, which may be used to form dependency
-relationships among packages. It also may have other attributes, like
-a description and a homepage URL. Besides the metadata, a package also
-contains files, which are grouped into categories. Each category of a
-package conceptionally contains a set of files, along with their
-desired installation locations. The categories currently handled by
-the guild are:
+A package is the "unit of software" that Sigil works with. It has a
+name and a version, which may be used to form dependency relationships
+among packages.  It also may have other attributes, like a description
+and a homepage URL.  Besides the metadata, a package also contains
+files, which are grouped into categories.  Each category of a package
+conceptionally contains a set of files, along with their desired
+installation locations.  The categories currently handled by Sigil
+are:
 
 @table @samp
 @item libraries
@@ -54,6 +44,21 @@ R6RS programs.
 README files, HTML documentation, etc.
 @end table
 
+@node Bundles
+@section Bundles
+@cindex bundles
+@cindex ZIP files
+
+Packages are distributed in ZIP files referred to as ``bundles''; each
+bundle may contain one or more packages.
+
+If you already are familiar with other package managers, such as
+Debian's APT, having more than one package bundled in the same file
+might seem unusual to you, but don't worry: bundles are mostly
+transparent to the user.  Most of the time, you will deal with
+packages, and bundles are of concern mostly when packaging your or
+other people's software for the guild.
+
 @node Destinations
 @section Destinations
 @cindex destinations
@@ -62,9 +67,7 @@ README files, HTML documentation, etc.
 Now the files contained in these categories must be installed
 somewhere, and usually into different locations. The rules that
 describe where software is installed into are provided by a
-@emph{destination}. You can select the destination by invoking the
-@command{guild hall} command line tool with the @samp{--prefix}
-option, @pxref{Global Options}. For each destination, the guild
+@emph{destination}.  For each destination, the guild
 maintains a database of installed and available packages.
 
 Currently, all destinations have the same rules which should be
@@ -85,6 +88,9 @@ when the guild initializes a destination.
 @item documentation
 Installed into @var{PREFIX}@file{/share/doc/libr6rs-PACKAGE-NAME}.
 @end table
+
+For more on how to set the destination on the command line,
+@pxref{Common Options}.
 
 @node Repositories
 @section Repositories

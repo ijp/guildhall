@@ -1,10 +1,10 @@
 @node Packaging Guide
 @chapter Packaging Guide
 
-``Packaging'' refers to the act of supplying the metadata dorodango
-needs in order to deal with a set of libraries and/or programs. You
-should make yourself familiar with the overall concepts of the guild
-hall (@pxref{Overview}) as prerequiste to this chapter.
+@dfn{Packaging} is the act of supplying Sigil metadata for a set of
+libraries and/or programs.  You should make yourself familiar with the
+overall concepts of Sigil (@pxref{Overview}) as prerequiste to this
+chapter.
 
 @menu
 * Simple Packaging Example:: Packaging in a nutshell
@@ -15,23 +15,23 @@ hall (@pxref{Overview}) as prerequiste to this chapter.
 @section A simple Example
 
 Let's say you want to package a program named @samp{example}, which
-contains a few libraries and a program. These files are present in its
+contains a few libraries and a program.  These files are present in its
 source tree:
 
 @table @file
 @item README
 A short note explaining usage of the software.
-@item foo.sls
+@item foo.scm
 Contains the library @code{(example foo)}.
-@item bar.sls
+@item bar.scm
 Contains the library @code{(example bar)}.
-@item programs/hello.sps
+@item programs/hello
 A program that use the above libraries.
 @end table
 
 For packaging this software, we add a file @file{pkg-list.scm} in the
 top-level directory, which will contain the metadata in S-expression
-syntax, a bit like the R6RS @code{library} form. The following metadata
+syntax, a bit like the R6RS @code{library} form.  The following metadata
 can be supplied:
 
 @itemize @bullet
@@ -46,13 +46,13 @@ Rules describing wich files in the source tree belong to which
 categories (@pxref{Packages}), and what filename they should have
 relative to that category.
 @item
-An ``installation hook'', which is code run after the package is already
-unpacked in its destination, but before it is considered installed. This
-hook may install additional files (probably ones that can be generated
-automatically).
+An @dfn{installation hook}, which is code run after the package is
+already unpacked in its destination, but before it is considered
+installed.  This hook may install additional files (probably ones that
+can be generated automatically).
 @end itemize
 
-Of these, only the name and version are mandatory, the rest are
+Of these, only the name and version are mandatory.  The rest are
 optional.
 
 Hence a minimal @code{package} form listing package name looks like
@@ -66,12 +66,12 @@ this:
 This already specifies the @samp{srfi} package as the only dependency;
 further dependencies may of course be listed.
 
-Inspecting our work with using the @command{guild hall show-bundle}
+Inspecting our work with using the @command{guild show-bundle}
 command, passing it the top-level directory where the
 @file{pkg-list.scm} file resides in:
 
 @example
-% guild hall show-bundle example
+% guild show-bundle example
 Package: example
 Version: 0
 Depends: (srfi)
@@ -80,21 +80,21 @@ Category: documentation
 @end example
 
 The package is nearly empty, besides the @file{README} file, which was
-added to the @samp{documentation} category automatically. We need rules
+added to the @samp{documentation} category automatically.  We need rules
 dealing with the libraries and the program, which are missing:
 
 @lisp
 (package (example (0))
   (depends (srfi))
   (libraries
-    (sls -> "example"))
+    (scm -> "example"))
   (programs
-    (("programs" "hello.sps") -> "hello")))
+    (("programs" "hello") -> "hello")))
 @end lisp
 
 The rule inside the @code{library} form says ``put all files with an
-@samp{sls} extension below the @file{example} directory'', while the
-@code{programs} rule tells the guild to place the file
+@samp{scm} extension below the @file{example} directory'', while the
+@code{programs} rule tells Sigil to place the file
 @file{programs/hello} into the top-level directory of the
 @samp{programs} category as file @file{hello}.
 
@@ -102,13 +102,13 @@ Now we have everything in its proper place, and we are done with
 packaging this small example:
 
 @example
-% guild hall show-bundle example
+% guild show-bundle example
 Package: example
 Version: 0
 Depends: (srfi)
 Category: libraries
- example/foo.sls
- example/bar.sls
+ example/foo.scm
+ example/bar.scm
 Category: programs
  hello
 Category: documentation
@@ -126,9 +126,9 @@ For good measure, we should also add the @code{synopsis},
                "a familiar greeting.")
   (homepage "http://www.example.org/hello-world")
   (libraries
-    (sls -> "example"))
+    (scm -> "example"))
   (programs
-    (("programs" "hello.sps") -> "hello")))
+    (("programs" "hello") -> "hello")))
 @end lisp
 
 @node The Metadata File
@@ -136,14 +136,13 @@ For good measure, we should also add the @code{synopsis},
 
 A metadata file must be named @file{pkg-list.scm} and must be either
 in the top-level directory or an immediate sub-directory of a bundle
-to be considered by the guild. It contains one or more
-@code{package} forms, thus declaring which packages are inside the
-bundle.
+to be considered by Sigil.  It contains one or more @code{package}
+forms, thus declaring which packages are inside the bundle.
 
 The @code{package} form declares the name and version of the package,
-and lists its properties, some of which are defined and used by the
-guild, but there also may be additional properties used by other
-software or humans.
+and lists its properties, some of which are defined and used by Sigil,
+but there also may be additional properties used by other software or
+humans.
 
 This leads to the following BNF-style grammar for the file's contents:
 
@@ -164,8 +163,8 @@ This leads to the following BNF-style grammar for the file's contents:
 
 As should be recognizable from the above grammar, properties are
 identified by a keyword, and have specific contents depending on that
-keyword. Currently, the following keywords are defined and used by the
-guild:
+keyword.  Currently, the following keywords are defined and used by
+Sigil:
 
 @table @code
 @item synopsis
@@ -198,7 +197,7 @@ this property.
 @subsection Package Versions
 
 Each package has a version that can be ordered, so that a ``newer''
-relation can be established. A version has two representations, one as a
+relation can be established.  A version has two representations, one as a
 text string (for use in file names and for human consumption in general)
 and another one as S-expression, allowing easy embedding into and
 manipulation in Scheme.
@@ -235,9 +234,9 @@ Paragraphs are separated by empty strings.
 @subsection Dependencies
 
 A package can declare its dependencies on other packages via the
-@code{depends} clause of the @code{package} form. A dependency names the
+@code{depends} clause of the @code{package} form.  A dependency names the
 package depended upon and, optionally, constrains the version of that
-package. In the following example, @samp{foo} depends on @samp{bar} and
+package.  In the following example, @samp{foo} depends on @samp{bar} and
 @samp{baz}; the dependency on @samp{bar} is unconstrained, allowing for
 any version of @samp{bar} to fulfill the dependency, while only a
 version of @samp{baz} higher than 1.2-3 will satisfy the second
@@ -266,17 +265,17 @@ This is the BNF grammar for the package references used in the
 @subsection Categories
 
 A package's files are grouped into categories to allow installation into
-appropriate places in the filesystem. Each category contains a (possibly
+appropriate places in the filesystem.  Each category contains a (possibly
 empty) subset of the files contained in or below the directory the
 metadata file resides in.
 
-A file can belong into at most one category. It can be mapped to any
+A file can belong into at most one category.  It can be mapped to any
 location (relative filename) inside that category, regardless of its
-physical location relative to the metadata file. To specify this
+physical location relative to the metadata file.  To specify this
 mapping, a set of rules may be specified for each category known to
-guild, using the following grammar (see the
+Sigil, using the following grammar (see the
 @uref{http://synthcode.com/scheme/irregex/, IrRegular expression
-documentation} for the SRE syntax supported by the guild):
+documentation} for more on SRE syntax):
 
 @verbatim
 <file-rule> -> <source> | <source> -> <destination>
@@ -286,7 +285,7 @@ documentation} for the SRE syntax supported by the guild):
 <tail> -> * | sls | (: <sre>*)
 @end verbatim
 
-For instance, the following rules are used for the @verb{|libraries|}
+For instance, the following rules are used for the @code{libraries}
 category in the packaging of the SRFI collection:
 
 @lisp
@@ -300,11 +299,11 @@ this case, directory) @file{private} in @file{srfi/private}.
 
 @subsection Hooks
 
-Hooks are a mechanism to perform actions during package installation. To
+Hooks are a mechanism to perform actions during package installation.  To
 that end, the package maintainer writes Scheme code resembling an R6RS
-program. The code must satisfy certain properties, namely that the last
+program.  The code must satisfy certain properties, namely that the last
 expression of the ``program'' must evaluate to a single-argument
-procedure that is invoked when the package is installed. The details of
+procedure that is invoked when the package is installed.  The details of
 that procedure will be discussed below, but first the grammar for the
 hook options and body:
 
@@ -313,22 +312,20 @@ hook options and body:
 <hook-body> -> (import <library-reference>+) <definitions> <expressions>
 @end verbatim
 
-Hooks are not evaluated and executed by sigil itself, since
-sigil may be installed in a different destination than that which
-the package in question should be installed into. Evaluating hooks in
-sigil's own context would hence pose the problem that the hook
-could rely neither on libraries provided by its package nor its
-dependencies. For this reason, sigil spawns a small helper
-program.  With this way of proceeding, an installation hook may
-@code{import} libraries that are part of the package or its
-dependencies.
+Hooks are not evaluated and executed by Sigil itself, since Sigil may
+be installed in a different destination than that which the package in
+question should be installed into.  Evaluating hooks in Sigil's own
+context would hence pose the problem that the hook could rely neither
+on libraries provided by its package nor its dependencies.  For this
+reason, sigil spawns a small helper program.  With this way of
+proceeding, an installation hook may @code{import} libraries that are
+part of the package or its dependencies.
 
-However, due to the way the communication of the guild with helper
-program running the hook is implemented currently, a hook must not use
-the standard output or input ports, as these are used for
-communication (the standard error port can be used, however). This
-restriction will be hopefully lifted in a later version of the
-guild hall.
+However, due to the way the communication of Sigil with helper
+programs running the hook is implemented currently, a hook must not
+use the standard output or input ports, as these are used for
+communication (the standard error port can be used, however).  This
+restriction will be hopefully lifted in a later version of Sigil.
 
 @subsubsection Hook options
 
@@ -342,7 +339,7 @@ package for its operation.  The @code{needs-source?} option defaults to
 As mentioned before, the single-argument procedure that is the result of
 the last expression of the hook body is executed by the package manager.
 Its single argument is an ``hook agent'' procedure, which can be invoked
-to trigger actions of the package manager on behalf of the hook. The
+to trigger actions of the package manager on behalf of the hook.  The
 first argument to this procedure is the name of the desired action,
 further arguments depend on the action specified.  Currently, the
 following actions are available:

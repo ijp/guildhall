@@ -4,15 +4,15 @@
 Sigil comes in a standard GNU tarball, and so the normal package
 installation techniques apply:
 
-@verbatim
+@example
 tar -xjf @value{PACKAGE}-@value{VERSION}.tar.bz2
-cd @value{PACKAGE}-@value{VERSION}/dorodango
+cd @value{PACKAGE}-@value{VERSION}/sigil
 ./configure
 make
 make check
 # become root
 make install
-@end verbatim
+@end example
 
 Note that this assumes that you have installed Guile into the default
 prefix for @command{./configure}, which is usually @code{/usr/local}.
@@ -20,5 +20,5 @@ It is recommended to install sigil into the same prefix as your
 Guile installation, so if you installed Guile to @code{/usr}, add
 @code{--prefix=/usr} after to your @code{./configure} invocation.
 
-After running @command{setup} like above, you should now be able to
-run @command{guild hall --help}, which displays a help message.
+After running installing Sigil, you should now be able to
+run @command{guild config --help}, which displays a help message.

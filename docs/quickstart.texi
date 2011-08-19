@@ -1,16 +1,15 @@
 @node Quickstart
 @section Quickstart
 
-For the impatient, this section presents the minium you need to know
-to instal software from the guild hall.
+For the impatient, this section presents the minimum you need to know
+to install software using your new guild sigil.
 
 @subheading Configuration
 
-So, you've successfully installed sigil, and were able to get the
-help message via @command{guild hall --help}? Then it's time to tell
-the guild where it can find software (@pxref{Packages}) to
-install. Create the file @file{~/.config/dorodango/config.scm} and add
-this line:
+So, you've successfully installed Sigil, and were able to get the help
+message via @command{guild config --help}? Then it's time to tell
+Sigil where it can find software (@pxref{Packages}) to install. Create
+the file @file{~/.config/sigil/config.scm} and add this line:
 
 @lisp
 (repository experimental "http://rotty.yi.org/doro/experimental")
@@ -19,22 +18,22 @@ this line:
 This tells the guild the location of the Andreas Rottmann's
 experimental repository, and gives it the name
 @samp{experimental}. You could add further repositories with different
-names and locations, and the guild will consider them all when
-installing packages.
+names and locations, and Sigil will consider them all when installing
+packages.
 
 @subheading Updating the package database
 
 This is all configuration that is needed; if you now run
-@command{guild hall update}, you should see something like the
-following:
+@command{guild update}, you should see something like the following:
 
 @verbatim
+$ guild update
 Fetching http://rotty.yi.org/doro/experimental/available.scm
 Loading available information for repository `experimental'
 @end verbatim
 
 Now you have obtained the information of available packages from the
-hall. You can verify that by running @command{guild hall list --all},
+hall. You can verify that by running @command{guild list --all},
 which should produce output resembling the following:
 
 @verbatim
@@ -50,10 +49,10 @@ The rightmost columns indicates the package state (@samp{u} means
 @subheading Installing software
 
 You can now install any of the listed packages, using @command{guild
-hall install @var{package-name}}:
+install @var{package-name}}:
 
 @verbatim
-% guild hall install spells
+% guild install spells
 The following NEW packages will be installed:
   spells srfi{a}
 Do you want to continue? [Y/n] 
@@ -63,36 +62,40 @@ Fetching http://rotty.yi.org/doro/experimental/spells_0-20091204.zip
 Installing spells (0-20091204) ...
 @end verbatim
 
-As demonstrated in the above verbatim, the guild knows that the
+As demonstrated in the above listing, the guild knows that the
 package @samp{spells} depends on @samp{srfi}, and will automatically
 install that package as well.
 
 @subheading Other important commands
 
-Now you you know how to achieve the primary task of the guild hall:
-installing software. There are a few other things you probably want to
-do at times:
+Now you you know how to achieve the primary task of Sigil: installing
+software.  There are a few other things you probably want to do at
+times:
 
 @table @command
-@item guild hall upgrade
+@item guild upgrade
 Attempts to upgrade each package to the newest available version.
 
-@item guild hall remove
+@item guild remove
 Allows you to remove packages from your system.
 @end table
 
 @subheading Getting help
 
-For each command, you can invoke @command{guild hall @var{command}
---help}, and it will show you what options and argument that command
-requires:
+For each command, you can invoke @command{guild help @var{command}},
+and it will show you what options and argument that command requires:
 
 @verbatim
-% guild hall remove --help
-Usage: guild hall remove PACKAGE...
-  Remove packages.
+% guild help remove
+Usage: guild remove PACKAGE...
+Remove installed packages.
 
 Options:
-  --no-depends  ignore dependencies
-  --help        show this help and exit
+      --no-depends     Ignore dependencies.
+
+  -c, --config=FILE    Use configuration file FILE, instead of the
+                       default.
+      --no-config      Do not read a configuration file.
+      --help           Print this help message.
+      --version        Print version information.
 @end verbatim

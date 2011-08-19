@@ -1,47 +1,80 @@
 @node Reference
 @chapter Reference
 
-@command{guild hall} is a command-line interface for downloading,
-installing and inspecting packages containing R6RS libraries and
-programs.
-
-@command{guild hall} accepts, besides global options, a command and
-command-specific options. Each command is geared to a particuliar
-task, for example installing, removing or upgrading packages.
+Sigil doesn't actually install any programs.  Instead, it extends the
+@command{guild} program that comes with Guile, adding new commands to
+it like @command{guild install}, @command{guild upgrade}, and the
+like.  These sigil commands allow you, the guild member, to download,
+install and inspect packages containing Scheme code.
 
 The following subsections document the available commands, grouped by
 related tasks.
 
 @menu
-* Global Options:: These must go directly after @command{guild hall}
+* Common Options:: Many commands share common options
 * Command Reference:: All of the commands
 * Configuration File:: Configuration file syntax
 @end menu
 
-@node Global Options
-@section Global Options
+@node Common Options
+@section Common Options
+
+Many commands take the same options, so we document them here in one
+section.  In addition to the following, all commands take
+@option{--help} and @option{--version} options, although it's usually
+easier to type @command{guild help install} than @command{guild
+install --help}.
+
+@subsection Config Options
+
+Commands that need to access the sigil configuration file accept
+options to allow you choose a non-default file, or modify aspects of
+the configuration while the command is running.
 
 @table @option
-@item --no-config
-
-Do not read any configuration file. This option can be used to ensure
-that @command{guild hall} will just use built-in defaults.
-
 @item --config=@var{file}
 @itemx -c
-
 Use configuration file @var{file}, instead of the default
 one. @xref{Configuration File}, for configuration file syntax.
 
-@item --prefix=@var{prefix}
+@item --no-config
+Do not read any configuration file. This option can be used to ensure
+that sigil commands will just use built-in defaults.
 
+@item --prefix=@var{prefix}
 Use an FHS destination located below the directory @var{prefix}. This
 option has the same effect as adding an FHS destination to the
-configuration file and using it for this invocation of @command{guild hall}.
+configuration file and using it for this invocation of the sigil
+command.
+@end table
 
+@subsection Database Options
+
+Commands that query or modify the package database accept options to
+allow you to choose particular destinations or enable certain
+repositories.
+
+@table @option
+@item --repo=@var{uri}
+@itemx -r @var{uri}
+Add @var{uri} as an additional repository, during the extent of this
+command.
+@item --dest=@var{dest-name}
+@itemx -d @var{dest-name}
+Choose a specific destination, instead of the default one.  A
+destination specifies where to install software.  Destinations are
+associated with paths in the file system via entries in the
+configuration file.
+@end table
+
+@subsection UI Options
+
+Some commands might need input from the user.  These options allow a
+user to specifiy their choices in advance.
+
+@table @option
 @item --non-interactive
 @itemx -n
-
 Run non-interactively.  This assumes ``yes'' on most questions.
 Confirmation prompts for actions that are ``risky'' (in the sense that
 their effects may be potentially unexpected or unwanted) cause program
@@ -50,18 +83,12 @@ message.
 
 @item --yes
 @itemx -y
-
 Like @option{--non-interactive}, but silently assume ``yes'' on all
 questions, even risky ones.
-
 @end table
 
 @node Command Reference
 @section Command Reference
-
-Note that all commands take a @option{--help} option showing brief
-usage information, although that option is not explicitly listed
-below.
 
 @subsection Querying
 
@@ -86,6 +113,9 @@ default only installed packages are listed.
 Temporarily adds @var{bundle}'s contents to the package database.
 
 @end table
+
+This command also accepts config and database options, as listed in
+the previous section.
 @end deffn
 
 @deffn Command show package ...
@@ -114,6 +144,9 @@ found, but the package will simply be ignored.
 Temporarily adds @var{bundle}'s contents to the package database.
 
 @end table
+
+This command also accepts config and database options, as listed in
+the previous section.
 @end deffn
 
 @deffn Command show-bundle bundle ...
@@ -127,9 +160,14 @@ each category. @xref{Packages}.
 
 @deffn Command config
 Shows the current configuration in YAML-like style.
+
+This command takes config options.
 @end deffn
 
 @subsection Package managment
+
+In addition to the options listed below, all of these commands take
+config, database, and UI options.  @xref{Common Options}.
 
 @deffn Command update
 Download information about available packages from all repositories of
@@ -247,8 +285,8 @@ comma- or space-seperated list @var{packages}.
 @section Configuration File
 
 The configuration file stores permanent settings for the guild, and
-can be selected with the @option{--config} option, @pxref{Global
-Options}. It's syntax is S-expression-based clauses. In the following,
+can be selected with the @option{--config} option, @pxref{Common
+Options}. Its syntax is S-expression-based clauses. In the following,
 we will dissect an example configuration file; note however, that for
 most users, a much simpler configuration will suffice
 (@pxref{Quickstart}). Also the @option{--prefix} global option can be
@@ -298,8 +336,7 @@ one can use an @code{fhs} destination to install to @file{/usr/local},
 and have files ending up in familiar locations.
 
 In the configuration file, destinations are given a name so they can
-be referred to by @command{guild hall}'s @option{--destination}
-option. @xref{Global Options}.
+be referred to by the @option{--dest} option.  @xref{Common Options}.
 
 Unless specified otherwise via the @code{repositories} sub-clause, all
 repositories listed up to the point of the destination's declaration
@@ -314,7 +351,7 @@ default location, based on the destination's prefix.
 
 Using the @code{default-destination} clause one can specify which
 configured destination will be used when none is explicitly specified
-via the @option{--destination} global option. If there is no
+via the @option{--dest} option.  If there is no
 @code{default-destination} clause, the first destination specified is
 considered the default.
 

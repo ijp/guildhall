@@ -1,11 +1,11 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename sigil.info
-@settitle Guild-Hall Manual
+@settitle Sigil Manual
 @include version.texi
 @set PACKAGE sigil
 
 @copying
-This manual is for Guild-Hall version @value{VERSION}.
+This manual is for Sigil version @value{VERSION}.
 
 Copyright @copyright{} 2011 Free Software Foundation, Inc.
 Copyright @copyright{} 2010 Andreas Rottmann.
@@ -18,8 +18,9 @@ later version published by the Free Software Foundation.
 @end copying
 
 @titlepage
-@title Guild-Hall Manual
+@title Sigil Manual
 @author Andreas Rottmann
+@author Andy Wingo
 
 @page
 @vskip 0pt plus 1filll
@@ -33,20 +34,19 @@ later version published by the Free Software Foundation.
 @node Top
 @top Sigil
 
-This manual is for Guild-Hall version @value{VERSION}.
+This manual is for Sigil version @value{VERSION}.
 @end ifnottex
 
 Sigil is a package manager written for Guile Scheme.
 
-A guild hall is where guild members meet.  This package builds a guild
-hall for Guile, providing a virtual space for Guile masters and
-journeyfolk to share code.
+A guild is an association of independent craftspeople.  This sigil
+marks you as a member of the guild of Guile wizards and journeyfolk.
 
-Using the guild hall, you can easily install and distribute
-collections of Scheme modules and programs.  The guild can handle
-dependencies, so when a program requires several libraries, and each
-of those has further dependencies, all of the prerequisites for the
-program can be installed in one go.
+On a practical level, Sigil lets you share Scheme modules and programs
+over the internet, and install code that has been shared by others.
+Sigil can handle dependencies, so when a program requires several
+libraries, and each of those has further dependencies, all of the
+prerequisites for the program can be installed in one go.
 
 Sigil is a port of Andreas Rottmann's Dorodango portable package
 manager for R6RS Scheme, adapted to better fit in with Guile Scheme
@@ -55,7 +55,7 @@ that Dorodango uses.
 
 @menu
 * Getting Started:: Installation and a quick introduction
-* Overview:: A tour of the guild hall
+* Overview:: Your guild membership rights and privileges
 * Reference:: The command-line interface
 * Packaging Guide:: How to create packages
 * Index:: Concept index
@@ -65,7 +65,7 @@ that Dorodango uses.
 @chapter Getting Started
 
 @menu
-* Installation:: Installing dorodango
+* Installation:: Installing Sigil
 * Quickstart:: A quick introduction
 @end menu
 

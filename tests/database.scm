@@ -111,8 +111,9 @@
                                      'libraries)))
       (test-equal `(("bin" "foo")
                     ("share"
-                     ("libr6rs-foo" ("programs" "foo"))
-                     ("r6rs-libs" ("foo" "a.scm"))))
+                     ("guile"
+                      ("site" (,(effective-version) ("foo" "a.scm")))
+                      ("site-programs" (,(effective-version) "foo")))))
         (directory->tree dest-dir))
 
       ;; Test removal
@@ -185,18 +186,21 @@
       (close-database db))
     (test-equal `(("bin" "foo")
                   ("share"
-                   ("libr6rs-foo" ("programs" "foo"))
-                   ("r6rs-libs"
-                    ("bar" "b.scm")
-                    ("foo" "a.scm"))))
+                   ("guile"
+                    ("site"
+                     (,(effective-version)
+                      ("bar" "b.scm")
+                      ("foo" "a.scm")))
+                    ("site-programs" (,(effective-version) "foo")))))
       (directory->tree dest-dir))
     (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
     (test-equal `(("bin" "foo")
                   ("share"
-                   ("libr6rs-foo" ("programs" "foo"))
-                   ("r6rs-libs" ("foo" "a.scm"))))
+                   ("guile"
+                    ("site" (,(effective-version) ("foo" "a.scm")))
+                    ("site-programs" (,(effective-version) "foo")))))
       (directory->tree dest-dir))))
 
 (define-test-case db-tests setup ((setup (assert-clear-stage))
@@ -213,7 +217,8 @@
       (test-eqv #t (database-unpack! db package:hook))
       (database-setup! db 'hook)
       (test-inventories db)
-      (test-equal `(("share" ("r6rs-libs" "test.scm")))
+      (test-equal `(("share" ("guile"
+                              ("site" (,(effective-version) "test.scm")))))
         (directory->tree dest-dir))
       (close-database db))
     (call-with-database (open-test-database '())

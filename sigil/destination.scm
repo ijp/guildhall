@@ -1,6 +1,6 @@
 ;;; destination.scm --- 
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -44,6 +44,7 @@
           make-fhs-destination)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) split-at append-reverse)
+          (only (guile) effective-version)
           (srfi :8 receive)
           (only (srfi :13)
                 string-concatenate
@@ -114,12 +115,14 @@
      fhs-destination-setup
      `((libraries
         . ,(make-simple-handler prefix fhs-libraries-template))
+       (ccache
+        . ,(make-simple-handler prefix fhs-ccache-template))
        (documentation
-        . ,(make-simple-handler prefix '("share" "doc" ("libr6rs-" name))))
+        . ,(make-simple-handler prefix fhs-doc-template))
        (programs
-        . ,(make-program-handler/sh-wrapper
+        . ,(make-program-handler
             prefix
-            '("share" ("libr6rs-" name) "programs")
+            (list "share" "guile" "site-programs" (effective-version))
             '("bin")))
        (man . ,(make-man-page-handler prefix))))))
 
@@ -152,7 +155,14 @@
   ; Nothing to do!
   #t)
 
-(define fhs-libraries-template '("share" "r6rs-libs"))
+(define fhs-libraries-template
+  (list "share" "guile" "site" (effective-version)))
+
+(define fhs-ccache-template
+  (list "lib" "guile" (effective-version) "site-ccache"))
+
+(define fhs-doc-template
+  (list "share" "doc" "guile" (effective-version) 'name))
 
 (define (make-simple-handler prefix template)
   (make-handler
@@ -191,9 +201,7 @@
     (call-with-port (open-file-output-port filename)
       extractor)))
 
-(define (make-program-handler/sh-wrapper prefix
-                                         program-template
-                                         sh-wrapper-template)
+(define (make-program-handler prefix program-template sh-wrapper-template)
   (make-handler
    (lambda (package pathname)
      (list (destination-pathname prefix sh-wrapper-template package pathname)
@@ -234,6 +242,7 @@
     (cat "#!/bin/sh\n"
          "# Shell wrapper for package " (package->string package " ") "\n"
          "\n"
+         ;; FIXME: --r6rs
          "exec " *script-interpreter* " " (->namestring program-pathname) " \"$@\"\n")))
 
 (define (destination-pathname prefix template package pathname)

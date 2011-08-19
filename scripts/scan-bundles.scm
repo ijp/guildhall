@@ -30,7 +30,6 @@
   #:use-module (rnrs)
   #:use-module (ice-9 match)
   #:use-module (sigil cli)
-  #:use-module (sigil cli config)
   #:use-module (sigil ext fmt)
   #:use-module (sigil ext foof-loop)
   #:use-module (sigil ext foof-loop nested)
@@ -56,13 +55,13 @@
 (define %mod (current-module))
 (define (main . args)
   (define output (current-output-port))
-  (call-with-parsed-options/config
+  (call-with-parsed-options
       %mod args
       (list
        (make-option/arg
         '("output" #\o)
         (lambda (val) (set! output (open-file-output-port val)))))
-    (lambda (args config)
+    (lambda (args)
       (iterate! (for directory (in-list args))
           (for entry (in-list (scan-bundles-in-directory directory directory)))
         (match entry

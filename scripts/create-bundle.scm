@@ -31,7 +31,6 @@
   #:use-module (ice-9 match)
   #:use-module (sigil spells pathname)
   #:use-module (sigil cli)
-  #:use-module (sigil cli config)
   #:use-module (sigil ext fmt)
   #:use-module (sigil private utils)
   #:use-module (sigil package)
@@ -46,9 +45,6 @@
   -d, --directory=DIR  Output directory when using implicit filename.
       --append-version=V  Append V to each package's version.
 
-  -c, --config=FILE    Use configuration file FILE, instead of the
-                       default.
-      --no-config      Do not read a configuration file.
       --help           Print this help message.
       --version        Print version information.
 ")
@@ -58,7 +54,7 @@
   (define output-filename #f)
   (define output-directory #f)
   (define version '())
-  (call-with-parsed-options/config
+  (call-with-parsed-options
       %mod args
       (list
        (make-option/arg '("output" #\o)
@@ -69,7 +65,7 @@
        (make-option/arg '("append-version")
                         (lambda (val)
                           (set! version (string->package-version val)))))
-    (lambda (operands config)
+    (lambda (operands)
       (define (compute-bundle-filename packages)
         (match packages
           (()

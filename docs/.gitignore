@@ -1,15 +1,15 @@
 # texi2pdf products
-/dorodango.aux
-/dorodango.cp
-/dorodango.cps
-/dorodango.fn
-/dorodango.ky
-/dorodango.log
-/dorodango.pdf
-/dorodango.pg
-/dorodango.toc
-/dorodango.tp
-/dorodango.vr
+/sigil.aux
+/sigil.cp
+/sigil.cps
+/sigil.fn
+/sigil.ky
+/sigil.log
+/sigil.pdf
+/sigil.pg
+/sigil.toc
+/sigil.tp
+/sigil.vr
 
 # makeinfo products
-/dorodango.info
+/sigil.info

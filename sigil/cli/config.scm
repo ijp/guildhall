@@ -34,7 +34,7 @@
 
 ;; This should be different on non-POSIX systems, I guess
 (define (default-config-location)
-  (home-pathname '((".config" "dorodango") "config.scm")))
+  (home-pathname '((".config" "sigil") "config.scm")))
 
 (define (read-config/guard pathname)
   (guard (c ((i/o-file-does-not-exist-error? c)

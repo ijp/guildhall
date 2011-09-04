@@ -108,13 +108,13 @@
                      "/"
                      (encode-and-join-uri-path
                       (append (split-and-decode-uri-path (uri-path rel))
-                              (split-and-decode-uri-path path))))))
+                              path)))))
 
 (define (make-http-repository name uri-string)
   (let* ((base-uri (uri-with-directory-path
                     (or (string->uri uri-string)
                         (error "bad URI string" uri-string))))
-         (available-uri (relative-uri "available.scm" base-uri))
+         (available-uri (relative-uri '("available.scm") base-uri))
          (available-filename "available.scm"))
     (make-repository
      name

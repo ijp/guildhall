@@ -66,6 +66,7 @@
                "*"
                "-")
            " name: " (destination-name dest) "\n"
+           "  prefix: " (->namestring (destination-prefix dest)) "\n" 
            "  database: "
            (->namestring (config-item-database-location item)) "\n"
            "  cache-directory: "

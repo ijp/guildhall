@@ -1,6 +1,6 @@
 ;;; dependencies.scm --- dependency resolution UI
 
-;; Copyright (C) 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -23,7 +23,8 @@
 #!r6rs
 
 (library (guildhall ui cmdline dependencies)
-  (export apply-actions)
+  (export apply-actions
+          action-options)
   (import (rnrs)
           (srfi :8 receive)
           (srfi :67 compare-procedures)
@@ -38,6 +39,7 @@
           (guildhall package)
           (guildhall solver)
           (guildhall solver choice)
+          (only (guile) define*)
           (prefix (guildhall solver universe)
                   universe-)
           (guildhall hooks)
@@ -49,7 +51,12 @@
 
 ;;; Dependency management
 
-(define (apply-actions db to-install to-remove)
+(define-enumeration action-option
+  (reinstall)
+  action-options)
+
+(define* (apply-actions db to-install to-remove
+                        #:optional (options (action-options)))
   (receive (universe package-table) (database->universe db)
     (let ((irreparable (irreparable-packages universe)))
       (cond ((null? irreparable)
@@ -57,9 +64,10 @@
              (let ((result (resolve-dependencies universe
                                                  package-table
                                                  to-install
-                                                 to-remove)))
+                                                 to-remove
+                                                 options)))
                (cond ((choice-set? result)
-                      (apply-choices db result))
+                      (apply-choices db result options))
                      (else
                       result))))
             ((let ((action-message
@@ -85,12 +93,14 @@
             (else
              #f)))))
 
-(define (apply-choices db choices)
+(define (apply-choices db choices options)
   (loop continue ((for choice (in-choice-set choices))
                   (with unpacked-versions '()))
     => (run-setup db unpacked-versions)
     (let ((version (choice-version choice)))
       (cond ((universe-version-tag version)
+             (when (enum-set-member? 'reinstall options)
+               (database-remove! db (universe-version-package-name version)))
              (if (database-unpack! db (universe-version->package version))
                  (continue
                   (=> unpacked-versions (cons version unpacked-versions)))
@@ -188,7 +198,7 @@
                 (if (hashtable-contains? version-table target))
               (universe-version-package-name target))))))
 
-(define (resolve-dependencies universe package-table to-install to-remove)
+(define (resolve-dependencies universe package-table to-install to-remove options)
   (receive (initial-choices version-scores)
            (solver-options package-table to-install to-remove)
     (define (solution->actions solution)
@@ -223,7 +233,8 @@
                         ((risky? assess-message)
                          (assess-solution solution
                                           initial-choices
-                                          package-table))
+                                          package-table
+                                          options))
                         ((solution-message)
                          (if show-story?
                              (dsp-solution solution)
@@ -281,7 +292,7 @@
   action-types
   action-type-name
   action-type-index
-  (install remove upgrade keep downgrade))
+  (install reinstall remove upgrade keep downgrade))
 
 (define-enumerated-type action-compliance <action-compliance>
   action-compliance?
@@ -313,6 +324,7 @@
 (define action-type-headings
   (make-finite-type-vector action-type action-types action-type-index
     (install "The following NEW packages will be installed:")
+    (reinstall "The following packages will be reinstalled:")
     (remove "The following packages will be REMOVED:")
     (upgrade "The following packages will be upgraded:")
     (keep "The following packages have been kept back:")
@@ -330,7 +342,7 @@
 ;; Calculate details on the action implied by changing (or not)
 ;; `current-version' to `version', where the version chosen by the
 ;; user is `chosen-version'.
-(define (compute-action current-version chosen-version version)
+(define (compute-action current-version chosen-version version options)
   (let ((to-install (and chosen-version
                          (universe-version-tag chosen-version)))
         (to-remove? (and chosen-version
@@ -350,7 +362,9 @@
           ((and current-version version)
            (let ((type (if3 (package-version-compare current-version version)
                             (action-type upgrade)
-                            (action-type keep)
+                            (if (enum-set-member? 'reinstall options)
+                                (action-type reinstall)
+                                (action-type keep))
                             (action-type downgrade))))
              (make-package-action
               type
@@ -361,7 +375,9 @@
                           (if (eq? (action-type upgrade) type)
                               (action-compliance ordered)
                               (action-compliance disobedient))
-                          (action-compliance already)
+                          (if (enum-set-member? 'reinstall options)
+                              (action-compliance ordered)
+                              (action-compliance already))
                           (if (eq? (action-type downgrade) type)
                               (action-compliance ordered)
                               (action-compliance disobedient))))
@@ -375,7 +391,7 @@
 
 ;; Returns two values: wether a solution is "risky" (when any action
 ;; taken has compliance `disobedient') 
-(define (assess-solution solution initial-choices package-table)
+(define (assess-solution solution initial-choices package-table options)
   (define (package-name.action<? p1 p2)
     (symbol<? (car p1) (car p2)))
   (let ((action-lists (make-vector (vector-length action-types) '())))
@@ -409,7 +425,8 @@
                (hashtable-ref package-table package-name #f)))
              (action (compute-action (universe-version-tag current-version)
                                      chosen-version
-                                     (universe-version-tag (choice-version choice))))
+                                     (universe-version-tag (choice-version choice))
+                                     options))
              (type-index (package-action-type-index action)))
         (vector-set! action-lists
                      type-index

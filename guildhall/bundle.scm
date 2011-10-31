@@ -344,6 +344,7 @@
 (define categories
   (list
    (make-category 'libraries default-library-mapper)
+   (make-category 'library-auxiliaries null-inventory-mapper)
    (make-category 'programs null-inventory-mapper) ; no sensible default here
    (make-category 'documentation default-documentation-mapper)))
 

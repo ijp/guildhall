@@ -117,6 +117,8 @@
         . ,(make-simple-handler prefix fhs-libraries-template))
        (ccache
         . ,(make-simple-handler prefix fhs-ccache-template))
+       (library-auxiliaries
+        . ,(make-simple-handler prefix fhs-libraries-template))
        (documentation
         . ,(make-simple-handler prefix fhs-doc-template))
        (programs

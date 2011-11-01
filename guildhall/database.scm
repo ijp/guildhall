@@ -1,6 +1,6 @@
 ;;; database.scm --- Dorodango package database
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -603,8 +603,7 @@
       (let ((unpacked-item (item-with-package
                             (item-with-state desired-item 'unpacked)
                             bundle-package)))
-        (save-item-info (database-package-info-pathname db bundle-package)
-                        unpacked-item)
+        (save-item-info db unpacked-item)
         (database-update-item! db bundle-package (lambda (item) unpacked-item)))
       #t))
   (guarantee-open-database who db)
@@ -672,9 +671,9 @@
                            pathname
                            extractor))))
 
-(define (save-item-info pathname item)
+(define (save-item-info db item)
   (let ((package (item-package item)))
-    (call-with-output-file/atomic (->namestring pathname)
+    (call-with-output-file/atomic (database-package-info-pathname db package)
       (lambda (port)
         (put-datum port `((state . ,(item-state item))))
         (put-string port "\n\n")
@@ -778,9 +777,7 @@
              (installed-item
               (item-with-state (item-add-files item installed-files conflict)
                                'installed)))
-        (save-item-info
-         (database-package-info-pathname db package)
-         installed-item)
+        (save-item-info db installed-item)
         (database-update-item! db package (lambda (item) installed-item)))))
   (guarantee-open-database who db)
   (let ((item (find item-installed?

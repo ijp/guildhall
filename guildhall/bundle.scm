@@ -366,7 +366,6 @@
                   (=> result (cons category-inventory result)))))))
 
 (define (apply-categorization inventory category mapper)
-  (log/categorizer 'debug (cat "categorizing " (category-name category)))
   (apply-inventory-mapper mapper
                           (make-inventory (category-name category) 'category)
                           inventory))
@@ -379,9 +378,6 @@
 
 (define logger:dorodango.bundle (make-logger logger:dorodango 'bundle))
 (define log/bundle (make-fmt-log logger:dorodango.bundle))
-
-(define logger:dorodango.categorizer (make-logger logger:dorodango 'categorizer))
-(define log/categorizer (make-fmt-log logger:dorodango.categorizer))
 
 )
 

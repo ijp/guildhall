@@ -336,24 +336,24 @@
                              category
                              cursor)
                  (lset-adjoin package=? (or old-value '()) package))))
-        (for-each
-         (lambda (real-pathname)
-           (loop ((with ancestor-directory
-                        (pathname-container real-pathname)
-                        (pathname-container ancestor-directory))
-                  (until (pathname=? ancestor-directory
-                                     (destination-prefix destination))))
-             (hashtable-update! table
-                                ancestor-directory
-                                (lambda (old-value)
-                                  (lset-adjoin package=? old-value package))
-                                '()))
-           (hashtable-set! table
-                           real-pathname
-                           (calculate-new-value
-                            (hashtable-ref table real-pathname #f)
-                            real-pathname)))
-         (destination-pathnames destination package category pathname)))))
+        (let ((real-pathname
+               (destination-pathname destination package category pathname)))
+          
+          (loop ((with ancestor-directory
+                       (pathname-container real-pathname)
+                       (pathname-container ancestor-directory))
+                 (until (pathname=? ancestor-directory
+                                    (destination-prefix destination))))
+            (hashtable-update! table
+                               ancestor-directory
+                               (lambda (old-value)
+                                 (lset-adjoin package=? old-value package))
+                               '()))
+          (hashtable-set! table
+                          real-pathname
+                          (calculate-new-value
+                           (hashtable-ref table real-pathname #f)
+                           real-pathname))))))
   (loop ((for inventory (in-list (package-inventories package))))
     (let ((category (inventory-name inventory)))
       (fill-table (make-pathname #f '() #f) category inventory))))
@@ -705,13 +705,14 @@
         (destination (database-destination db))
         (maybe-remove (make-hashtable pathname-hash pathname=?)))
     (define (delete-inventory category inventory path)
-      (loop continue ((for cursor (in-inventory inventory)))
-        (loop ((for pathname
-                    (in-list (destination-pathnames
-                              destination
-                              package
-                              category
-                              (make-pathname #f path (inventory-name cursor))))))
+      (iterate! (for cursor (in-inventory inventory))
+        (let ((pathname
+               (destination-pathname destination
+                                     package
+                                     category
+                                     (make-pathname #f
+                                                    path
+                                                    (inventory-name cursor)))))
           (cond ((inventory-container? cursor)
                  (delete-inventory category
                                    cursor
@@ -725,8 +726,7 @@
                  (when (null? path)
                    (hashtable-set! maybe-remove
                                    (pathname-container pathname)
-                                   #t))))
-          (continue))))
+                                   #t)))))))
     (define (maybe-remove-directory pathname include-ancestors?)
       (when (not (pathname=? pathname (destination-prefix destination)))
         (let ((packages
@@ -748,46 +748,41 @@
                    (maybe-remove-directory (pathname-container pathname) #t)))
                 (else
                  (hashtable-set! file-table pathname packages))))))
-    (loop ((for category (in-list (package-categories package))))
-      (let ((package-inventory (package-category-inventory package category)))
-        (delete-inventory category package-inventory '())))
-    (loop ((for directory (in-vector (hashtable-keys maybe-remove))))
+    (iterate! (for inventory (in-list (package-inventories package)))
+      (delete-inventory (inventory-name inventory) inventory '()))
+    (iterate! (for directory (in-vector (hashtable-keys maybe-remove)))
       (maybe-remove-directory directory #t))))
 
 ;;@ Run installation hook for a package.
 (define (database-setup! db package-name)
   (define who 'database-setup!)
-  (define (setup-item item)
-    (define (conflict a-cursor b-cursor)
-      ;;++ could use better diagnostics
-      (file-conflict item #f #f))
-    (let* ((package (item-package item))
-           (installation-hook (package-property package
-                                                'installation-hook
-                                                #f)))
-      (log/db 'info (cat "Setting up "
-                         (dsp-package-identifier package) " ..."))
-      (let* ((installed-files
-              (if installation-hook
-                  (run-hook (database-get-hook-runner db)
-                            package
-                            `(installation-hook . ,installation-hook)
-                            (make-source-unpacker db item))
-                  '()))
-             (installed-item
-              (item-with-state (item-add-files item installed-files conflict)
-                               'installed)))
-        (save-item-info db installed-item)
-        (database-update-item! db package (lambda (item) installed-item)))))
   (guarantee-open-database who db)
   (let ((item (find item-installed?
                     (hashtable-ref (database-pkg-table db) package-name '()))))
     (cond ((not item)
            (assertion-violation who "package not installed" package-name))
           ((eq? 'unpacked (item-state item))
-           (setup-item item))
+           (let ((installed-item (setup-item db item)))
+             (save-item-info db installed-item)
+             (database-update-item! db
+                                    (item-package item)
+                                    (lambda (item) installed-item))))
           (else
            (assertion-violation who "package already setup" package-name)))))
+
+(define (setup-item db item)
+  (define (conflict a-cursor b-cursor)
+    ;;++ could use better diagnostics
+    (file-conflict item #f #f))
+  (let ((package (item-package item)))
+    (log/db 'info (cat "Setting up "
+                       (dsp-package-identifier package) " ..."))
+    (make-item (run-destination-hooks (database-destination db)
+                                      (run-installation-hook db item conflict)
+                                      conflict)
+               'installed
+               (item-sources item)
+               (item-bundle item))))
 
 (define (make-source-unpacker db item)
   (lambda ()
@@ -812,6 +807,29 @@
                       (lambda (port)
                         (extractor port))))))))))
 
+;; Run the installation hook of @var{item} and return the
+;; updated package.
+(define (run-installation-hook db item conflict)
+  (let ((package (item-package item)))
+    (cond ((package-property package 'installation-hook #f)
+           => (lambda (installation-hook)
+                (package-extend-inventories
+                 package
+                 (run-hook (database-get-hook-runner db)
+                           package
+                           `(installation-hook . ,installation-hook)
+                           (make-source-unpacker db item))
+                 conflict)))
+          (else
+           package))))
+
+;; Run the destination hooks for @var{destination} and return the
+;; updated package.
+(define (run-destination-hooks destination package conflict)
+  (iterate-values ((package package))
+      (for hook (in-list (destination-hooks destination)))
+    (package-extend-inventories package (hook destination package) conflict)))
+
 (define (find-package-path bundle package)
   (exists (lambda (entry)
             (match entry
@@ -821,34 +839,6 @@
                           packages)
                     path))))
           (bundle-package-map bundle)))
-
-(define (item-add-files item inventories conflict)
-  (item-modify-package
-   item
-   (lambda (package)
-     (package-modify-inventories
-      package
-      (lambda (existing)
-        (merge-category-inventories existing inventories conflict))))))
-
-(define (merge-category-inventories a-inventories b-inventories conflict)
-  (define (same-name-as inventory)
-    (let ((name (inventory-name inventory)))
-      (lambda (other)
-        (eq? name (inventory-name other)))))
-  (loop continue ((for a-entry (in-list a-inventories))
-                  (with result '()))
-    => (append-reverse result
-                       (collect-list (for b-entry (in-list b-inventories))
-                           (if (not (find (same-name-as b-entry) a-inventories)))
-                         b-entry))
-    (cond ((find (same-name-as a-entry) b-inventories)
-           => (lambda (b-entry)
-                (continue
-                 (=> result (cons (merge-inventories a-entry b-entry conflict)
-                                  result)))))
-          (else
-           (continue (=> result (cons a-entry result)))))))
 
 (define (database-clear-cache! db)
   (rm-rf (database-cache-dir db))

@@ -1,6 +1,6 @@
 ;;; package.scm --- 
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -64,6 +64,7 @@
           package-inventories
           package-with-inventories
           package-modify-inventories
+          package-extend-inventories
           
           package->form
           parse-package-form
@@ -94,7 +95,7 @@
           form->version-constraint
           version-constraint->form)
   (import (rnrs)
-          (only (srfi :1) every)
+          (only (srfi :1) every append-reverse)
           (srfi :2 and-let*)
           (only (srfi :13)
                 string-contains
@@ -103,6 +104,7 @@
           (srfi :14 char-sets)
           (srfi :67 compare-procedures)
           (guildhall ext foof-loop)
+          (guildhall ext foof-loop nested)
           (only (guildhall spells string-utils) string-split)
           (guildhall spells record-types)
           (only (guile) assq-ref and-map or-map and=>)
@@ -180,6 +182,34 @@
                                     (not (eq? (car property) property-name)))
                                   (package-properties package)))
                     (package-inventories package)))))
+
+
+(define (package-extend-inventories package inventories conflict)
+  (package-modify-inventories
+   package
+   (lambda (existing)
+     (merge-category-inventories existing inventories conflict))))
+
+(define (merge-category-inventories a-inventories b-inventories conflict)
+  (define (same-name-as inventory)
+    (let ((name (inventory-name inventory)))
+      (lambda (other)
+        (eq? name (inventory-name other)))))
+  (loop continue ((for a-entry (in-list a-inventories))
+                  (with result '()))
+    => (append-reverse result
+                       (collect-list (for b-entry (in-list b-inventories))
+                           (if (not (find (same-name-as b-entry) a-inventories)))
+                         b-entry))
+    (cond ((find (same-name-as a-entry) b-inventories)
+           => (lambda (b-entry)
+                (continue
+                 (=> result (cons (merge-inventories a-entry b-entry conflict)
+                                  result)))))
+          (else
+           (continue (=> result (cons a-entry result)))))))
+
+
 
 (define (package->string package separator)
   (let ((version (package-version package))

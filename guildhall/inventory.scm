@@ -1,6 +1,6 @@
 ;;; inventory.scm --- Tree data structure modeling a hierarchical namespace
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -40,6 +40,7 @@
           inventory-top
 
           in-inventory
+          in-inventory-leafs
           
           inventory-cursor
           inventory-cursor?
@@ -59,7 +60,8 @@
 
           inventory->tree
           tree->inventory
-          
+
+          inventory-map-leafs
           merge-inventories)
   (import (rnrs)
           (srfi :2 and-let*)
@@ -232,6 +234,21 @@
   (cond ((inventory-ref inventory path) => inventory-data)
         (else default)))
 
+;;@ Foof-loop iterator for inventory leafs
+(define-syntax in-inventory-leafs
+  (syntax-rules (result)
+    ((_ (node-var path-var) (inventory-expr) cont . env)
+     (cont
+      (((inventory) inventory-expr))     ;Outer bindings
+      ((cursor (inventory-cursor inventory)
+               (inventory-cursor-next cursor))) ;Loop variables
+      ()                                 ;Entry bindings
+      ((not cursor))                     ;Termination conditions
+      (((node-var) (inventory-cursor-node cursor)) ;Body bindings
+       ((path-var) (inventory-cursor-path cursor)))
+      ()                                 ;Final bindings
+      . env))))
+
 ;;; Manipulation
 
 (define (inventory-insert-down inventory node)
@@ -304,6 +321,33 @@
 
 
 
+;; Results in an inventory isomorphic to @var{inventory}, replacing
+;; all leafs according to @var{proc}, which must be a three-argument
+;; procedure returning two values.
+;;
+;; In place of each leaf in @var{inventory}, a new leaf is inserted
+;; with the name and data fields as given by the values returned by
+;; applying @var{proc} to the name of the original leaf, a list of the
+;; names of its parents, and the data field of the original leaf.
+(define (inventory-map-leafs proc inventory)
+  (let map-container ((path '())
+                      (inventory inventory))
+    (loop ((for entry (in-inventory inventory))
+           (with result
+                 (inventory-open
+                  (make-inventory (inventory-name inventory)
+                                  (inventory-data inventory)))
+                 (if (inventory-leaf? entry)
+                     (receive (name data)
+                              (proc (inventory-name entry)
+                                    path
+                                    (inventory-data entry))
+                       (inventory-insert result name #f data))
+                     (inventory-insert
+                      result
+                      (map-container (cons (inventory-name entry) path) entry)))))
+      => (inventory-leave result))))
+
 (define (merge-inventories a-inventory b-inventory conflict)
   (loop continue ((with to a-inventory)
                   (for from (in-inventory b-inventory)))
@@ -325,6 +369,7 @@
                      (else
                       (inventory-leave
                        (inventory-insert (inventory-open to) from))))))))))
+
 )
 
 ;; Local Variables:

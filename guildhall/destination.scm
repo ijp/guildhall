@@ -36,7 +36,8 @@
   (export destination?
           destination-name
           destination-prefix
-          destination-pathnames
+          destination-hooks
+          destination-pathname
           setup-destination
           destination-install
           destination-without-categories
@@ -55,6 +56,7 @@
           (guildhall ext fmt)
           (guildhall ext irregex)
           (guildhall ext foof-loop)
+          (guildhall ext foof-loop nested)
           (guildhall spells record-types)
           (guildhall spells pathname)
           (guildhall spells filesys)
@@ -63,14 +65,15 @@
           (guildhall spells sysutils) ;ditto
           (guildhall private utils)
           (guildhall build-info)
+          (guildhall inventory)
           (guildhall package))
 
 (define-record-type* destination
-  (make-destination name prefix setup categories)
+  (make-destination name prefix setup categories hooks)
   ())
 
 (define-functional-fields destination
-  name prefix setup categories)
+  name prefix setup categories hooks)
 
 (define (destination-without-categories destination categories)
   (destination-modify-categories
@@ -80,29 +83,29 @@
              (memq (car entry) categories))
            categories))))
 
-(define (destination-pathnames destination package category pathname)
+(define (invoke-destination-handler destination category getter . args)
   (cond ((assq-ref (destination-categories destination) category)
          => (lambda (handler)
-              (handler-map handler package pathname)))
+              (apply (getter handler) args)))
         (else
-         '())))
+         (error 'invoke-destination-handler "no handler for category"
+                category))))
+
+(define (destination-pathname destination package category pathname)
+  (invoke-destination-handler destination category handler-mapper package pathname))
 
 (define (setup-destination destination options)
   ((destination-setup destination) destination options))
 
+(define (destination-open-file destination package category pathname)
+  (invoke-destination-handler destination category handler-opener package pathname))
+
 (define (destination-install destination package category pathname extractor)
-  (and=> (assq-ref (destination-categories destination) category)
-         (lambda (handler)
-           (handler-install handler package pathname extractor))))
+  (call-with-port (destination-open-file destination package category pathname)
+    extractor))
 
 (define-record-type handler
-  (fields mapper installer))
-
-(define (handler-map handler package pathname)
-  ((handler-mapper handler) package pathname))
-
-(define (handler-install handler package pathname extractor)
-  ((handler-installer handler) package pathname extractor))
+  (fields mapper opener))
 
 
 ;;; FHS destination
@@ -122,11 +125,11 @@
        (documentation
         . ,(make-simple-handler prefix fhs-doc-template))
        (programs
-        . ,(make-program-handler
-            prefix
-            (list "share" "guile" "site-programs" (effective-version))
-            '("bin")))
-       (man . ,(make-man-page-handler prefix))))))
+        . ,(make-simple-handler prefix (list "share" "guile" "site-programs"
+                                             (effective-version))))
+       (executables . ,(make-executable-handler prefix))
+       (man . ,(make-man-page-handler prefix)))
+     (list sh-wrapper-hook))))
 
 (define (string-replace s replacements)
   (loop next-replacement ((for replacement (in-list replacements))
@@ -169,10 +172,9 @@
 (define (make-simple-handler prefix template)
   (make-handler
    (lambda (package pathname)
-     (list (destination-pathname prefix template package pathname)))
-   (lambda (package pathname extractor)
-     (do-install-file (destination-pathname prefix template package pathname)
-                      extractor))))
+     (build-pathname prefix template package pathname))
+   (lambda (package pathname)
+     (do-open-file (build-pathname prefix template package pathname)))))
 
 (define (make-man-page-handler prefix)
   (define (man-page-pathname pathname)
@@ -183,48 +185,20 @@
        pathname)))
   (make-handler
    (lambda (package pathname)
-     (list (man-page-pathname pathname)))
-   (lambda (package pathname extractor)
-     (do-install-file (man-page-pathname pathname) extractor))))
-
-(define (filename->man-section filename)
-  (cond ((irregex-search section-irx filename)
-         => (lambda (match)
-              (string->number (irregex-match-substring match 1))))
-        (else
-         1))) ;lame default
-
-(define section-irx (irregex '(: "." ($ (+ (~ numeric))))))
-
-(define (do-install-file dest-pathname extractor)
-  (create-directory* (pathname-with-file dest-pathname #f))
-  (let ((filename (->namestring dest-pathname)))
-    (log/fhs 'debug "installing " filename)
-    (call-with-port (open-file-output-port filename)
-      extractor)))
-
-(define (make-program-handler prefix program-template sh-wrapper-template)
-  (make-handler
+     (man-page-pathname pathname))
    (lambda (package pathname)
-     (list (destination-pathname prefix sh-wrapper-template package pathname)
-           (destination-pathname prefix program-template package pathname)))
-   (lambda (package pathname extractor)
-     (let ((program-pathname (destination-pathname prefix
-                                                   program-template
-                                                   package
-                                                   pathname))
-           (sh-wrapper-pathname (destination-pathname prefix
-                                                      sh-wrapper-template
-                                                      package
-                                                      pathname)))
-       (do-install-file program-pathname extractor)
-       (create-directory* (pathname-with-file sh-wrapper-pathname #f))
-       (let ((filename (->namestring sh-wrapper-pathname)))
-         (log/fhs 'debug "creating shell wrapper" filename)
-         (call-with-output-file filename
-           (lambda (port)
-             (fmt port (dsp-sh-wrapper prefix package program-pathname))))
-         (chmod "+x" filename))))))
+     (do-open-file (man-page-pathname pathname)))))
+
+(define (make-executable-handler prefix)
+  (define (executable-pathname package pathname)
+    (build-pathname prefix '("bin") package pathname))
+  (make-handler
+   executable-pathname
+   (lambda (package pathname)
+     (let* ((real-pathname (executable-pathname package pathname))
+            (port (do-open-file real-pathname)))
+       (chmod "+x" real-pathname)
+       port))))
 
 (define %chmod-path (delay (find-exec-path "chmod")))
 
@@ -235,25 +209,69 @@
         (else
          (log/fhs 'warning "`chmod' not found in PATH"))))
 
-(define (dsp-sh-wrapper prefix package program-pathname)
-  (let ((library-path
-         (destination-pathname prefix
-                               fhs-libraries-template
-                               package
-                               (make-pathname #f '() #f))))
-    (cat "#!/bin/sh\n"
-         "# Shell wrapper for package " (package->string package " ") "\n"
-         "\n"
-         ;; FIXME: --r6rs
-         "exec " *script-interpreter* " " (->namestring program-pathname) " \"$@\"\n")))
 
-(define (destination-pathname prefix template package pathname)
-  (pathname-join
+
+(define (filename->man-section filename)
+  (cond ((irregex-search section-irx filename)
+         => (lambda (match)
+              (string->number (irregex-match-substring match 1))))
+        (else
+         1))) ;lame default
+
+(define section-irx (irregex '(: "." ($ (+ (~ numeric))))))
+
+(define (do-open-file dest-pathname)
+  (create-directory* (pathname-with-file dest-pathname #f))
+  (let ((filename (->namestring dest-pathname)))
+    (log/fhs 'debug "opening " filename)
+    (open-file-output-port filename)))
+
+(define (sh-wrapper-hook destination package)
+  (cond ((package-category-inventory package 'programs)
+         => (lambda (programs)
+              (list (create-sh-wrappers destination package programs))))
+        (else
+         '())))
+
+(define (create-sh-wrappers destination package programs)
+  (define (create-wrapper pathname)
+    (call-with-port
+        (transcoded-port (destination-open-file destination
+                                                package
+                                                'executables
+                                                pathname)
+                         (native-transcoder))
+      (lambda (port)
+        (log/fhs 'debug
+                 "creating shell wrapper for " pathname
+                 " in " (package-name package))
+        (fmt port (dsp-sh-wrapper (destination-prefix destination)
+                                  package
+                                  (destination-pathname destination
+                                                        package
+                                                        'programs
+                                                        pathname))))))
+  (iterate! ((for cursor path (in-inventory-leafs programs)))
+    (create-wrapper (make-pathname #f (reverse path) (inventory-name cursor))))
+  (inventory-relabel programs 'executables (inventory-data programs)))
+
+(define (dsp-sh-wrapper prefix package program-pathname)
+  (cat "#!/bin/sh\n"
+       "# Shell wrapper for package " (package->string package " ") "\n"
+       "\n"
+       ;; FIXME: --r6rs
+       "exec " *script-interpreter* " " (->namestring program-pathname) " \"$@\"\n"))
+
+
+;;; Utilities
+
+(define (build-pathname prefix template package pathname)
+  (merge-pathnames
+   pathname
    (pathname-as-directory
     (vals->pathname prefix
                     `((name . ,(symbol->string (package-name package))))
-                    template))
-   pathname))
+                    template))))
   
 (define (resolve-template template vals)
   (cond ((symbol? template)

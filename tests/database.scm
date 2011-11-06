@@ -109,8 +109,7 @@
         (inventory->tree
          (package-category-inventory (database-item-package item)
                                      'libraries)))
-      (test-equal `(("bin" "foo")
-                    ("share"
+      (test-equal `(("share"
                      ("guile"
                       ("site" (,(effective-version) ("foo" "a.scm")))
                       ("site-programs" (,(effective-version) "foo")))))
@@ -184,8 +183,7 @@
       (test-eqv #t (database-unpack! db package:foo))
       (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
-    (test-equal `(("bin" "foo")
-                  ("share"
+    (test-equal `(("share"
                    ("guile"
                     ("site"
                      (,(effective-version)
@@ -196,8 +194,7 @@
     (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
-    (test-equal `(("bin" "foo")
-                  ("share"
+    (test-equal `(("share"
                    ("guile"
                     ("site" (,(effective-version) ("foo" "a.scm")))
                     ("site-programs" (,(effective-version) "foo")))))

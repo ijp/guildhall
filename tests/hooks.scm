@@ -55,10 +55,10 @@
   (let ((destination (make-fhs-destination 'test test-dir)))
     (setup-destination destination '())
     (let ((runner (spawn-hook-runner destination))
-          (dest-pathname (car (destination-pathnames destination
-                                                     package:null
-                                                     'libraries
-                                                     "test-library.scm")))
+          (dest-pathname (destination-pathname destination
+                                               package:null
+                                               'libraries
+                                               "test-library.scm"))
           (test-datum '(mic check (1 2 3)))
           (test-pathname (pathname-join test-dir ",test.tmp")))
       (test-eqv #t (hook-runner? runner))

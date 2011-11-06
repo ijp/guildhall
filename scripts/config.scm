@@ -49,15 +49,14 @@
 ")
 
 (define* (show-destination dest package category #:optional pathname)
-  (for-each
-   (lambda (pathname)
-     (fmt #t (dsp-pathname pathname) "\n"))
-   (destination-pathnames dest
-                          (string->package package "=")
-                          (string->symbol category)
-                          (if pathname
-                              (->pathname pathname)
-                              (make-pathname #f '() #f)))))
+  (fmt #t (dsp-pathname
+           (destination-pathname dest
+                                 (string->package package "=")
+                                 (string->symbol category)
+                                 (if pathname
+                                     (->pathname pathname)
+                                     (make-pathname #f '() #f)))) 
+       "\n"))
 
 (define (dsp-config config)
   (define (dsp-config-item item)

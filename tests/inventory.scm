@@ -1,6 +1,6 @@
 ;;; inventory.scm --- Tests for the inventory tree data structure
 
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -145,6 +145,10 @@
   (test-equal '(a "foo" ("bar" "x" "y") "baz")
     (->tree (merge-inventories (->inventory '(a ("bar") "baz"))
                                (->inventory '(b "foo" ("bar" "y" "x")))
+                               raise-conflict)))
+  (test-equal '(a "baz" "foo" ("bar" "b" "y" "x"))
+    (->tree (merge-inventories (->inventory '(a "foo" ("bar" "y" "x")))
+                               (->inventory '(b ("bar" "b") "baz"))
                                raise-conflict)))
   (test-equal '(conflict "foo" ("foo" "x" "y"))
     (guard (e ((list? e) e))

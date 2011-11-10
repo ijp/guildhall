@@ -43,6 +43,7 @@
           
           database-add-bundle!
           database-add-bundles!
+          database-reap-bundles
 
           database-package-names
           database-items
@@ -175,26 +176,35 @@
     ((directory destination repositories cache-dir)
      (log/db 'debug "opening database in " (dsp-pathname directory) " ...")
      (let* ((directory (pathname-as-directory directory))
-            (status-directory (status-subdirectory directory)))
-       (unless (file-exists? status-directory)
-         (setup-destination destination '())
-         (create-directory* status-directory))
-       (lock-database-directory directory)
-       (receive (pkg-table file-table)
-                (load-installed-packages status-directory destination)
-         (let ((db (make-database directory
-                                  destination
-                                  repositories
-                                  cache-dir
-                                  file-table
-                                  pkg-table
-                                  #f ;closed?
-                                  #f ;hook-runner
-                                  )))
-           (iterate! (for repository (in-list repositories))
-             (create-directory* (database-cache-directory db repository)))
-           (load-available-files! db repositories)
-           db))))
+            (status-directory (status-subdirectory directory))
+            (new? (not (file-exists? status-directory))))
+       (let ((db (make-database directory
+                                destination
+                                repositories
+                                cache-dir
+                                (make-hashtable pathname-hash
+                                                pathname=?) ;file-table
+                                (make-eq-hashtable) ;pkg-table
+                                #f ;closed?
+                                #f ;hook-runner
+                                )))
+         (when new?
+           (create-directory* status-directory))
+         (lock-database-directory directory)
+         (load-installed-packages! db)
+         (load-available-files! db repositories)
+         (iterate! (for repository (in-list repositories))
+           (create-directory* (database-cache-directory db repository)))
+         (when new?
+           (call-with-destination-support-bundle
+               destination
+             '()
+             (lambda (bundle)
+               (database-add-bundle! db bundle)
+               (database-unpack! db package:destination-support)
+               (database-setup! db (package-name package:destination-support))
+               (database-reap-bundles db))))
+         db)))
     ((directory destination repositories)
      (let ((directory (pathname-as-directory directory)))
        (open-database directory
@@ -232,19 +242,30 @@
 ;;@ Close a previously opened database.
 (define (close-database db)
   (guarantee-open-database 'close-database db)
+  (database-reap-bundles db)
   (unlock-database-directory (database-directory db))
-  (database-closed?-set! db #t)
+  (database-closed?-set! db #t))
+
+
+;; Close all bundles referenced by @var{db}.
+(define (database-reap-bundles db)
   (let ((closed-bundles (make-eq-hashtable))
         (pkg-table (database-pkg-table db)))
-    (receive (pkg-names items-vector) (hashtable-entries pkg-table)
-      (loop ((for items (in-vector items-vector)))
-        (loop ((for item (in-list items)))
-          (cond ((item-bundle item)
-                 => (lambda (bundle)
-                      (unless (hashtable-ref closed-bundles bundle #f)
-                        (close-bundle bundle)
-                        (hashtable-set! closed-bundles bundle #t))))))))
-    (hashtable-clear! pkg-table)))
+    (define (item-without-bundle item)
+      (cond ((item-bundle item)
+             => (lambda (bundle)
+                  (unless (hashtable-ref closed-bundles bundle #f)
+                    (close-bundle bundle)
+                    (hashtable-set! closed-bundles bundle #t))
+                  (item-with-bundle item #f)))
+            (else
+             item)))
+    (iterate! (for pkg-name (in-vector (hashtable-keys pkg-table)))
+      (hashtable-update! pkg-table
+                         pkg-name
+                         (lambda (items)
+                           (map item-without-bundle items))
+                         '()))))
 
 ;;@ Calls @var{proc} with @var{db} as argument and closes the database
 ;; upon return of the call to @var{proc}. The database is @emph{not}
@@ -290,31 +311,32 @@
               (else
                (lose "invalid package form in available file" form)))))))
 
-(define (load-installed-packages directory destination)
-  (define (lose filename msg . irritants)
-    (apply database-corruption
-           'load-installed-packages
-           (pathname-with-file directory filename)
-           msg
-           irritants))
-  (let ((pkg-table (make-eq-hashtable))
-        (file-table (make-hashtable pathname-hash pathname=?)))
-    (loop ((for filename (in-directory directory)))
-      => (values pkg-table file-table)
-      (when (string-suffix? ".info" filename)
-        (let ((item (load-item-info
-                     (pathname-with-file directory filename))))
-          (hashtable-update!
-           pkg-table
-           (package-name (item-package item))
-           (lambda (items)
-             (if items
-                 (lose filename "duplicate package in status file" items)
-                 (list item)))
-           #f)
-          (update-file-table! file-table
-                              destination
-                              (item-package item)))))))
+(define (load-installed-packages! db)
+  (let ((directory (database-status-directory db)))
+    (define (lose filename msg . irritants)
+      (apply database-corruption
+             'load-installed-packages
+             (pathname-with-file directory filename)
+             msg
+             irritants))
+    (let ((pkg-table (database-pkg-table db))
+          (file-table (database-file-table db)))
+      (loop ((for filename (in-directory directory)))
+        => (values pkg-table file-table)
+        (when (string-suffix? ".info" filename)
+          (let ((item (load-item-info
+                       (pathname-with-file directory filename))))
+            (hashtable-update!
+             pkg-table
+             (package-name (item-package item))
+             (lambda (items)
+               (if items
+                   (lose filename "duplicate package in status file" items)
+                   (list item)))
+             #f)
+            (update-file-table! file-table
+                                (database-destination db)
+                                (item-package item))))))))
 
 (define (update-file-table! table destination package)
   (define (fill-table directory category inventory)
@@ -375,16 +397,41 @@
 
 ;;; Source manipulation
 
-;;@ Add the bundle located at @var{pathname} as a source of packages
-;; to the database @var{db}.
-(define (database-add-bundle! db pathname)
+;;@ Add a bundle as a source of packages to the database @var{db}.
+;;
+;; If @var{pathname-or-bundle} is a pathname, the bundle it refers is
+;; scanned for its contents, and the available packages added and the
+;; bundle is closed afterwards; it will be re-opened on demand.  This
+;; requires that the pathname of the bundle must stay available while
+;; @var{db} is kept open.
+;;
+;; If @var{pathname-or-bundle} is bundle, a reference to it is added
+;; to @var{db} for package inside the bundle.  Note that it is
+;; currently not possible to add a reference for packages that already
+;; have an opened bundle associated with them.  For such packages, the
+;; bundle provided in @var{pathname-or-bundle} is ignored.
+(define (database-add-bundle! db pathname-or-bundle)
   (guarantee-open-database 'database-add-bundle! db)
-  (let ((bundle (open-input-bundle pathname (bundle-options no-inventory))))
-    (loop ((for package (in-list (bundle-packages bundle))))
-      (add-package-source! db
-                           package
-                           (make-source null-repository pathname)))
-    (close-bundle bundle)))
+  (cond ((bundle? pathname-or-bundle)
+         (let ((bundle pathname-or-bundle))
+           (define (set-item-bundle item)
+             (if (item-bundle item)
+                 item
+                 (item-with-bundle item bundle)))
+           (iterate! (for package (in-list (bundle-packages bundle)))
+             (update-package-item! db
+                                   package
+                                   set-item-bundle
+                                   (make-item package 'available '() #f)))))
+        (else
+         (let ((pathname pathname-or-bundle))
+           (call-with-input-bundle pathname
+               (bundle-options no-inventory)
+             (lambda (bundle)
+               (iterate! (for package (in-list (bundle-packages bundle)))
+                 (add-package-source! db
+                                      package
+                                      (make-source null-repository pathname)))))))))
 
 ;;@ Add, as with @xref{dorodango database
 ;; database-add-bundle!,database-add-bundle!}, each element of the
@@ -395,6 +442,21 @@
 
 ;; Later-added sources override earlier ones
 (define (add-package-source! db package source)
+  (update-package-item! db
+                        package
+                        (lambda (item)
+                          (item-modify-sources
+                           item
+                           (lambda (sources)
+                             (append (list source) sources))))
+                        (make-item package 'available '() #f)))
+
+;; Insert or update an an item for @var{package}. If a corresponding
+;; item already is found in @var{db}, @var{proc} will be applied to it
+;; and the value returned by @var{proc} will replace the original
+;; item.  If not matching item is found, @var{proc} will be applied to
+;; @var{default}, and the value returned will be inserted as new item.
+(define (update-package-item! db package proc default)
   (define (update-items items)
     (loop continue ((for item (in-list items))
                     (with result '() (cons item result))
@@ -402,25 +464,17 @@
       => (reverse
           (if inserted?
               result
-              (cons (make-item package 'available (list source) #f) result)))
+              (cons (proc default) result)))
       (if3 (package-version-compare (package-version package)
                                     (package-version (item-package item)))
            (continue)
            (continue (=> inserted? #t)
-                     (=> result
-                         (cons (item-modify-sources
-                                item
-                                (lambda (sources)
-                                  (append (list source) sources)))
-                               result)))
+                     (=> result (cons (proc item) result)))
            (if inserted?
                (continue)
                (continue
                 (=> inserted? #t)
-                (=> result
-                    (cons* item
-                           (make-item package 'available (list source) #f)
-                           result)))))))
+                (=> result (cons* item (proc default) result)))))))
   (hashtable-update! (database-pkg-table db)
                      (package-name package)
                      update-items
@@ -587,7 +641,7 @@
 (define (database-unpack! db package)
   (define who 'database-unpack!)
   (define (do-install! desired-item)
-    (let* ((bundle (checked-open-bundle! who db desired-item))
+    (let* ((bundle (open-bundle! who db desired-item))
            (bundle-package (bundle-package-ref bundle package)))
       (unless bundle-package
         (raise (condition
@@ -621,16 +675,17 @@
           (else
            #f))))
 
-(define (checked-open-bundle! who db item)
+(define (open-bundle! who db item)
   (define (lose msg package)
     (raise (condition
             (make-who-condition who)
             (make-database-unavailable-package-error package)
             (make-message-condition msg))))
-  (or (open-bundle! db item)
+  (or (item-bundle item)
+      (really-open-bundle! db item)
       (lose "could not obtain bundle for package" (item-package item))))
 
-(define (open-bundle! db item)
+(define (really-open-bundle! db item)
   (define (update-bundle-packages bundle source)
     (loop ((for package (in-list (bundle-packages bundle))))
       (database-update-item! db
@@ -643,7 +698,7 @@
                              (make-item package 'available (list source) #f))))
   (let ((sources (item-sources item)))
     (when (null? sources)
-      (assertion-violation 'open-bundle!
+      (assertion-violation 'really-open-bundle!
                            "no sources for package" (item-package item)))
     (loop continue ((for source (in-list sources)))
       => #f
@@ -786,7 +841,7 @@
 
 (define (make-source-unpacker db item)
   (lambda ()
-    (let* ((bundle (checked-open-bundle! 'make-source-unpacker db item))
+    (let* ((bundle (open-bundle! 'make-source-unpacker db item))
            (tmp-dir (create-temp-directory)))
       (extract-bundle-package bundle (item-package item) tmp-dir)
       tmp-dir)))

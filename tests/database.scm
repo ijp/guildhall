@@ -1,7 +1,7 @@
 ;;; database.scm --- Tests for the package database
 
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009, 2010, 2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -33,7 +33,7 @@
         (guildhall private utils)
         (guildhall inventory)
         (guildhall package)
-        (guildhall destination)
+        (guildhall destination fhs)
         (guildhall hooks)
         (guildhall repository)
         (guildhall database))
@@ -76,6 +76,20 @@
 (define package:file-conflict-foo (make-package 'file-conflict-foo '((0))))
 (define package:hook (make-package 'hook '((0))))
 (define package:hook-crash (make-package 'hook-crash '((0))))
+(define package:hook-source-needed (make-package 'hook-source-needed '((0))))
+
+;;++ make this destination-independent
+(define support-package-trees
+  `(("lib" ("guildhall" (,(effective-version) ("dorodango-support" ("bin" "hook-runner")))))
+    ("share" ("guildhall" (,(effective-version) ("dorodango-support" ("programs" "hook-runner")))))))
+
+(define (destination-tree trees)
+  (cdr (inventory->tree
+        (merge-inventories
+         (tree->inventory (cons 'root trees) #f)
+         (tree->inventory (cons 'root support-package-trees) #f)
+         (lambda (a b)
+           (assertion-violation 'destination-tree "conflict" a b))))))
 
 (define-test-case db-tests locking ((setup (assert-clear-stage))
                                     (teardown (clear-stage)))
@@ -109,20 +123,21 @@
         (inventory->tree
          (package-category-inventory (database-item-package item)
                                      'libraries)))
-      (test-equal `(("share"
-                     ("guildhall"
-                      (,(effective-version)
-                       ("foo"
-                        ("programs" "foo"))))
-                     ("guile"
-                      ("site"
+      (test-equal (destination-tree
+                   `(("share"
+                      ("guildhall"
                        (,(effective-version)
-                        ("foo" "a.scm"))))))
-        (directory->tree dest-dir))
+                        ("foo"
+                         ("programs" "foo"))))
+                      ("guile"
+                       ("site"
+                        (,(effective-version)
+                         ("foo" "a.scm")))))))
+                  (directory->tree dest-dir))
 
       ;; Test removal
       (test-eqv #t (database-remove! db 'foo))
-      (test-equal '()
+      (test-equal (destination-tree '())
                   (directory->tree dest-dir))
       (close-database db))
     (let* ((db (open-test-database '()))
@@ -188,31 +203,50 @@
       (test-eqv #t (database-unpack! db package:foo))
       (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
-    (test-equal `(("share"
-                   ("guildhall"
-                    (,(effective-version)
-                     ("foo"
-                      ("programs" "foo"))))
-                   ("guile"
-                    ("site"
+    (test-equal (destination-tree
+                 `(("share"
+                    ("guildhall"
                      (,(effective-version)
-                      ("bar" "b.scm")
-                      ("foo" "a.scm"))))))
+                      ("foo"
+                       ("programs" "foo"))))
+                    ("guile"
+                     ("site"
+                      (,(effective-version)
+                       ("bar" "b.scm")
+                       ("foo" "a.scm")))))))
       (directory->tree dest-dir))
     (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
-    (test-equal `(("share"
-                   ("guildhall"
-                    (,(effective-version)
-                     ("foo"
-                      ("programs" "foo"))))
-                   ("guile"
-                    ("site" (,(effective-version) ("foo" "a.scm"))))))
+    (test-equal (destination-tree
+                 `(("share"
+                    ("guildhall"
+                     (,(effective-version)
+                      ("foo"
+                       ("programs" "foo"))))
+                    ("guile"
+                     ("site" (,(effective-version) ("foo" "a.scm")))))))
       (directory->tree dest-dir))))
 
-(define-test-case db-tests setup ((setup (assert-clear-stage))
-                                  (teardown (clear-stage)))
+
+;;; Tests involving installation hooks
+
+(define-test-suite (db-tests.hooks db-tests)
+  "Installation hooks")
+
+(define-test-case db-tests.hooks crash ((setup (assert-clear-stage))
+                                        (teardown (clear-stage)))
+  (let ((exception-cookie (list 'cookie)))
+    (call-with-database (open-test-database '())
+      (lambda (db)
+        (test-eqv #t (database-unpack! db package:hook-crash))
+        (test-eq exception-cookie
+          (guard (c ((hook-runner-exception? c)
+                     exception-cookie))
+            (database-setup! db 'hook-crash)))))))
+
+(define-test-case db-tests.hooks install-file ((setup (assert-clear-stage))
+                                               (teardown (clear-stage)))
   (let ()
     (define (test-inventories db)
       (let ((item (database-lookup db 'hook 'installed)))
@@ -225,23 +259,22 @@
       (test-eqv #t (database-unpack! db package:hook))
       (database-setup! db 'hook)
       (test-inventories db)
-      (test-equal `(("share" ("guile"
-                              ("site" (,(effective-version) "test.scm")))))
+      (test-equal (destination-tree
+                   `(("share" ("guile"
+                               ("site" (,(effective-version) "test.scm"))))))
         (directory->tree dest-dir))
       (close-database db))
     (call-with-database (open-test-database '())
       test-inventories)))
 
-(define-test-case db-tests crash ((setup (assert-clear-stage))
-                                  (teardown (clear-stage)))
-  (let ((exception-cookie (list 'cookie)))
-    (call-with-database (open-test-database '())
-      (lambda (db)
-        (test-eqv #t (database-unpack! db package:hook-crash))
-        (test-eq exception-cookie
-          (guard (c ((hook-runner-exception? c)
-                     exception-cookie))
-            (database-setup! db 'hook-crash)))))))
+(define-test-case db-tests.hooks unpacked-source
+  ((setup (assert-clear-stage))
+   (teardown (clear-stage)))
+
+  (call-with-database (open-test-database '())
+    (lambda (db)
+      (test-eqv #t (database-unpack! db package:hook-source-needed))
+      (database-setup! db 'hook-source-needed))))
 
 
 ;;; Tests involving a repository

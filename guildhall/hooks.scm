@@ -79,13 +79,11 @@
 (define null-package (make-package 'null '((0))))
 
 (define (spawn-hook-runner destination)
-  (let ((r6rs-script *script-interpreter*)
-        (hook-runner (find-file (make-pathname #f
-                                               '("guildhall" "private")
-                                               "hook-runner.sps")
-                                (library-search-paths))))
+  (let ((runner-pathname (destination-support-pathname destination
+                                                       'package-executables
+                                                       "hook-runner")))
     (let ((process (spawn-process #f #f #f (standard-error-port)
-                                  r6rs-script hook-runner)))
+                                  #;*script-interpreter* runner-pathname)))
       (make-hook-runner destination
                         process
                         (transcoded-port (process-input process)

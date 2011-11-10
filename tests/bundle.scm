@@ -1,7 +1,7 @@
 ;;; bundle.scm --- Bundle unit tests
 
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
-;; Copyright (C) 2009, 2010 Andreas Rottmann <a.rottmann@gmx.at>
+;; Copyright (C) 2009-2011 Andreas Rottmann <a.rottmann@gmx.at>
 
 ;; Author: Andreas Rottmann <a.rottmann@gmx.at>
 
@@ -24,6 +24,7 @@
 #!r6rs
 
 (import (rnrs)
+        (only (srfi :1) append-map)
         (guildhall ext trc-testing)
         (guildhall spells pathname)
         (only (guile) getenv)
@@ -43,20 +44,19 @@
 (define-test-suite bundle-tests
   "Bundles")
 
+(define expected-package-map
+  '((("bar") bar)
+    (("file-conflict-foo") file-conflict-foo)
+    (("foo") foo)
+    (("hook") hook hook-crash hook-source-needed)
+    (("multi") multi-core multi-tools)
+    (("unsatisfied-depends") unsatisfied-depends)))
+
 (define (test-bundle-contents bundle)
   (test-eqv #t (bundle? bundle))
-  (test-equal '(bar
-                file-conflict-foo foo
-                hook hook-crash
-                multi-core multi-tools
-                unsatisfied-depends)
+  (test-equal (append-map cdr expected-package-map)
     (sorted-package-names (bundle-packages bundle)))
-  (test-equal '((("bar") bar)
-                (("file-conflict-foo") file-conflict-foo)
-                (("foo") foo)
-                (("hook") hook hook-crash)
-                (("multi") multi-core multi-tools)
-                (("unsatisfied-depends") unsatisfied-depends))
+  (test-equal expected-package-map
     (list-sort (lambda (entry-1 entry-2)
                  (string<? (caar entry-1) (caar entry-2)))
                (map (lambda (entry)

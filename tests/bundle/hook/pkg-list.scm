@@ -18,6 +18,17 @@
     (lambda (agent)
       (error 'installation-hook "testing error handling"))))
 
+(package (hook-source-needed (0))
+  (installation-hook ((needs-source? . #t))
+    (import (rnrs base)
+            (rnrs files))
+    (lambda (agent)
+      (let ((unpacked-source (agent 'unpacked-source)))        
+        (or (string? unpacked-source)
+            (error 'hook
+                   "Unexpected result of `unpacked-source"
+                   unpacked-source))))))
+
 ;; Local Variables:
 ;; scheme-indent-styles: (pkg-list)
 ;; End:

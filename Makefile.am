@@ -50,6 +50,7 @@ SOURCES =					\
 	guildhall/database.scm \
 	guildhall/database/dependencies.scm \
 	guildhall/destination.scm \
+	guildhall/destination/fhs.scm \
 	guildhall/hooks.scm \
 	guildhall/inventory.scm \
 	guildhall/inventory/mapping.scm \
@@ -108,7 +109,8 @@ NOCOMP_SOURCES = \
 	guildhall/ext/inc/test.scm \
 	guildhall/spells/private/condition.scm \
 	guildhall/spells/private/xvector.scm \
-	guildhall/private/hook-runner.sps
+	guildhall/private/support-bundle/hook-runner.sps \
+	guildhall/private/support-bundle/pkg-list.scm
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
@@ -139,7 +141,6 @@ TESTS = \
 	tests/expression.scm \
 	tests/package.scm \
 	tests/bundle.scm \
-	tests/hooks.scm \
 	tests/database.scm \
 	tests/solver.scm \
 	tests/actions.scm

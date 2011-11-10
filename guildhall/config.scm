@@ -52,6 +52,7 @@
           (guildhall spells pathname)
           (guildhall private utils)
           (guildhall destination)
+          (guildhall destination fhs)
           (guildhall repository))
 
 (define-record-type (config %make-config config?)

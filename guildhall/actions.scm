@@ -294,16 +294,23 @@
                                       bundle-directory
                                       target-directory
                                       deep?)
-        (if (consider-package? package)
-            (let ((libraries (package-category-inventory package 'libraries)))
-              (log/debug "adding libraries of package "
-                         (dsp-package-identifier package))
-              (receive (target source)
-                       (apply-inventory-mapper star-inventory-mapper
-                                               target-inventory
-                                               libraries)
-                (continue (=> target-inventory target))))
-            (continue))))))
+        (cond ((consider-package? package)
+               (log/debug "adding libraries of package "
+                          (dsp-package-identifier package))
+               (let ((inventory
+                      (merge-inventories
+                       (package-category-inventory package 'libraries)
+                       (package-category-inventory package 'library-auxiliaries)
+                       (lambda (target source)
+                         (fatal (cat "conflicting inventories in package "
+                                     (dsp-package-identifier package)))))))
+                 (receive (target source)
+                          (apply-inventory-mapper star-inventory-mapper
+                                                  target-inventory
+                                                  inventory)
+                   (continue (=> target-inventory target)))))
+              (else
+               (continue)))))))
 
 (define star-inventory-mapper (make-recursive-inventory-mapper list))
 

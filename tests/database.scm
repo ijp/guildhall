@@ -110,9 +110,14 @@
          (package-category-inventory (database-item-package item)
                                      'libraries)))
       (test-equal `(("share"
+                     ("guildhall"
+                      (,(effective-version)
+                       ("foo"
+                        ("programs" "foo"))))
                      ("guile"
-                      ("site" (,(effective-version) ("foo" "a.scm")))
-                      ("site-programs" (,(effective-version) "foo")))))
+                      ("site"
+                       (,(effective-version)
+                        ("foo" "a.scm"))))))
         (directory->tree dest-dir))
 
       ;; Test removal
@@ -184,20 +189,26 @@
       (test-eqv #t (database-unpack! db package:bar))
       (close-database db))
     (test-equal `(("share"
+                   ("guildhall"
+                    (,(effective-version)
+                     ("foo"
+                      ("programs" "foo"))))
                    ("guile"
                     ("site"
                      (,(effective-version)
                       ("bar" "b.scm")
-                      ("foo" "a.scm")))
-                    ("site-programs" (,(effective-version) "foo")))))
+                      ("foo" "a.scm"))))))
       (directory->tree dest-dir))
     (let ((db (open-test-database '())))
       (test-eqv #t (database-remove! db 'bar))
       (close-database db))
     (test-equal `(("share"
+                   ("guildhall"
+                    (,(effective-version)
+                     ("foo"
+                      ("programs" "foo"))))
                    ("guile"
-                    ("site" (,(effective-version) ("foo" "a.scm")))
-                    ("site-programs" (,(effective-version) "foo")))))
+                    ("site" (,(effective-version) ("foo" "a.scm"))))))
       (directory->tree dest-dir))))
 
 (define-test-case db-tests setup ((setup (assert-clear-stage))

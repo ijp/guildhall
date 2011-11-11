@@ -345,7 +345,10 @@
   (list
    (make-category 'libraries default-library-mapper)
    (make-category 'library-auxiliaries null-inventory-mapper)
-   (make-category 'programs null-inventory-mapper) ; no sensible default here
+   (make-category 'package-auxiliaries null-inventory-mapper)
+   (make-category 'package-executables null-inventory-mapper)
+   (make-category 'programs null-inventory-mapper)
+   (make-category 'package-programs null-inventory-mapper)
    (make-category 'documentation default-documentation-mapper)))
 
 (define (categorize-inventory properties inventory)

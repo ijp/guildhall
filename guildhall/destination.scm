@@ -110,6 +110,19 @@
 
 ;;; FHS destination
 
+(define fhs-libraries-template
+  (list "share" "guile" "site" (effective-version)))
+(define fhs-ccache-template
+  (list "lib" "guile" (effective-version) "site-ccache"))
+(define fhs-doc-template
+  (list "share" "doc" "guildhall" (effective-version) 'name))
+(define fhs-programs-template
+  (list "share" "guildhall" (effective-version) 'name "programs"))
+(define fhs-executables-template
+  (list "lib" "guildhall" (effective-version) 'name "bin"))
+(define fhs-auxiliaries-template
+  (list "share" "guildhall" (effective-version) 'name "aux"))
+
 (define (make-fhs-destination name prefix)
   (let ((prefix (pathname-as-directory prefix)))
     (make-destination
@@ -125,10 +138,17 @@
        (documentation
         . ,(make-simple-handler prefix fhs-doc-template))
        (programs
-        . ,(make-simple-handler prefix (list "share" "guile" "site-programs"
-                                             (effective-version))))
-       (executables . ,(make-executable-handler prefix))
-       (man . ,(make-man-page-handler prefix)))
+        . ,(make-simple-handler prefix fhs-programs-template))
+       (package-programs
+        . ,(make-simple-handler prefix fhs-programs-template))
+       (executables
+        . ,(make-executable-handler prefix fhs-executables-template))
+       (package-executables
+        . ,(make-executable-handler prefix fhs-executables-template))
+       (man
+        . ,(make-man-page-handler prefix))
+       (package-auxiliaries
+        . ,(make-simple-handler prefix fhs-auxiliaries-template)))
      (list sh-wrapper-hook))))
 
 (define (string-replace s replacements)
@@ -157,17 +177,41 @@
     => result))
 
 (define (fhs-destination-setup destination options)
+  #;
+  (let ((implementation (or (assq-ref options 'implementation)
+                            (scheme-implementation)))
+        (script-directory (dorodango-script-directory))
+        (destination-script-directory
+         (pathname-join (destination-prefix destination)
+                        script-directory-pathname)))
+    (define (implementation-pathname pathname)
+      (pathname-add-type pathname (symbol->string implementation)))
+    (log/fhs 'info
+             (cat "initializing destination `" (destination-name destination)
+                  "' in " (dsp-pathname (destination-prefix destination))
+                  " for " implementation))
+    (create-directory* destination-script-directory)
+    ;; Put the data scripts into their place
+    (iterate! (for entry (in-directory script-directory))
+      (let ((destination-script
+             (pathname-with-file destination-script-directory entry))
+            (source-script (pathname-with-file script-directory entry)))
+        (call-with-output-file/atomic destination-script
+          (lambda (port)
+            (fmt port (rewrite-script source-script destination))))
+        (chmod "+x" destination-script)))
+    ;; Create implementation-choosing symlinks
+    (iterate! (for script (in-list '("run" "compile")))
+      (let ((script-pathname (pathname-with-file
+                              destination-script-directory
+                              script)))
+        (delete-file script-pathname) ;++ make the link creation atomic
+        (when (file-exists? (implementation-pathname script-pathname))
+          (create-symbolic-link
+           (implementation-pathname (make-pathname #f '() script))
+           script-pathname)))))
   ; Nothing to do!
   #t)
-
-(define fhs-libraries-template
-  (list "share" "guile" "site" (effective-version)))
-
-(define fhs-ccache-template
-  (list "lib" "guile" (effective-version) "site-ccache"))
-
-(define fhs-doc-template
-  (list "share" "doc" "guile" (effective-version) 'name))
 
 (define (make-simple-handler prefix template)
   (make-handler
@@ -189,9 +233,9 @@
    (lambda (package pathname)
      (do-open-file (man-page-pathname pathname)))))
 
-(define (make-executable-handler prefix)
+(define (make-executable-handler prefix template)
   (define (executable-pathname package pathname)
-    (build-pathname prefix '("bin") package pathname))
+    (build-pathname prefix template package pathname))
   (make-handler
    executable-pathname
    (lambda (package pathname)
@@ -227,18 +271,31 @@
     (open-file-output-port filename)))
 
 (define (sh-wrapper-hook destination package)
-  (cond ((package-category-inventory package 'programs)
-         => (lambda (programs)
-              (list (create-sh-wrappers destination package programs))))
-        (else
-         '())))
+  (iterate-values ((result '()))
+      (for source.target
+           (in-list '((programs . executables)
+                      (package-programs . package-executables))))
+    (cond ((package-category-inventory package (car source.target))
+           => (lambda (programs)
+                (cons (create-sh-wrappers destination
+                                          package
+                                          (car source.target)
+                                          (cdr source.target)
+                                          programs)
+                      result)))
+          (else
+           result))))
 
-(define (create-sh-wrappers destination package programs)
+(define (create-sh-wrappers destination
+                            package
+                            source-category
+                            target-category
+                            programs)
   (define (create-wrapper pathname)
     (call-with-port
         (transcoded-port (destination-open-file destination
                                                 package
-                                                'executables
+                                                target-category
                                                 pathname)
                          (native-transcoder))
       (lambda (port)
@@ -249,11 +306,11 @@
                                   package
                                   (destination-pathname destination
                                                         package
-                                                        'programs
+                                                        source-category
                                                         pathname))))))
   (iterate! ((for cursor path (in-inventory-leafs programs)))
     (create-wrapper (make-pathname #f (reverse path) (inventory-name cursor))))
-  (inventory-relabel programs 'executables (inventory-data programs)))
+  (inventory-relabel programs target-category (inventory-data programs)))
 
 (define (dsp-sh-wrapper prefix package program-pathname)
   (cat "#!/bin/sh\n"

@@ -306,6 +306,9 @@
                       (inventory-insert cursor (tree->inventory item data))
                       (inventory-insert cursor item #f data)))))))
 
+(define (maybe-car thing)
+  (if (pair? thing) (car thing) thing))
+
 (define (inventory->tree inventory)
   (loop ((for cursor (in-inventory inventory))
          (for result
@@ -317,7 +320,10 @@
                      (else
                       (inventory->tree cursor)))
                => values)))
-    => (cons (inventory-name inventory) result)))
+    => (cons (inventory-name inventory)
+             (list-sort (lambda (x y)
+                          (string<? (maybe-car x) (maybe-car y)))
+                         result))))
 
 
 

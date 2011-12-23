@@ -28,9 +28,9 @@
 
 (define-module (scripts update)
   #:autoload (scripts help) (show-usage)
-  #:use-module (sigil cli)
-  #:use-module (sigil cli ui)
-  #:use-module (sigil database))
+  #:use-module (guildhall cli)
+  #:use-module (guildhall cli ui)
+  #:use-module (guildhall database))
 
 (define %summary "Update repository information.")
 (define %synopsis "update")

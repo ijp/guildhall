@@ -2,7 +2,7 @@
 @chapter Overview
 @cindex packages
 
-Sigil extends the @command{guild} program, provided by Guile, with a
+Guildhall extends the @command{guild} program, provided by Guile, with a
 number of sub-comands that let you download, install, remove
 and upgrade Scheme modules and programs.
 
@@ -23,13 +23,13 @@ some metadata.
 @cindex category
 @cindex file, category
 
-A package is the "unit of software" that Sigil works with. It has a
+A package is the "unit of software" that Guildhall works with. It has a
 name and a version, which may be used to form dependency relationships
 among packages.  It also may have other attributes, like a description
 and a homepage URL.  Besides the metadata, a package also contains
 files, which are grouped into categories.  Each category of a package
 conceptionally contains a set of files, along with their desired
-installation locations.  The categories currently handled by Sigil
+installation locations.  The categories currently handled by Guildhall
 are:
 
 @table @samp

@@ -24,8 +24,8 @@
 #!r6rs
 
 (import (rnrs)
-        (sigil ext trc-testing)
-        (sigil solver expression))
+        (guildhall ext trc-testing)
+        (guildhall solver expression))
 
 (define-test-suite expression-tests
   "Dynamically updateable expression DAG")

@@ -23,8 +23,8 @@
 
 (import (rnrs)
         (only (srfi :1) append-map)
-        (sigil ext trc-testing)
-        (sigil package))
+        (guildhall ext trc-testing)
+        (guildhall package))
 
 (define-test-suite package-tests
   "Package datastructures")

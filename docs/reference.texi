@@ -1,10 +1,10 @@
 @node Reference
 @chapter Reference
 
-Sigil doesn't actually install any programs.  Instead, it extends the
+Guildhall doesn't actually install any programs.  Instead, it extends the
 @command{guild} program that comes with Guile, adding new commands to
 it like @command{guild install}, @command{guild upgrade}, and the
-like.  These sigil commands allow you, the guild member, to download,
+like.  These guildhall commands allow you, the guild member, to download,
 install and inspect packages containing Scheme code.
 
 The following subsections document the available commands, grouped by
@@ -27,7 +27,7 @@ install --help}.
 
 @subsection Config Options
 
-Commands that need to access the sigil configuration file accept
+Commands that need to access the guildhall configuration file accept
 options to allow you choose a non-default file, or modify aspects of
 the configuration while the command is running.
 
@@ -39,12 +39,12 @@ one. @xref{Configuration File}, for configuration file syntax.
 
 @item --no-config
 Do not read any configuration file. This option can be used to ensure
-that sigil commands will just use built-in defaults.
+that guildhall commands will just use built-in defaults.
 
 @item --prefix=@var{prefix}
 Use an FHS destination located below the directory @var{prefix}. This
 option has the same effect as adding an FHS destination to the
-configuration file and using it for this invocation of the sigil
+configuration file and using it for this invocation of the guildhall
 command.
 @end table
 

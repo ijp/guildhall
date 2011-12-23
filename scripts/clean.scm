@@ -27,9 +27,9 @@
 
 (define-module (scripts clean)
   #:autoload (scripts help) (show-usage)
-  #:use-module (sigil cli)
-  #:use-module (sigil cli db)
-  #:use-module (sigil database))
+  #:use-module (guildhall cli)
+  #:use-module (guildhall cli db)
+  #:use-module (guildhall database))
 
 (define %summary "Clean the package cache.")
 (define %synopsis "clean")

@@ -24,11 +24,11 @@
 #!r6rs
 
 (import (rnrs)
-        (sigil ext trc-testing)
-        (sigil spells pathname)
+        (guildhall ext trc-testing)
+        (guildhall spells pathname)
         (only (guile) getenv)
-        (sigil package)
-        (sigil bundle))
+        (guildhall package)
+        (guildhall bundle))
 
 (define (this-directory) (or (getenv "srcdir") "."))
 

@@ -1,12 +1,12 @@
 @node Installation
 @section Installation
 
-Sigil comes in a standard GNU tarball, and so the normal package
+Guildhall comes in a standard GNU tarball, and so the normal package
 installation techniques apply:
 
 @example
 tar -xjf @value{PACKAGE}-@value{VERSION}.tar.bz2
-cd @value{PACKAGE}-@value{VERSION}/sigil
+cd @value{PACKAGE}-@value{VERSION}/guildhall
 ./configure
 make
 make check
@@ -16,9 +16,9 @@ make install
 
 Note that this assumes that you have installed Guile into the default
 prefix for @command{./configure}, which is usually @code{/usr/local}.
-It is recommended to install sigil into the same prefix as your
+It is recommended to install guildhall into the same prefix as your
 Guile installation, so if you installed Guile to @code{/usr}, add
 @code{--prefix=/usr} after to your @code{./configure} invocation.
 
-After running installing Sigil, you should now be able to
+After running installing Guildhall, you should now be able to
 run @command{guild config --help}, which displays a help message.

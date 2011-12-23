@@ -1,20 +1,20 @@
-Sigil is a port of Andreas Rottmann's `dorodango' package manager
+Guildhall is a port of Andreas Rottmann's `dorodango' package manager
 for R6RS Scheme.  Dorodango is available under the GNU GPL, version 3 or
 later, and is Copyright (C) 2009-2011 Andreas Rottman.
 
-The porting work to turn Dorodango into Sigil was done by Andy Wingo,
+The porting work to turn Dorodango into Guildhall was done by Andy Wingo,
 and is Copyright (C) 2011 Free Software Foundation, Inc.
 
 * imported code
 
-For resolving dependencies, sigil employs a Scheme "port" of
+For resolving dependencies, guildhall employs a Scheme "port" of
 aptitude's solver, from the Debian project. The code is based on
 aptitude changeset 3258:f952da7ee794, Copyright (C) 2005, 2007-2009,
-Daniel Burrows, licensed under the GPL, version 2 or later. Sigil
+Daniel Burrows, licensed under the GPL, version 2 or later. Guildhall
 also takes some inspiration from aptitude's command line user interface,
 mostly in the form of similiar wording of messages.
 
-Sigil also includes a number of external Scheme libraries which
+Guildhall also includes a number of external Scheme libraries which
 have their own licenses, all of them compatible with the GPLv3+.  Here
 is a list of those libraries, their files, and their licenses.  If a
 file does not appear in this list, it is probably under the GPLv3+,
@@ -23,91 +23,91 @@ though the header on the file will tell you for sure.
 See the COPYING.* files for the full licenses.
 
 Author: Andreas Rottmann <a.rottmann@gmx.at>
-Files: sigil/ext/define-values.scm
+Files: guildhall/ext/define-values.scm
 License: MIT
 
 Author: Olin Shivers
-Files: sigil/ext/let-optionals.scm
+Files: guildhall/ext/let-optionals.scm
 License: BSD
 
 Author: Andreas Rottmann
-Files: sigil/ext/fmt.scm
+Files: guildhall/ext/fmt.scm
 License: BSD
 
 Author: Alex Shinn
-Files: sigil/ext/inc/{mantissa,fmt,fmt-pretty,fmt-column}.scm
+Files: guildhall/ext/inc/{mantissa,fmt,fmt-pretty,fmt-column}.scm
 License: BSD
 
 Author: Taylor Campbell
-Files: sigil/ext/inc/syn-param.scm
+Files: guildhall/ext/inc/syn-param.scm
 License: Public Domain
 
 Author: Andreas Rottmann
-Files: sigil/ext/foof-loop.scm, sigil/ext/foof-loop/nested.scm
+Files: guildhall/ext/foof-loop.scm, guildhall/ext/foof-loop/nested.scm
 License: BSD
 
 Author: Taylor Campbell
-Files: sigil/ext/inc/{nested-,}foof-loop.scm
+Files: guildhall/ext/inc/{nested-,}foof-loop.scm
 License: BSD
 
 Author: Andreas Rottmann
-Files: sigil/ext/irregex.scm
+Files: guildhall/ext/irregex.scm
 License: BSD
 
 Author: Alex Shinn
-Files: sigil/ext/inc/irregex-{r6rs,utils}.scm
+Files: guildhall/ext/inc/irregex-{r6rs,utils}.scm
 License: BSD
 
 Author: Andreas Rottmann
 Author: Taylor Campbell
-Files: sigil/ext/trc-testing.scm
-Files: sigil/ext/trc-testing/parameters.scm
-Files: sigil/ext/inc/test.scm
+Files: guildhall/ext/trc-testing.scm
+Files: guildhall/ext/trc-testing/parameters.scm
+Files: guildhall/ext/inc/test.scm
 License: LGPLv3+
 
 Author: Andreas Rottmann
 Author: Taylor Campbell
-Files: sigil/ext/trc-testing/restart.scm
+Files: guildhall/ext/trc-testing/restart.scm
 License: Public Domain
 
 Author: Andreas Rottmann
-Files: sigil/ext/trc-testing/port-tracker.scm
-Files: sigil/ext/trc-testing/display-condition.scm
+Files: guildhall/ext/trc-testing/port-tracker.scm
+Files: guildhall/ext/trc-testing/display-condition.scm
 License: BSD
 
 Author: Richard Kelsey
 Author: Jonathan Rees
-Files: sigil/ext/trc-testing/limited-write.scm
+Files: guildhall/ext/trc-testing/limited-write.scm
 License: BSD
 
 Author: Andreas Rottmann
 Author: Massachusetts Institute of Technology
 Author: Stephen Adams
-Files: sigil/ext/wt-tree.scm
+Files: guildhall/ext/wt-tree.scm
 License: GPLv2+
 
 Author: Andreas Rottmann
-Files: sigil/spells/*
+Files: guildhall/spells/*
 License: BSD
 
 Author: Anthony Carrico
-Files: sigil/spells/args-fold.scm
+Files: guildhall/spells/args-fold.scm
 License: BSD
 
 Author: Richard Kelsey
 Author: Jonathan Rees
-Files: sigil/spells/private/condition.scm
+Files: guildhall/spells/private/condition.scm
 License: BSD
 
 Author: Taylor Campbell
-Files: sigil/spells/record-types/expand-drt.scm,
-       sigil/spells/private/xvector.scm
+Files: guildhall/spells/record-types/expand-drt.scm,
+       guildhall/spells/private/xvector.scm
 License: BSD
 
 Author: Göran Weinholt
-Files: sigil/weinholt/*
+Files: guildhall/weinholt/*
 License: GPLv3+
 
 Author: Andreas Rottmann
-Files: sigil/weinholt/compression/sliding-buffer.scm
+Files: guildhall/weinholt/compression/sliding-buffer.scm
 License: GPLv3+

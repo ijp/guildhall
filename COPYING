@@ -1,10 +1,10 @@
-Sigil is free software; you can redistribute it and/or modify it
+Guildhall is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
 Free Software Foundation; either version 3 of the License, or (at your
 option) any later version.  See the included COPYING.GPL-3, for
 details.
 
-Sigil includes a number of external libraries which have their own
+Guildhall includes a number of external libraries which have their own
 licenses, though all of them are compatible with the GPLv3+.  See
 AUTHORS for a full list of those files, and the various COPYING.* files
 for their respective copying conditions.

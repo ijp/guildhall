@@ -26,14 +26,14 @@
 ;;; Code:
 
 (define-module (scripts show)
-  #:use-module (sigil cli)
-  #:use-module (sigil cli db)
-  #:use-module (sigil ext fmt)
-  #:use-module (sigil ext foof-loop)
-  #:use-module (sigil private utils)
-  #:use-module (sigil database)
-  #:use-module (sigil package)
-  #:use-module (sigil ui formatters))
+  #:use-module (guildhall cli)
+  #:use-module (guildhall cli db)
+  #:use-module (guildhall ext fmt)
+  #:use-module (guildhall ext foof-loop)
+  #:use-module (guildhall private utils)
+  #:use-module (guildhall database)
+  #:use-module (guildhall package)
+  #:use-module (guildhall ui formatters))
 
 (define %summary "Show package information.")
 (define %synopsis "show [--bundle=BUNDLE]... PACKAGE...")

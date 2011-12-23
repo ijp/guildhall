@@ -25,10 +25,10 @@
 (import (rnrs)
         (srfi :8 receive)
         (only (guile) and=>)
-        (sigil ext foof-loop)
-        (sigil ext trc-testing)
-        (sigil inventory)
-        (sigil inventory mapping))
+        (guildhall ext foof-loop)
+        (guildhall ext trc-testing)
+        (guildhall inventory)
+        (guildhall inventory mapping))
 
 ;;; Utilities
 

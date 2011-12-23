@@ -1,15 +1,15 @@
 # texi2pdf products
-/sigil.aux
-/sigil.cp
-/sigil.cps
-/sigil.fn
-/sigil.ky
-/sigil.log
-/sigil.pdf
-/sigil.pg
-/sigil.toc
-/sigil.tp
-/sigil.vr
+/guildhall.aux
+/guildhall.cp
+/guildhall.cps
+/guildhall.fn
+/guildhall.ky
+/guildhall.log
+/guildhall.pdf
+/guildhall.pg
+/guildhall.toc
+/guildhall.tp
+/guildhall.vr
 
 # makeinfo products
-/sigil.info
+/guildhall.info

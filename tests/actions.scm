@@ -23,14 +23,14 @@
 #!r6rs
 
 (import (except (rnrs) delete-file file-exists?)
-        (sigil spells pathname)
-        (sigil spells filesys)
+        (guildhall spells pathname)
+        (guildhall spells filesys)
         (only (guile) getenv)
-        (sigil ext trc-testing)
-        (sigil private utils)
-        (sigil private zip)
-        (sigil inventory)
-        (sigil actions))
+        (guildhall ext trc-testing)
+        (guildhall private utils)
+        (guildhall private zip)
+        (guildhall inventory)
+        (guildhall actions))
 
 (define (this-directory) (or (getenv "srcdir") "."))
 

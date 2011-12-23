@@ -2,79 +2,79 @@ moddir=$(datadir)/guile/site/$(GUILE_EFFECTIVE_VERSION)
 ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
 SOURCES =					\
-	sigil/ext/wt-tree.scm \
-	sigil/spells/algebraic-types.scm \
-	sigil/spells/algebraic-types/helpers.scm \
-	sigil/spells/args-fold.scm \
-	sigil/spells/condition.scm \
-	sigil/spells/filesys.scm \
-	sigil/spells/finite-types.scm \
-	sigil/spells/hash-utils.scm \
-	sigil/spells/logging.scm \
-	sigil/spells/operations.scm \
-	sigil/spells/pathname.scm \
-	sigil/spells/process.scm \
-	sigil/spells/process/compat.scm \
-	sigil/spells/record-types.scm \
-	sigil/spells/record-types/expand-drt.scm \
-	sigil/spells/string-utils.scm \
-	sigil/spells/syntax-utils.scm \
-	sigil/spells/sysutils.scm \
-	sigil/spells/xvector.scm \
-	sigil/spells/zipper-tree.scm \
-	sigil/ext/fmt.scm \
-	sigil/ext/foof-loop.scm \
-	sigil/ext/foof-loop/nested.scm \
-	sigil/ext/irregex.scm \
-	sigil/ext/define-values.scm \
-	sigil/ext/let-optionals.scm \
-	sigil/ext/trc-testing.scm \
-	sigil/ext/trc-testing/display-condition.scm \
-	sigil/ext/trc-testing/limited-write.scm \
-	sigil/ext/trc-testing/parameters.scm \
-	sigil/ext/trc-testing/port-tracker.scm \
-	sigil/ext/trc-testing/restart.scm \
-	sigil/weinholt/compression/bitstream.scm \
-	sigil/weinholt/compression/huffman.scm \
-	sigil/weinholt/compression/inflate.scm \
-	sigil/weinholt/compression/sliding-buffer.scm \
-	sigil/weinholt/compression/zip.scm \
-	sigil/weinholt/compression/zip/extra.scm \
-	sigil/weinholt/crypto/crc.scm \
-	sigil/weinholt/struct/pack.scm \
+	guildhall/ext/wt-tree.scm \
+	guildhall/spells/algebraic-types.scm \
+	guildhall/spells/algebraic-types/helpers.scm \
+	guildhall/spells/args-fold.scm \
+	guildhall/spells/condition.scm \
+	guildhall/spells/filesys.scm \
+	guildhall/spells/finite-types.scm \
+	guildhall/spells/hash-utils.scm \
+	guildhall/spells/logging.scm \
+	guildhall/spells/operations.scm \
+	guildhall/spells/pathname.scm \
+	guildhall/spells/process.scm \
+	guildhall/spells/process/compat.scm \
+	guildhall/spells/record-types.scm \
+	guildhall/spells/record-types/expand-drt.scm \
+	guildhall/spells/string-utils.scm \
+	guildhall/spells/syntax-utils.scm \
+	guildhall/spells/sysutils.scm \
+	guildhall/spells/xvector.scm \
+	guildhall/spells/zipper-tree.scm \
+	guildhall/ext/fmt.scm \
+	guildhall/ext/foof-loop.scm \
+	guildhall/ext/foof-loop/nested.scm \
+	guildhall/ext/irregex.scm \
+	guildhall/ext/define-values.scm \
+	guildhall/ext/let-optionals.scm \
+	guildhall/ext/trc-testing.scm \
+	guildhall/ext/trc-testing/display-condition.scm \
+	guildhall/ext/trc-testing/limited-write.scm \
+	guildhall/ext/trc-testing/parameters.scm \
+	guildhall/ext/trc-testing/port-tracker.scm \
+	guildhall/ext/trc-testing/restart.scm \
+	guildhall/weinholt/compression/bitstream.scm \
+	guildhall/weinholt/compression/huffman.scm \
+	guildhall/weinholt/compression/inflate.scm \
+	guildhall/weinholt/compression/sliding-buffer.scm \
+	guildhall/weinholt/compression/zip.scm \
+	guildhall/weinholt/compression/zip/extra.scm \
+	guildhall/weinholt/crypto/crc.scm \
+	guildhall/weinholt/struct/pack.scm \
 	\
-	sigil/actions.scm \
-	sigil/bundle.scm \
-	sigil/build-info.scm \
-	sigil/config.scm \
-	sigil/database.scm \
-	sigil/database/dependencies.scm \
-	sigil/destination.scm \
-	sigil/hooks.scm \
-	sigil/inventory.scm \
-	sigil/inventory/mapping.scm \
-	sigil/package.scm \
-	sigil/private/utils.scm \
-	sigil/private/zip.scm \
-	sigil/repository.scm \
-	sigil/solver.scm \
-	sigil/solver/choice.scm \
-	sigil/solver/dummy-db.scm \
-	sigil/solver/expression.scm \
-	sigil/solver/internals.scm \
-	sigil/solver/logging.scm \
-	sigil/solver/promotions.scm \
-	sigil/solver/search-graph.scm \
-	sigil/solver/universe.scm \
-	sigil/cli.scm \
-	sigil/cli/config.scm \
-	sigil/cli/db.scm \
-	sigil/cli/ui.scm \
-	sigil/ui.scm \
-	sigil/ui/cmdline/base.scm \
-	sigil/ui/cmdline/dependencies.scm \
-	sigil/ui/cmdline/help.scm \
-	sigil/ui/formatters.scm \
+	guildhall/actions.scm \
+	guildhall/bundle.scm \
+	guildhall/build-info.scm \
+	guildhall/config.scm \
+	guildhall/database.scm \
+	guildhall/database/dependencies.scm \
+	guildhall/destination.scm \
+	guildhall/hooks.scm \
+	guildhall/inventory.scm \
+	guildhall/inventory/mapping.scm \
+	guildhall/package.scm \
+	guildhall/private/utils.scm \
+	guildhall/private/zip.scm \
+	guildhall/repository.scm \
+	guildhall/solver.scm \
+	guildhall/solver/choice.scm \
+	guildhall/solver/dummy-db.scm \
+	guildhall/solver/expression.scm \
+	guildhall/solver/internals.scm \
+	guildhall/solver/logging.scm \
+	guildhall/solver/promotions.scm \
+	guildhall/solver/search-graph.scm \
+	guildhall/solver/universe.scm \
+	guildhall/cli.scm \
+	guildhall/cli/config.scm \
+	guildhall/cli/db.scm \
+	guildhall/cli/ui.scm \
+	guildhall/ui.scm \
+	guildhall/ui/cmdline/base.scm \
+	guildhall/ui/cmdline/dependencies.scm \
+	guildhall/ui/cmdline/help.scm \
+	guildhall/ui/formatters.scm \
 	\
 	scripts/clean.scm \
 	scripts/config.scm \
@@ -95,19 +95,19 @@ SOURCES =					\
 # always nice to have source, so that's what we do.
 #
 NOCOMP_SOURCES = \
-	sigil/ext/inc/foof-loop.scm \
-	sigil/ext/inc/nested-foof-loop.scm \
-	sigil/ext/inc/syn-param.scm \
-	sigil/ext/inc/irregex-utils.scm \
-	sigil/ext/inc/irregex-r6rs.scm \
-	sigil/ext/inc/fmt-pretty.scm \
-	sigil/ext/inc/mantissa.scm \
-	sigil/ext/inc/fmt-column.scm \
-	sigil/ext/inc/fmt.scm \
-	sigil/ext/inc/test.scm \
-	sigil/spells/private/condition.scm \
-	sigil/spells/private/xvector.scm \
-	sigil/private/hook-runner.sps
+	guildhall/ext/inc/foof-loop.scm \
+	guildhall/ext/inc/nested-foof-loop.scm \
+	guildhall/ext/inc/syn-param.scm \
+	guildhall/ext/inc/irregex-utils.scm \
+	guildhall/ext/inc/irregex-r6rs.scm \
+	guildhall/ext/inc/fmt-pretty.scm \
+	guildhall/ext/inc/mantissa.scm \
+	guildhall/ext/inc/fmt-column.scm \
+	guildhall/ext/inc/fmt.scm \
+	guildhall/ext/inc/test.scm \
+	guildhall/spells/private/condition.scm \
+	guildhall/spells/private/xvector.scm \
+	guildhall/private/hook-runner.sps
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
@@ -165,14 +165,14 @@ EXTRA_DIST += $(TESTS) $(TESTDATA)
 
 TESTS_ENVIRONMENT=srcdir=$(abs_top_srcdir)/tests/ $(top_builddir)/env guile --no-auto-compile -s 
 
-info_TEXINFOS = docs/sigil.texi
-sigil_TEXINFOS = \
+info_TEXINFOS = docs/guildhall.texi
+guildhall_TEXINFOS = \
 	docs/installation.texi \
 	docs/quickstart.texi \
 	docs/overview.texi \
 	docs/reference.texi \
 	docs/packaging.texi
 
-EXTRA_DIST += $(sigil_TEXINFOS)
+EXTRA_DIST += $(guildhall_TEXINFOS)
 
 EXTRA_DIST += HACKING COPYING.GPL-3 COPYING.LGPL-3 COPYING.MIT COPYING.BSD

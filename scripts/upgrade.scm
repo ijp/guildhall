@@ -28,12 +28,12 @@
 
 (define-module (scripts upgrade)
   #:use-module (rnrs)
-  #:use-module (sigil cli ui)
-  #:use-module (sigil ext foof-loop)
-  #:use-module (sigil database)
-  #:use-module (sigil package)
-  #:use-module (sigil ui cmdline dependencies)
-  #:use-module (sigil ui formatters)
+  #:use-module (guildhall cli ui)
+  #:use-module (guildhall ext foof-loop)
+  #:use-module (guildhall database)
+  #:use-module (guildhall package)
+  #:use-module (guildhall ui cmdline dependencies)
+  #:use-module (guildhall ui formatters)
   #:use-module (ice-9 receive))
 
 (define %summary "Upgrade all packages.")

@@ -1,9 +1,9 @@
 (import (except (rnrs) delete-file file-exists?)
         (srfi :8 receive)
-        (sigil ext trc-testing)
-        (sigil spells filesys)
-        (sigil spells pathname)
-        (sigil private utils))
+        (guildhall ext trc-testing)
+        (guildhall spells filesys)
+        (guildhall spells pathname)
+        (guildhall private utils))
 
 
 (define-test-suite utils-tests

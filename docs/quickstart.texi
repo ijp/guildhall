@@ -2,14 +2,14 @@
 @section Quickstart
 
 For the impatient, this section presents the minimum you need to know
-to install software using your new guild sigil.
+to install software using your new guild guildhall.
 
 @subheading Configuration
 
-So, you've successfully installed Sigil, and were able to get the help
+So, you've successfully installed Guildhall, and were able to get the help
 message via @command{guild config --help}? Then it's time to tell
-Sigil where it can find software (@pxref{Packages}) to install. Create
-the file @file{~/.config/sigil/config.scm} and add this line:
+Guildhall where it can find software (@pxref{Packages}) to install. Create
+the file @file{~/.config/guildhall/config.scm} and add this line:
 
 @lisp
 (repository experimental "http://rotty.yi.org/doro/experimental")
@@ -18,7 +18,7 @@ the file @file{~/.config/sigil/config.scm} and add this line:
 This tells the guild the location of the Andreas Rottmann's
 experimental repository, and gives it the name
 @samp{experimental}. You could add further repositories with different
-names and locations, and Sigil will consider them all when installing
+names and locations, and Guildhall will consider them all when installing
 packages.
 
 @subheading Updating the package database
@@ -68,7 +68,7 @@ install that package as well.
 
 @subheading Other important commands
 
-Now you you know how to achieve the primary task of Sigil: installing
+Now you you know how to achieve the primary task of Guildhall: installing
 software.  There are a few other things you probably want to do at
 times:
 

@@ -39,14 +39,15 @@ This manual is for Guildhall version @value{VERSION}.
 
 Guildhall is a package manager written for Guile Scheme.
 
-A guild is an association of independent craftspeople.  This guildhall
-marks you as a member of the guild of Guile wizards and journeyfolk.
+A guild is an association of independent craftspeople.  A guildhall is
+where they meet.  This Guildhall aims to make a virtual space for
+Guile wizards and journeyfolk to share code.
 
-On a practical level, Guildhall lets you share Scheme modules and programs
-over the internet, and install code that has been shared by others.
-Guildhall can handle dependencies, so when a program requires several
-libraries, and each of those has further dependencies, all of the
-prerequisites for the program can be installed in one go.
+On a practical level, Guildhall lets you share Scheme modules and
+programs over the internet, and install code that has been shared by
+others.  Guildhall can handle dependencies, so when a program requires
+several libraries, and each of those has further dependencies, all of
+the prerequisites for the program can be installed in one go.
 
 Guildhall is a port of Andreas Rottmann's Dorodango portable package
 manager for R6RS Scheme, adapted to better fit in with Guile Scheme

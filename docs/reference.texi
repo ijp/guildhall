@@ -1,11 +1,12 @@
 @node Reference
 @chapter Reference
 
-Guildhall doesn't actually install any programs.  Instead, it extends the
-@command{guild} program that comes with Guile, adding new commands to
-it like @command{guild install}, @command{guild upgrade}, and the
-like.  These guildhall commands allow you, the guild member, to download,
-install and inspect packages containing Scheme code.
+Installing Guildhall doesn't actually install any programs.  Instead,
+Guildhall extends the @command{guild} program that comes with Guile,
+adding new commands to it like @command{guild install}, @command{guild
+upgrade}, and the like.  These guildhall commands allow you, the guild
+member, to download, install and inspect packages containing Scheme
+code.
 
 The following subsections document the available commands, grouped by
 related tasks.
@@ -27,7 +28,7 @@ install --help}.
 
 @subsection Config Options
 
-Commands that need to access the guildhall configuration file accept
+Commands that need to access the Guildhall configuration file accept
 options to allow you choose a non-default file, or modify aspects of
 the configuration while the command is running.
 
@@ -226,7 +227,7 @@ Create a bundle from the directories given as arguments.
 @itemx -o @var{filename}
 
 Output the bundle to @var{filename}. When this option is not given,
-the guild will try to name the bundle based on the package contained
+Guildhall will try to name the bundle based on the package contained
 in it. Should the bundle contain multiple packages, this option is
 mandatory.
 
@@ -284,8 +285,8 @@ comma- or space-seperated list @var{packages}.
 @node Configuration File
 @section Configuration File
 
-The configuration file stores permanent settings for the guild, and
-can be selected with the @option{--config} option, @pxref{Common
+The configuration file stores permanent Guildhall settings, and can be
+selected with the @option{--config} option, @pxref{Common
 Options}. Its syntax is S-expression-based clauses. In the following,
 we will dissect an example configuration file; note however, that for
 most users, a much simpler configuration will suffice
@@ -344,7 +345,7 @@ will be used with this destination. A repository must be declared before
 being referenced in a destination's @code{repositories} clause.
 
 The @code{database} sub-clause allows to define the location of the
-package database on disk; if it is left out, the guild will use a
+package database on disk; if it is left out, Guildhall will use a
 default location, based on the destination's prefix.
 
 @subsection Defaults

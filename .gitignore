@@ -10,7 +10,7 @@
 *.go
 /configure
 /env
-/sigil/build-info.scm
+/guildhall/build-info.scm
 /docs/.dirstamp
 /docs/sigil.info
 /docs/stamp-vti

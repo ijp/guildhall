@@ -2,7 +2,7 @@
 @section Quickstart
 
 For the impatient, this section presents the minimum you need to know
-to install software using your new guild guildhall.
+to install software from the guildhall.
 
 @subheading Configuration
 
@@ -15,11 +15,11 @@ the file @file{~/.config/guildhall/config.scm} and add this line:
 (repository experimental "http://rotty.yi.org/doro/experimental")
 @end lisp
 
-This tells the guild the location of the Andreas Rottmann's
+This tells Guildhall the location of the Andreas Rottmann's
 experimental repository, and gives it the name
 @samp{experimental}. You could add further repositories with different
-names and locations, and Guildhall will consider them all when installing
-packages.
+names and locations, and Guildhall will consider them all when
+installing packages.
 
 @subheading Updating the package database
 
@@ -62,9 +62,9 @@ Fetching http://rotty.yi.org/doro/experimental/spells_0-20091204.zip
 Installing spells (0-20091204) ...
 @end verbatim
 
-As demonstrated in the above listing, the guild knows that the
-package @samp{spells} depends on @samp{srfi}, and will automatically
-install that package as well.
+As demonstrated in the above listing, Guildhall knows that the package
+@samp{spells} depends on @samp{srfi}, and will automatically install
+that package as well.
 
 @subheading Other important commands
 

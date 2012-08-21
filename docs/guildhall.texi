@@ -17,6 +17,11 @@ later version published by the Free Software Foundation.
 @end quotation
 @end copying
 
+@dircategory The Algorithmic Language Scheme
+@direntry
+* Guildhall: (guildhall).      Package manager for Guile 2
+@end direntry
+
 @titlepage
 @title Guildhall Manual
 @author Andreas Rottmann

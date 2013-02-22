@@ -48,6 +48,7 @@
                        database.
       --help           Print this help message.
       --version        Print version information.
+      --all-versions   Show all available versions of packages.
 ")
 
 (define (dsp-db-item item)
@@ -72,6 +73,7 @@
 (define (main . args)
   (define all? #f)
   (define bundles '())
+  (define multiple-versions? #f)
   (call-with-parsed-options/config+db
       %mod args
       (list
@@ -80,12 +82,18 @@
         (lambda () (set! all? #t)))
        (make-option/arg
         '("bundle" #\b)
-        (lambda (arg) (set! bundles (append bundles (list arg))))))
+        (lambda (arg) (set! bundles (append bundles (list arg)))))
+       (make-option
+        '("all-versions")
+        (lambda ()
+          (set! multiple-versions? #t))))
     (lambda (args config db)
       (database-add-bundles! db bundles)
       (loop ((for package items (in-database db (sorted-by symbol<?))))
         (cond (all?
-               (fmt #t (fmt-join/suffix dsp-db-item/short items "\n")))
+               (if multiple-versions?
+                   (fmt #t (fmt-join/suffix dsp-db-item/short items "\n"))
+                   (fmt #t (dsp-db-item/short (car items)) "\n")))
               ((find database-item-installed? items)
                => (lambda (installed)
                     (fmt #t (dsp-db-item/short installed) "\n")))))))

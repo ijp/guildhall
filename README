@@ -1,5 +1,20 @@
 # -*- indented-text -*-
 
+Guildhall is a package manager written for Guile Scheme.
+A guild is an association of independent craftspeople. A guildhall is where they
+meet. This Guildhall aims to make a virtual space for Guile wizards and 
+journeyfolk to share code.
+
+On a practical level, Guildhall lets you share Scheme modules and programs over
+the internet, and install code that has been shared by others. Guildhall can
+handle dependencies, so when a program requires several libraries, and each
+of those has further dependencies, all of the prerequisites for the program
+can be installed in one go.
+
+Guildhall is a port of Andreas Rottmanns Dorodango portable package manager for
+R6RS Scheme, adapted to better fit in with Guile Scheme environments. 
+It is compatible with the R6RS Scheme package archives that Dorodango uses.
+
 dorodango is (intended to be) a package manager for R6RS
 implementations. Its main concepts are outlined in this thread:
 <http://groups.google.com/group/ikarus-users/browse_thread/thread/fabb890e3015f6f1>.

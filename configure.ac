@@ -19,6 +19,9 @@ fi
 GUILE_EFFECTIVE_VERSION=`$GUILE -c '(display (effective-version))'`
 AC_SUBST(GUILE_EFFECTIVE_VERSION)
 
+GUILE_VERSION=`$GUILE -c '(display (version))'`
+AC_SUBST(GUILE_VERSION)
+
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([guildhall/build-info.scm])
 AC_CONFIG_FILES([env], [chmod +x env])

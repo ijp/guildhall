@@ -51,7 +51,8 @@
           rm-rf
           logger:dorodango
           make-fmt-log
-          fmt-indented)
+          fmt-indented
+          user-agent)
   (import (except (rnrs) file-exists? delete-file)
           (only (srfi :1) drop-right last)
           (srfi :8 receive)
@@ -64,6 +65,7 @@
           (guildhall spells filesys)
           (guildhall spells logging)
           (guildhall ext wt-tree)
+          (guildhall build-info)
           (web uri))
 
 (define-syntax define-guarantor
@@ -336,6 +338,11 @@
 ;; This doesn't really belong here
 (define logger:dorodango (make-logger root-logger 'dorodango))
 
+(define *guildhall-site* "https://github.com/ijp/guildhall/")
+
+(define user-agent (fmt #f (cat "Guildhall/" *guildhall-version* " "
+                                "Guile/" *interpreter-version* " "
+                                "(" *guildhall-site* ")")))
 )
 
 ;; Local Variables:

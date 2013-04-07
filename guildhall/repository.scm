@@ -137,7 +137,8 @@
 (define (http-download destination uri)
   (message "Fetching " (uri->string uri))
   (call-with-values (lambda ()
-                      (http-get uri #:decode-body? #f))
+                      (http-get uri #:decode-body? #f
+                                #:headers `((user-agent . ,user-agent))))
     (lambda (response body)
       (case (response-code response)
         ((200)

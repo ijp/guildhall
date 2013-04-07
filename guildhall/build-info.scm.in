@@ -24,8 +24,14 @@
 
 (library (guildhall build-info)
   (export *script-interpreter*
-          *prefix*)
+          *prefix*
+          *interpreter-version
+          *interpreter-version*
+          *guildhall-version*)
   (import (rnrs base))
   
   (define *script-interpreter* "@GUILE@")
-  (define *prefix* "@prefix@"))
+  (define *prefix* "@prefix@")
+  (define *interpreter-version* "@GUILE_VERSION@")
+  ;; TODO: autogenerate this, when I start doing proper releases
+  (define *guildhall-version* "0.0"))

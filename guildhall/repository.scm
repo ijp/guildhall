@@ -137,8 +137,9 @@
 (define (http-download destination uri)
   (message "Fetching " (uri->string uri))
   (call-with-values (lambda ()
+                      ;; beware, extra-headers is deprecated in Guile 2.0.9
                       (http-get uri #:decode-body? #f
-                                #:headers `((user-agent . ,user-agent))))
+                                #:extra-headers `((user-agent . ,user-agent))))
     (lambda (response body)
       (case (response-code response)
         ((200)

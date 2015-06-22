@@ -11,6 +11,35 @@ handle dependencies, so when a program requires several libraries, and each
 of those has further dependencies, all of the prerequisites for the program
 can be installed in one go.
 
+=== Installation ========================================================
+
+Get guile 2.x: http://gnu.org/s/guile
+
+Then get and install guildhall:
+
+    git clone git@github.com/ijp/guildhall.git
+    cd guildhall
+    ./autogen.sh && ./configure --prefix /usr && make
+    sudo make install
+
+Finally add a minimal configuration
+
+    mkdir -p ~/.config/guildhall/
+    echo '(repository shift-reset "http://shift-reset.com/doro/")' >> ~/.config/guildhall/config.scm
+
+Now you can see the packages with
+
+    guild update
+    guild list-packages --all
+
+More options:
+
+    guild --help
+
+For details see docs/installation.texi and docs/quickstart.texi
+
+=== Background ==========================================================
+
 Guildhall is a port of Andreas Rottmanns Dorodango portable package manager for
 R6RS Scheme, adapted to better fit in with Guile Scheme environments. 
 It is compatible with the R6RS Scheme package archives that Dorodango uses.
@@ -19,9 +48,7 @@ dorodango is (intended to be) a package manager for R6RS
 implementations. Its main concepts are outlined in this thread:
 <http://groups.google.com/group/ikarus-users/browse_thread/thread/fabb890e3015f6f1>.
 
-Currently, it is not useable -- I just put the code oneline so
-interested developers can track its progress and chime in. Any help or
-feedback is welcome!
+Any help or feedback is welcome!
 
 === Aptitude ============================================================
 
